@@ -1,0 +1,284 @@
+/* Reading's Memory Match (ported from the Cursor handoff). Every rule is scoped under
+   #memory-match-root so its .screen/.hidden/.face/.home/.memory-grid/.memory-card/etc. classes
+   can neither be shadowed by, nor bleed into, the rest of the app's own global classes of the
+   same name (notably Math's unrelated .memory-grid/.memory-card board). Button/body resets that
+   the standalone project declared globally are instead declared here scoped to this root only --
+   the app's own global resets in style.css already cover the rest of the page. */
+
+#memory-match-root {
+  font-family: system-ui, -apple-system, 'Arial Rounded MT Bold', sans-serif;
+  color: #fff;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #061e39;
+  container-type: size;
+}
+#memory-match-root button { font: inherit; cursor: pointer; touch-action: manipulation; }
+#memory-match-root button:focus-visible { outline: 4px solid #fff59a; outline-offset: 3px; }
+
+/* The 3:2 "stage" letterboxes inside memory-match-root using container query units -- cqw/cqh
+   measure memory-match-root's own box (the full screen, no header above it) instead of the
+   viewport directly, same effect as the standalone project measuring the viewport. */
+#memory-match-root .stage {
+  width: min(100cqw, calc(100cqh * 1.5));
+  aspect-ratio: 3 / 2;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 0 40px #0009;
+  container-type: size;
+}
+#memory-match-root .screen { display: block; position: absolute; inset: 0; background-position: center; background-size: 100% 100%; }
+#memory-match-root .hidden { display: none !important; }
+#memory-match-root .select-screen { background-image: url('assets/memory-match/backgrounds/castle-select-layered.png'); }
+#memory-match-root .select-buttons {
+  position: absolute; left: 20.5%; top: 45.5%; width: 59%; height: 37%;
+  display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 7% 5%;
+}
+#memory-match-root .select-buttons button {
+  border: 4px solid #ffd25b; border-radius: 18px;
+  background: linear-gradient(165deg, #a35a21, #60300e 60%, #a95e1e);
+  color: #fff6db; font-size: clamp(18px, 4vw, 54px); font-weight: 1000;
+  text-shadow: 2px 3px #321509;
+  box-shadow: inset 0 0 0 3px #66300b, 0 5px 0 #4b240d, 0 0 10px #ffdc6c;
+}
+#memory-match-root .select-buttons small { display: block; font-size: 0.33em; }
+#memory-match-root .select-buttons button:active { transform: translateY(3px); }
+
+#memory-match-root .play-screen { background-image: url('assets/memory-match/backgrounds/castle-board-reference.png'); }
+/* castle-board-reference.png now has its own clean argyle play area with a thin gold border
+   baked in, so the mat itself is just a positioning box for the real cards -- no fill/border of
+   its own to layer on top (that would double the border, same issue as the old baked buttons). */
+#memory-match-root .board-mat {
+  position: absolute; left: 9.4%; top: 23.8%; width: 81.2%; height: 60.6%; padding: 0.5%;
+  background: none; border: 0; box-shadow: none;
+}
+#memory-match-root .memory-grid {
+  display: grid; width: 100%; height: 100%;
+  max-width: none; align-content: normal;
+  gap: clamp(3px, 0.45vw, 9px);
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+}
+#memory-match-root .memory-card {
+  border: 0; padding: 0; position: relative; min-width: 0; min-height: 0;
+  background: transparent; perspective: 800px;
+  aspect-ratio: auto; max-height: none; justify-self: stretch; border-radius: 0; width: auto;
+}
+#memory-match-root .memory-card .inner {
+  width: 100%; height: 100%; display: block; position: relative;
+  transition: transform 0.38s ease; transform-style: preserve-3d;
+}
+#memory-match-root .memory-card.revealed .inner, #memory-match-root .memory-card.matched .inner { transform: rotateY(180deg); }
+#memory-match-root .face { position: absolute; inset: 0; border-radius: 9%; backface-visibility: hidden; overflow: hidden; display: grid; place-items: center; }
+/* castle-q.png already is the complete card-back art (blue fill + gold frame baked in) -- no
+   background/border/box-shadow of our own, or it doubles the frame already in the image. */
+#memory-match-root .back { background: none; border: 0; box-shadow: none; }
+#memory-match-root .back img { width: 100%; height: 100%; object-fit: contain; }
+/* Each card-front PNG already is the complete picture, including its own light-blue fill and gold
+   frame (same reasoning as castle-q.png on the back) -- no background/border of our own, and the
+   image fills the whole face edge-to-edge instead of leaving a gap for a CSS frame to show in. */
+#memory-match-root .front { transform: rotateY(180deg); background: none; border: 0; }
+#memory-match-root .front img { width: 100%; height: 100%; object-fit: contain; }
+#memory-match-root .matched .front { box-shadow: inset 0 0 0 4px #74d45c, 0 0 12px #adff83; }
+#memory-match-root .memory-card:disabled { cursor: default; }
+
+/* Per-row vertical nudge: data-row is set by memory-match-game.js (grid auto-flow is row-major,
+   so a card's index / columns IS its visual row, 0-3), independent of board size since every
+   board always has exactly 4 rows at the same row height. Percentage translateY is relative to
+   the card's own height, so one shared value looks the same across 5/6/7/8-column boards. Tune
+   these with progress-bar-align-tool.html's Cards tab -- defaults are 0 (no nudge). */
+#memory-match-root .memory-card[data-row="0"] { transform: translateY(var(--row0-nudge, 0%)); }
+#memory-match-root .memory-card[data-row="1"] { transform: translateY(var(--row1-nudge, -4.0%)); }
+#memory-match-root .memory-card[data-row="2"] { transform: translateY(var(--row2-nudge, -8.0%)); }
+#memory-match-root .memory-card[data-row="3"] { transform: translateY(var(--row3-nudge, -12.0%)); }
+
+/* 5x4 and 6x4 only: the default grid stretches cards to fill the (wider, relative to row height)
+   columns, squishing the square card art. Force square cards sized by row height and centered in
+   their cell instead -- 7x4/8x4 already read as square at their narrower column width, so they're
+   untouched. */
+#memory-match-root #mm-grid[style*="--columns: 5"],
+#memory-match-root #mm-grid[style*="--columns: 6"] {
+  justify-items: center;
+  align-items: center;
+}
+#memory-match-root #mm-grid[style*="--columns: 5"] > .memory-card,
+#memory-match-root #mm-grid[style*="--columns: 6"] > .memory-card {
+  box-sizing: border-box;
+  height: 100%;
+  width: auto;
+  aspect-ratio: 1 / 1;
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+  justify-self: center;
+  align-self: center;
+  overflow: visible;
+}
+#memory-match-root #mm-grid[style*="--columns: 5"] .memory-card .inner,
+#memory-match-root #mm-grid[style*="--columns: 6"] .memory-card .inner {
+  width: 100%;
+  height: 100%;
+}
+#memory-match-root #mm-grid[style*="--columns: 5"] .face img,
+#memory-match-root #mm-grid[style*="--columns: 6"] .face img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Positions below are measured against the baked-in decorative icons painted into
+   castle-board-reference.png (it's a flattened mockup, not a clean scenery-only background -- see
+   the handoff's own "Important visual fidelity limitation" note). These buttons are transparent
+   hit targets only -- the painted icon underneath IS the visible button, so there's nothing drawn
+   here to go out of sync with it. */
+#memory-match-root .top-action {
+  position: absolute; z-index: 3; top: 1.4%; width: 7.5%; aspect-ratio: 1; border-radius: 50%;
+  background: transparent; border: none; box-shadow: none;
+}
+#memory-match-root .top-action.home { left: 2.1%; }
+#memory-match-root .top-action.sound { right: 8.3%; }
+#memory-match-root .top-action.settings { right: 0.9%; }
+/* The painted icon can't reflect the live mute state, so a small badge stands in for it. */
+#memory-match-root .top-action.sound.muted::after {
+  content: '✕';
+  position: absolute; inset: 0; display: grid; place-items: center;
+  color: #ff4040; font-size: clamp(16px, 2.6vw, 34px); font-weight: 1000;
+  text-shadow: 0 0 3px #000, 0 0 3px #000;
+  pointer-events: none;
+}
+
+/* The baked bar in castle-board-reference.png has static "0/16, 0, 0%" sample text (same
+   flattened-mockup situation as the top-action buttons), so it's fully replaced here with
+   progress-bar-clean.png -- the same artwork with just the three number regions blanked out --
+   positioned over the same spot. Live numbers sit directly in those now-blank regions, so there's
+   no ghosting risk at any digit width, and the meter track's fill is a fully opaque overlay. */
+#memory-match-root .status-bar.mm-original-progress {
+  position: absolute; left: 2.5%; top: 88.8%; width: 75.5%; height: auto;
+  aspect-ratio: 1158 / 93;
+  display: block; padding: 0; margin: 0; border: 0;
+  border-radius: 0; background: none; box-shadow: none;
+  overflow: visible; z-index: 4;
+  font-family: Arial, 'DejaVu Sans', sans-serif;
+  container-type: inline-size;
+}
+#memory-match-root .mm-progress-art { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+#memory-match-root .mm-live-number {
+  position: absolute; top: 25%; height: 48%;
+  display: flex; align-items: center; justify-content: flex-start; white-space: nowrap;
+  color: white; font-size: clamp(9px, 2.65cqw, 30px); font-weight: 900; line-height: 1;
+  letter-spacing: -0.04em; -webkit-text-stroke: 0.045em #1c100b;
+  text-shadow: 0 2px 0 #170c06, 1px 1px 1px #170c06;
+  pointer-events: none;
+}
+#memory-match-root #mm-pairsText { left: 21.3%; width: 9.3%; }
+#memory-match-root #mm-attemptsText { left: 53.4%; width: 4.4%; }
+#memory-match-root #mm-progressText { left: 76%; width: 8%; font-size: clamp(8px, 1.95cqw, 22px); }
+#memory-match-root .mm-live-track { position: absolute; left: 81.4%; top: 35.5%; width: 15.65%; height: 27%; overflow: hidden; border-radius: 999px; pointer-events: none; }
+#memory-match-root .mm-live-track #mm-meterFill {
+  display: block; height: 100%; width: 0%; border-radius: 999px;
+  background: linear-gradient(to bottom, #b4f7ff 0%, #26baf5 22%, #0077d5 54%, #04448e 85%, #03265d 100%);
+  box-shadow: inset 0 1px 2px #e7ffff, 0 0 5px #22c7ff;
+  transition: width 0.35s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  #memory-match-root .mm-live-track #mm-meterFill { transition: none; }
+}
+#memory-match-root .reset-button {
+  position: absolute; right: 2.8%; bottom: 2.5%; width: 19%; height: 9.5%;
+  background: transparent; border: none; border-radius: 30px;
+}
+
+#memory-match-root .shade { position: absolute; inset: 0; background: #0009; z-index: 5; }
+#memory-match-root .match-dialog {
+  position: absolute; z-index: 6; left: 10%; top: 7%; width: 80%; height: 86%;
+  background: url('assets/memory-match/ui/match-popup-frame.png') center / 100% 100% no-repeat;
+  filter: drop-shadow(0 8px 12px #0009);
+}
+#memory-match-root .dialog-content {
+  position: absolute; left: 8%; top: 7%; width: 84%; height: 88%;
+  display: flex; flex-direction: column; align-items: center; color: #4a220a; gap: 0;
+}
+#memory-match-root .dialog-content h2 {
+  flex: 0 0 14%; height: auto; margin: 0; display: grid; place-items: center; text-align: center;
+  color: #fff5c6; font-weight: 1000; font-size: clamp(18px, 3.3cqw, 52px); line-height: 1.05;
+  text-shadow: 2px 3px #57250b, 0 0 5px #000;
+}
+#memory-match-root .challenge { display: flex; width: 100%; flex: 0 0 29%; height: auto; align-items: center; justify-content: center; gap: 3%; }
+#memory-match-root .challenge img { width: 33%; height: 100%; object-fit: contain; }
+#memory-match-root .spell-area { width: 62%; text-align: center; font-weight: 900; }
+#memory-match-root .spell-area p { font-size: clamp(12px, 1.8cqw, 28px); line-height: 1.05; margin: 0 0 3%; }
+#memory-match-root .letter-slots { display: flex; justify-content: center; gap: 2%; }
+#memory-match-root .letter-slots span {
+  display: grid; place-items: center; width: min(21%, 6.5cqw); aspect-ratio: 1;
+  background: #fff8dd; border: 3px solid #ad742d; border-radius: 12px;
+  font-size: clamp(18px, 3cqw, 46px); color: #44220e;
+}
+#memory-match-root .keyboard {
+  display: grid; flex: 0 0 39%; height: auto;
+  grid-template-columns: repeat(9, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 3.5% 1%; width: 100%; align-content: stretch; padding: 1% 0 2%;
+}
+#memory-match-root .keyboard button {
+  min-width: 0; min-height: 0; width: 100%; height: 100%;
+  border: 2px solid #ffd76b; border-radius: clamp(7px, 0.9cqw, 14px);
+  background: linear-gradient(#25aeff, #0054c7 65%, #00347e); color: white;
+  box-shadow: inset 0 2px 2px #ffffff77, 0 3px 0 #002b69;
+  font-size: clamp(16px, 2.6cqw, 40px); font-weight: 950; text-shadow: 1px 1px #063263;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+#memory-match-root .keyboard button:active { transform: translateY(2px); filter: brightness(1.15); }
+#memory-match-root .dialog-actions { display: flex; gap: 3%; justify-content: center; width: 100%; flex: 0 0 13%; height: auto; margin-top: 2%; }
+#memory-match-root .dialog-actions button {
+  min-width: 0; height: 100%;
+  border: 3px solid #f3b640; border-radius: clamp(10px, 1.5cqw, 24px);
+  font-size: clamp(15px, 2.4cqw, 36px); font-weight: 900; padding: 0 5%;
+}
+#memory-match-root .erase-button { background: #ffca37; color: #522600; flex: 1; }
+#memory-match-root .submit-button { background: linear-gradient(#76ff3c, #0b9a0d); color: #fff; text-shadow: 1px 1px #13540a; flex: 1.6; }
+#memory-match-root .feedback { flex: 0 0 5%; margin: 1% 0 0; font-size: clamp(12px, 1.5cqw, 23px); font-weight: 900; text-align: center; }
+
+#memory-match-root .small-dialog {
+  position: absolute; z-index: 8; left: 30%; top: 31%; width: 40%; min-height: 30%; padding: 3%;
+  border: 7px solid #ffca58; border-radius: 26px;
+  background: linear-gradient(#fff1c2, #e7ac5c);
+  box-shadow: 0 0 0 999px #0009;
+  color: #4a250d; text-align: center;
+}
+#memory-match-root .small-dialog h2 { font-size: clamp(17px, 2.7vw, 42px); margin: 0; }
+#memory-match-root .small-dialog p { font-size: clamp(12px, 1.6vw, 24px); }
+#memory-match-root .small-dialog button {
+  border: 3px solid #f3b63d; border-radius: 12px; padding: 2% 4%; margin: 1%;
+  background: #086fba; color: white; font-weight: 900; font-size: clamp(11px, 1.4vw, 22px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #memory-match-root .memory-card .inner { transition: none; }
+}
+
+@media (max-width: 650px) {
+  #memory-match-root .match-dialog { left: 5%; width: 90%; }
+  #memory-match-root .dialog-content { left: 7%; width: 86%; }
+  #memory-match-root .keyboard { gap: 2.5% 1%; }
+}
+
+/* Six-level enhancements: Level 2 (trace), Level 3 (first-letter choice), Level 4 (unscramble
+   tiles). Reuses the existing castle match-popup-frame.png and dialog layout -- no new popup. */
+#memory-match-root .mm-trace-area { flex: 0 0 39%; height: auto; display: flex; justify-content: center; align-items: stretch; gap: 2%; width: 100%; min-height: 0; }
+#memory-match-root .mm-trace-letter { flex: 0 1 24%; background: #fff8dd; border: 3px solid #ad742d; border-radius: 12px; overflow: hidden; }
+#memory-match-root .mm-trace-letter svg { display: block; width: 100%; height: 100%; touch-action: none; }
+#memory-match-root .mm-letter-path { fill: none; stroke: #617c9b; stroke-width: 2.5; stroke-dasharray: 2.5 3.2; stroke-linejoin: round; }
+#memory-match-root .mm-trace-ink { fill: none; stroke: #139b47; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; }
+#memory-match-root .mm-trace-letter.done { background: #d4ffcf; border-color: #24a64c; }
+#memory-match-root .mm-trace-letter.done .mm-letter-path { stroke: #139b47; stroke-dasharray: none; }
+#memory-match-root .mm-choice-area { flex: 0 0 39%; height: auto; display: flex; align-items: center; justify-content: center; gap: 4%; width: 100%; }
+#memory-match-root .mm-choice-area button { min-width: 0; width: 24%; height: 72%; border: 4px solid #ffca52; border-radius: 16px; background: linear-gradient(#fffbea, #f7d994); color: #173b71; font-size: clamp(28px, 6cqw, 80px); font-weight: 1000; box-shadow: 0 5px 0 #9d651e; }
+#memory-match-root .mm-choice-area button.mm-selected { background: #b6ff9a; border-color: #17a946; }
+#memory-match-root .mm-choice-area button:disabled { opacity: 0.24; }
+#memory-match-root .letter-slots span.mm-removable { cursor: pointer; }

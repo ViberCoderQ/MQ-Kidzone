@@ -1,0 +1,3131 @@
+:root {
+  --bg: #fff4e0;
+  --ink: #3a2e2e;
+  --ink-soft: #7a6a63;
+  --card-bg: #ffffff;
+  --card-border: #f0ddb8;
+  --accent: #ff8a5b;
+  --accent-2: #ff6b6b;
+  --radius: 20px;
+  --radius-sm: 12px;
+  --shadow: 0 6px 18px rgba(80, 50, 20, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+  background: var(--bg);
+  background-image: radial-gradient(circle at 10% 10%, #ffe8c7 0, transparent 40%),
+    radial-gradient(circle at 90% 85%, #ffd9e6 0, transparent 45%);
+  color: var(--ink);
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+input {
+  font-family: inherit;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ---- screens ---- */
+.screen {
+  position: fixed;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.screen.active {
+  display: flex;
+}
+
+.screen-inner {
+  flex: 1;
+  padding: 1.25rem 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.app-title {
+  font-size: 1.9rem;
+  margin: 0.5rem 0 0.25rem;
+  text-align: center;
+  color: var(--accent-2);
+  text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.6);
+}
+.title-crayon {
+  display: inline-block;
+  transform: rotate(-12deg);
+}
+
+.screen-subtitle {
+  margin: 0 0 1.25rem;
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+/* ---- buttons ---- */
+.big-btn {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  padding: 1rem 1.25rem;
+  border-radius: 999px;
+  background: var(--card-bg);
+  border: 3px solid var(--card-border);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.big-btn.primary-btn {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.big-btn.danger-btn {
+  background: #ff5e5e;
+  border-color: #ff5e5e;
+  color: #fff;
+}
+.add-profile-btn {
+  margin-top: 0.5rem;
+}
+
+.icon-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ---- profile screen ---- */
+.profile-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 560px;
+  margin-bottom: 1.5rem;
+}
+
+.profile-card {
+  position: relative;
+  width: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--avatar-color, var(--accent));
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-avatar.small {
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+}
+
+.profile-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- home screen ---- */
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem 0;
+}
+
+.profile-chip {
+  display: flex;
+  align-items: center;
+  padding: 0.35rem 0.9rem 0.35rem 0.35rem;
+  border-radius: 999px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  font-weight: 700;
+}
+
+.home-inner {
+  justify-content: center;
+  flex: 1;
+}
+
+.home-logo {
+  display: block;
+  width: min(495px, 85vw);
+  height: auto;
+  margin: 0.25rem auto 0.5rem;
+}
+
+.home-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 1.5rem;
+}
+
+.menu-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  font-size: 1.25rem;
+  font-weight: 800;
+  border: 3px solid transparent;
+}
+.menu-card[data-accent="pink"] { border-color: #ffb8d9; }
+.menu-card[data-accent="blue"] { border-color: #b8ddff; }
+.menu-card[data-accent="yellow"] { border-color: #ffe9a8; }
+
+.menu-card-icon {
+  font-size: 2.1rem;
+}
+
+/* ---- sub-header (template / canvas / gallery) ---- */
+.sub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.sub-header-title {
+  margin: 0;
+  font-size: 1.2rem;
+  flex: 1;
+  text-align: center;
+  color: var(--accent-2);
+}
+
+.header-spacer {
+  width: 48px;
+  flex-shrink: 0;
+}
+
+/* ---- canvas screen: top pill-bar header (Free Draw + Coloring Book) ---- */
+.canvas-header {
+  flex-shrink: 0;
+  display: flex;
+  padding: 1.125rem 1rem; /* 0.75rem vertical x1.5 -- horizontal untouched */
+}
+
+/* Stretches edge-to-edge across the header; each pill below grows evenly (flex: 1) to fill
+   whatever share of that width it doesn't need for its own content, so the whole row spreads out
+   across the full screen instead of clumping at its natural size. */
+.canvas-pill-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  background: #e8c994;
+  border-radius: 999px;
+  padding: 0.6rem 0.4rem; /* 0.4rem vertical x1.5 -- horizontal untouched */
+}
+
+.pill {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  padding: 0.6rem 0.75rem; /* 0.4rem vertical x1.5 -- horizontal untouched */
+  border-radius: 999px;
+  background: var(--card-bg);
+  font-family: inherit;
+  line-height: 1.15;
+  box-shadow: 0 2px 4px rgba(80, 50, 20, 0.15);
+}
+.pill-icon {
+  font-size: 1.95rem; /* 1.3rem x1.5 */
+}
+.pill-icon-text {
+  font-weight: 900;
+  font-style: normal;
+  font-size: 1.875rem; /* 1.25rem x1.5 */
+  color: #8b5cf6;
+}
+.pill-label {
+  font-size: 0.93rem; /* 0.62rem x1.5 */
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.pill.active {
+  background: var(--accent);
+}
+.pill.active .pill-label {
+  color: #fff;
+}
+.pill-disabled {
+  opacity: 0.5;
+}
+
+/* Has to stay circular, so both dimensions scale together to hit 1.5x the height. */
+.pill-circle {
+  flex: 0 0 69px;
+  width: 69px;
+  height: 69px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.95rem; /* 1.3rem x1.5 */
+  font-weight: 800;
+  color: var(--accent-2);
+}
+
+.pill-save {
+  flex: 2 1 0;
+  flex-direction: row;
+  gap: 0.4rem;
+  padding: 0.75rem 1.3rem; /* 0.5rem vertical x1.5 -- horizontal untouched */
+  background: #34d399;
+}
+.pill-save .pill-icon {
+  font-size: 1.8rem; /* 1.2rem x1.5 */
+}
+.pill-save .pill-label {
+  font-size: 1.275rem; /* 0.85rem x1.5 */
+  color: #fff;
+}
+
+.pill-divider {
+  flex: 0 0 2px;
+  align-self: center;
+  width: 2px;
+  height: 50%;
+  background: rgba(58, 46, 46, 0.18);
+  border-radius: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* ---- template grid ---- */
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.template-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem;
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+
+.template-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+
+.template-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.memory-match-word.off .template-thumb { opacity: 0.35; }
+.memory-match-toggle {
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.15rem 0.6rem;
+  border-radius: 10px;
+  background: #2ecc71;
+  color: #fff;
+}
+.memory-match-word.off .memory-match-toggle { background: #d9cdb8; color: var(--ink-soft); }
+
+.photo-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.photo-hub-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1.8rem 1rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  font-family: inherit;
+  cursor: pointer;
+}
+.photo-hub-choice:active { transform: scale(0.96); }
+.photo-hub-emoji { font-size: 2.6rem; line-height: 1; }
+.photo-hub-label { font-weight: 700; font-size: 1rem; color: var(--ink); text-align: center; }
+
+/* ---- canvas screen ---- */
+/* Canvas on the left, toolbar as a right-hand sidebar -- row layout instead of the stage
+   stacking above a bottom bar. */
+.canvas-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+  padding: 0 calc(0.75rem + env(safe-area-inset-right, 0px)) calc(0.75rem + env(safe-area-inset-bottom, 0px)) 0.75rem;
+}
+
+.canvas-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+#draw-canvas {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+  background: #ffffff;
+  box-shadow: var(--shadow);
+  touch-action: none;
+  /* Top-left, not center: CanvasEngine's zoom-to-point math (zoomAround) assumes this origin so
+     it can derive the pan correction with simple arithmetic -- keep these two in sync. */
+  transform-origin: 0 0;
+}
+
+/* Sits directly on top of #draw-canvas at the same size/position, showing only the one shape
+   currently being placed -- kept completely separate from the real canvas pixels until Done is
+   tapped, so dragging/resizing never touches the actual drawing or its undo history. */
+#sticker-canvas, #shape-canvas, #lasso-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  z-index: 4;
+}
+
+/* Live preview surface for an in-progress Rainbow Trail stroke (see RainbowGL in canvas-engine.js)
+   -- transparent except for the stroke currently being drawn, composited onto #draw-canvas and
+   cleared the instant the finger lifts. pointer-events: none so #draw-canvas underneath keeps
+   getting every pointer event exactly as before; this canvas never touches input. */
+#rainbow-gl-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+  /* Must match #draw-canvas's own transform-origin -- canvas-engine.js's applyTransform() keeps
+     this element's transform in sync with #draw-canvas's zoom/pan transform (same translate+scale
+     string on both), and with mismatched origins the same transform would scale around a
+     different pivot point on each, misaligning the live preview the instant zoomScale != 1. */
+  transform-origin: 0 0;
+}
+
+.lasso-action-controls {
+  position: absolute;
+  bottom: 0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.6rem;
+  z-index: 6;
+}
+
+.lasso-action-btn {
+  padding: 0.7rem 1.1rem;
+  border: none;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: var(--shadow);
+  color: #fff;
+}
+.lasso-copy-btn { background: #3498db; }
+.lasso-cut-btn { background: #ff5e5e; }
+
+.lasso-mode-controls {
+  position: absolute;
+  bottom: 0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 6;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.4rem;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+}
+
+.lasso-mode-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+.lasso-mode-btn.active {
+  background: rgba(167, 139, 250, 0.3);
+  box-shadow: 0 0 0 2px #a78bfa;
+}
+
+.zoom-controls {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  z-index: 5;
+}
+
+.zoom-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+.zoom-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+.zoom-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.toolbar {
+  flex-shrink: 0;
+  width: 230px;
+  max-width: 38vw;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.neon-mode-btn {
+  display: block;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: #0a0a12;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-align: center;
+  box-shadow: 0 0 0 2px #39ff14, 0 0 14px rgba(57, 255, 20, 0.6), var(--shadow);
+}
+.neon-mode-btn.active {
+  background: #000;
+  box-shadow: 0 0 0 3px #ff10f0, 0 0 20px rgba(255, 16, 240, 0.85), 0 0 36px rgba(0, 255, 255, 0.5);
+}
+
+.rainbow-mode-btn {
+  display: block;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff0000, #ff8c00, #ffd700, #00c853, #2979ff, #8e24aa);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow);
+}
+/* The gradient itself doesn't change between states, so "on" needs its own unmistakable cue --
+   a bright ring plus a gentle pulse, same idea as Neon Mode's glow. */
+.rainbow-mode-btn.active {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 6px #8e24aa, var(--shadow);
+  animation: rainbow-btn-pulse 1.4s ease-in-out infinite;
+}
+@keyframes rainbow-btn-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+/* Fire/Candy Stripe/Hollow Outline/Sparkle -- same pill shape/sizing as Rainbow above, each with
+   its own background suggesting the effect and its own "active" glow. Mutually exclusive with
+   each other and with Rainbow (see the shared paint-effect click wiring in app.js). */
+.paint-effect-btn {
+  display: block;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow);
+  margin-top: 0.6rem;
+}
+.paint-effect-btn:first-of-type { margin-top: 0; }
+
+/* Striped, not the smooth gradient Rainbow (above) uses -- Rainbow Ribbon paints fixed parallel
+   color lanes across the stroke's width rather than cycling one color by distance, so the button
+   itself reads as "bands" rather than "a single flowing gradient" to tell the two apart. */
+#ribbon-effect-btn {
+  background: repeating-linear-gradient(100deg,
+    #ff0000 0 7%, #ff8c00 7% 14%, #ffd700 14% 21%,
+    #00c853 21% 28%, #2979ff 28% 35%, #8e24aa 35% 42%);
+}
+#ribbon-effect-btn.active {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 6px #333, var(--shadow);
+  animation: rainbow-btn-pulse 1.4s ease-in-out infinite;
+}
+
+#fire-effect-btn { background: linear-gradient(180deg, #ffd700, #ff8c00 45%, #d1200a); }
+#fire-effect-btn.active { box-shadow: 0 0 0 3px #fff, 0 0 0 6px #ff4500, 0 0 16px rgba(255, 140, 0, 0.8), var(--shadow); }
+
+#candy-effect-btn {
+  background: repeating-linear-gradient(135deg, #ff2b5c 0 14px, #fffaf0 14px 28px);
+  color: #c20d3f;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+#candy-effect-btn.active { box-shadow: 0 0 0 3px #fff, 0 0 0 6px #ff2b5c, var(--shadow); }
+
+#hollow-effect-btn {
+  background: #fff;
+  color: #17304b;
+  text-shadow: none;
+  box-shadow: inset 0 0 0 3px #17304b, var(--shadow);
+}
+#hollow-effect-btn.active { box-shadow: inset 0 0 0 3px #17304b, 0 0 0 3px #fff, 0 0 0 6px #17304b, var(--shadow); }
+
+#sparkle-effect-btn { background: linear-gradient(90deg, #ff6ba8, #ffd700, #ff6ba8); }
+#sparkle-effect-btn.active { box-shadow: 0 0 0 3px #fff, 0 0 0 6px #ff6ba8, 0 0 16px rgba(255, 215, 0, 0.75), var(--shadow); }
+
+/* One flat row of standard colors -- Pastel/Fluorescent variants live in the shade row below. */
+/* 12 colors, always exactly 4 across x 3 down regardless of sidebar width. */
+.palette {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  box-shadow: var(--shadow);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+}
+
+.swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 3px solid rgba(0, 0, 0, 0.08);
+}
+.swatch.selected {
+  border-color: var(--ink);
+  transform: scale(1.15);
+}
+
+/* 25 light-to-dark shades of whichever base swatch was tapped above -- too many to stretch-to-fit
+   at a usable touch size, so each swatch gets a fixed height and the column scrolls within
+   whatever sidebar space is available. */
+.shade-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shade-swatch {
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
+  height: 46px;
+  border-radius: var(--radius-sm);
+  border: 3px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow);
+}
+/* A full-width flex item can't grow via transform:scale the way the small round swatches do
+   (it would overlap its neighbors in the tightly stacked column) -- a thicker ring plus a
+   checkmark gives the same unmistakable feedback without shifting layout. */
+.shade-swatch.selected {
+  border-color: var(--ink);
+  border-width: 4px;
+}
+.shade-swatch.selected::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: rgba(0, 0, 0, 0.55);
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.85);
+}
+
+.tool-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---- right-hand panel: tan outer pill (brush/size + tabs) wrapping an off-white inner pill
+   (the Colors/Effects content) -- same tan as the header's pill bar, so the two read as one
+   family. ---- */
+.side-outer-pill {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: #e8c994;
+  border-radius: 28px;
+  padding: 0.6rem;
+}
+
+.side-inner-pill {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fdf6ea;
+  border-radius: 0 0 22px 22px; /* flat top -- the active tab visually continues down into it */
+  padding: 0.6rem;
+}
+
+/* Tabs sit directly on the outer pill's tan surface, exactly as wide as the inner pill below, and
+   connect to it with zero gap: the active tab shares the inner pill's off-white, so it reads as
+   part of that panel (like a real folder tab); the inactive tab stays a translucent wash over the
+   tan instead. Only the two outer corners round (to echo the pill shapes around them) -- the
+   seam between the two tabs stays square, like real adjoining tabs. */
+.panel-tabs {
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+}
+.panel-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.55rem;
+  background: rgba(255, 255, 255, 0.4);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.panel-tab:first-child {
+  border-radius: 16px 0 0 0;
+}
+.panel-tab:last-child {
+  border-radius: 0 16px 0 0;
+}
+.panel-tab.active {
+  background: #fdf6ea;
+}
+
+.tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  box-shadow: var(--shadow);
+}
+
+/* The Brush/Size card is two stacked rows -- the brush picker + slider on top, Color Match/
+   Straight Line/Lasso (plus the hidden admin-only buttons) along the bottom. */
+#brush-size-row {
+  flex-direction: column;
+  align-items: stretch;
+}
+.brush-size-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.brush-extra-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.tool-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  flex-shrink: 0;
+  position: relative;
+}
+.tool-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.tool-label {
+  font-size: 0.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.85;
+}
+
+/* ---- canvas screen, portrait orientation ---- */
+/* The default layout puts the toolbar as a 230px-wide right-hand sidebar, which is fine in
+   landscape but eats a big share of a portrait iPad's narrower width, squeezing the canvas. In
+   portrait, stack the toolbar below the canvas instead, at full width -- the canvas still gets
+   the majority of the screen, and nothing in the toolbar overlaps or crowds it. */
+@media (orientation: portrait) {
+  .canvas-body {
+    flex-direction: column;
+    padding: 0 calc(0.75rem + env(safe-area-inset-right, 0px)) calc(0.75rem + env(safe-area-inset-bottom, 0px)) calc(0.75rem + env(safe-area-inset-left, 0px));
+  }
+
+  .canvas-stage {
+    flex: 1; /* the picture claims every bit of space the toolbar below doesn't actually need */
+  }
+
+  .toolbar {
+    width: 100%;
+    max-width: none;
+    flex: 0 0 auto; /* exactly as tall as its content, not a fixed share of the screen */
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .tool-group {
+    flex: 0 0 auto;
+  }
+
+  /* A tall scrolling column of 25 shades only makes sense in a tall sidebar -- here it becomes a
+     short horizontal strip that scrolls sideways instead, so it still fits without swallowing
+     the vertical space the canvas needs. */
+  .shade-row {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    flex: 0 0 auto;
+    height: 56px;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .shade-swatch {
+    width: 56px;
+    height: 100%;
+    flex-shrink: 0;
+  }
+}
+
+/* ---- stylus launcher button (opens the picker overlay) ---- */
+.stylus-launcher-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.stylus-launcher-btn .tool-label {
+  font-size: 0.85rem;
+  opacity: 1;
+}
+.stylus-launcher-caret {
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+/* ---- stylus picker overlay ---- */
+.stylus-overlay-card {
+  max-width: 460px;
+  text-align: left;
+}
+
+.stylus-category-heading {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 1.1rem 0 0.5rem;
+}
+.stylus-category-heading:first-child {
+  margin-top: 0;
+}
+
+.stylus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 0.6rem;
+}
+
+.stylus-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.65rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.stylus-tile-emoji {
+  font-size: 1.6rem;
+}
+.stylus-tile.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Sticker picker reuses .stylus-grid/.stylus-category-heading for layout -- these just style the
+   tiles themselves. Geometric/Landscape tiles show a little canvas rendering the actual shape
+   (so the preview is never out of sync with what gets placed); Number/Letter tiles just show the
+   character, which IS the preview. */
+.sticker-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.sticker-tile canvas {
+  width: 40px;
+  height: 40px;
+}
+.sticker-tile-glyph {
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.brush-size-wrap {
+  flex: 1 1 100%;
+  min-width: 60px;
+}
+.brush-size-wrap input[type="range"] {
+  width: 100%;
+}
+
+/* ---- gallery ---- */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.gallery-item {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: #fff;
+  aspect-ratio: 1;
+}
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.empty-hint {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 1.05rem;
+  margin-top: 2rem;
+}
+
+/* ---- overlays ---- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(40, 25, 15, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 50;
+}
+
+.overlay-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--shadow);
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* reliable touch-drag scrolling on iPad -- same reason
+    .screen has it; without it a long list in here (e.g. the VS-a-kid opponent picker) can be
+    hard to swipe past whatever happens to fit on first paint */
+  overscroll-behavior: contain; /* stop an over-scroll from bleeding into the page behind it */
+}
+
+.overlay-title {
+  margin: 0 0 1rem;
+  text-align: center;
+  color: var(--accent-2);
+}
+
+.name-input {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  border: 2px solid var(--card-border);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.avatar-color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.avatar-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+}
+.avatar-dot.selected {
+  border-color: var(--ink);
+  transform: scale(1.1);
+}
+
+.overlay-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+.overlay-actions .big-btn {
+  max-width: none;
+}
+
+/* Gallery piece viewer -- deliberately matches .canvas-stage's sizing so a saved picture shows
+   at the same scale it was colored at, not shrunk into a small popup. */
+.artwork-view-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+}
+#artwork-view-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: #fff;
+}
+.artwork-view-actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0 1.5rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+}
+.artwork-view-actions .big-btn {
+  max-width: none;
+}
+
+.overlay-close-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+/* ---- grown-ups button (profile screen) ---- */
+/* Deliberately low-key -- a quiet corner button, not part of the kids' navigation. */
+.parent-entry-btn {
+  position: absolute;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  right: 0.75rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  opacity: 0.45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-folder-status {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0.4rem 0 1rem;
+  text-align: center;
+}
+
+.admin-upload-card {
+  aspect-ratio: 1;
+  justify-content: center;
+  border: 3px dashed var(--card-border);
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-soft);
+}
+.admin-upload-icon {
+  font-size: 2rem;
+}
+
+/* ---- tablet / larger screens ---- */
+@media (min-width: 700px) {
+  .home-menu {
+    flex-direction: row;
+    max-width: 700px;
+  }
+  .menu-card {
+    flex-direction: column;
+    text-align: center;
+    flex: 1;
+    padding-top: 2rem;
+  }
+}
+
+/* ---- read-aloud buttons ---- */
+.voice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--card-border);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.voice-btn.corner {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+}
+.voice-btn.speaking {
+  animation: voice-pulse 0.6s ease;
+}
+@keyframes voice-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); background: #fff1c2; }
+  100% { transform: scale(1); }
+}
+
+/* ---- kid home: section tiles ---- */
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.1rem;
+  width: 100%;
+  max-width: 880px;
+  margin-top: 1.25rem;
+}
+.section-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 170px;
+  padding: 1.25rem 0.75rem;
+  border-radius: 26px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  border: 4px solid var(--tile-color, var(--card-border));
+  font-size: 1.35rem;
+  font-weight: 800;
+  transition: transform 0.12s ease;
+}
+.section-tile:active { transform: scale(0.96); }
+.section-tile[data-accent="pink"] { --tile-color: #ffb8d9; background: #fff6fa; }
+.section-tile[data-accent="green"] { --tile-color: #a8e6bf; background: #f4fdf7; }
+.section-tile[data-accent="blue"] { --tile-color: #b8ddff; background: #f4f9ff; }
+.section-tile[data-accent="purple"] { --tile-color: #d6c4ff; background: #f9f6ff; }
+.section-tile[data-accent="yellow"] { --tile-color: #ffe08a; background: #fffbef; }
+.section-tile[data-accent="orange"] { --tile-color: #ffc29e; background: #fff7f2; }
+.section-tile[data-accent="red"] { --tile-color: #ff9e9e; background: #fff2f2; }
+.section-tile-icon { font-size: 3.4rem; line-height: 1; }
+.section-tile.not-ready .section-tile-icon,
+.section-tile.not-ready .section-tile-label { opacity: 0.45; }
+.soon-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--tile-color, var(--card-border));
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  max-width: calc(100% - 2rem);
+  text-align: center;
+  padding: 0.8rem 1.5rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 800;
+  box-shadow: var(--shadow);
+  z-index: 40;
+}
+
+@media (min-width: 600px) {
+  .section-grid { grid-template-columns: repeat(3, 1fr); max-width: 640px; }
+}
+@media (min-width: 900px) {
+  .section-grid { grid-template-columns: repeat(5, 1fr); max-width: 880px; }
+}
+
+/* ---- install tip ---- */
+.install-hint {
+  position: relative;
+  max-width: 520px;
+  margin-top: 1.5rem;
+  padding: 0.9rem 2.6rem 0.9rem 1rem;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  border: 2px dashed var(--card-border);
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.install-hint-close {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+  color: var(--ink-soft);
+}
+
+/* ---- parent area ---- */
+.parent-inner {
+  gap: 1rem;
+}
+.parent-card {
+  width: 100%;
+  max-width: 560px;
+  padding: 1.1rem 1.25rem 1.25rem;
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.parent-card .big-btn { max-width: none; }
+.parent-card-title {
+  margin: 0;
+  align-self: flex-start;
+  font-size: 1.1rem;
+}
+.parent-card-note {
+  margin: 0;
+  align-self: flex-start;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.parent-kid-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.parent-kid-row {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.parent-kid-name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.parent-kid-delete {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 2px solid #ffc2c2;
+  color: #c0392b;
+  font-weight: 700;
+}
+.parent-status {
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+#parent-lock-btn {
+  max-width: 560px;
+  margin-top: 0.5rem;
+}
+
+/* ---- PIN pad ---- */
+.pin-card {
+  max-width: 340px;
+  text-align: center;
+}
+.pin-message {
+  margin: 0 0 1rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+.pin-question {
+  margin: 0 0 1rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  text-align: center;
+}
+.pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+.pin-dots.shake { animation: pin-shake 0.35s ease; }
+@keyframes pin-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+.pin-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+}
+.pin-dot.filled { background: var(--accent); }
+.pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+.pin-key {
+  height: 62px;
+  border-radius: 18px;
+  background: var(--bg);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+.pin-key:active { background: var(--card-border); }
+.pin-key.blank { visibility: hidden; }
+.pin-forgot {
+  margin-top: 1rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
+
+/* ---- sign-in keyboard ---- */
+.signin-inner {
+  justify-content: center;
+  gap: 0.9rem;
+}
+.signin-prompt {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+.signin-name {
+  display: flex;
+  gap: 0.4rem;
+  min-height: 76px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.signin-name.shake { animation: pin-shake 0.35s ease; }
+.signin-letter {
+  width: 58px;
+  height: 70px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--accent-2);
+}
+.signin-letter.placeholder {
+  color: var(--card-border);
+  box-shadow: none;
+  border: 3px dashed var(--card-border);
+  background: transparent;
+}
+.abc-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+  max-width: 760px;
+}
+.abc-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.55rem;
+}
+.abc-key {
+  aspect-ratio: 1.15;
+  min-height: 56px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 4px 0 #f0ddb8, var(--shadow);
+  font-size: clamp(1.5rem, 4vw, 2.3rem);
+  font-weight: 800;
+  color: var(--ink);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.abc-key:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #f0ddb8, var(--shadow);
+}
+.abc-key.abc-back { color: var(--ink-soft); }
+.abc-key.abc-go { background: #2ecc71; color: #fff; box-shadow: 0 4px 0 #22a85a, var(--shadow); }
+.abc-key.glow {
+  background: #fff3b0;
+  box-shadow: 0 0 0 4px #ffd84d, 0 4px 0 #f0ddb8, 0 0 22px 6px rgba(255, 210, 60, 0.75);
+  animation: key-glow 1.2s ease-in-out infinite;
+}
+.abc-key.abc-go.glow { background: #2ecc71; box-shadow: 0 0 0 4px #ffd84d, 0 0 22px 6px rgba(255, 210, 60, 0.75); }
+@keyframes key-glow {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+.hello-overlay { background: rgba(255, 244, 224, 0.92); }
+.hello-card { text-align: center; animation: hello-pop 0.4s ease; }
+.hello-wave { font-size: 6rem; animation: wave 0.9s ease-in-out infinite; transform-origin: 70% 70%; }
+.hello-text { font-size: 3rem; font-weight: 800; color: var(--accent-2); }
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(18deg); }
+}
+@keyframes hello-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ---- coins ---- */
+.coin-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 1rem 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: #fff7d6;
+  border: 3px solid #ffd84d;
+  box-shadow: var(--shadow);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+.coin-icon { font-size: 1.6rem; }
+.chip-bye { margin-left: 0.4rem; }
+
+.coin-balance {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0 1rem;
+}
+.coin-balance-icon { font-size: 4rem; }
+.coin-balance-number { font-size: 4rem; font-weight: 800; color: #c98a00; }
+.coin-today {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+.coin-today-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+.coin-today-emoji { font-size: 1.8rem; }
+.coin-today-bar {
+  flex: 1;
+  height: 18px;
+  border-radius: 999px;
+  background: #f4ead6;
+  overflow: hidden;
+}
+.coin-today-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffd84d, #ffb52e);
+}
+.coin-today-count { font-weight: 800; min-width: 3.5rem; text-align: right; }
+.coin-history {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.coin-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+.coin-row-emoji { font-size: 1.8rem; }
+.coin-row-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.coin-row-label { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.coin-row-day { font-size: 0.85rem; color: var(--ink-soft); }
+.coin-row-amount { font-size: 1.4rem; font-weight: 800; }
+.coin-row.plus .coin-row-amount { color: #1f9d55; }
+.coin-row.minus .coin-row-amount { color: #d64545; }
+.coin-history.compact { gap: 0.35rem; max-height: 260px; overflow-y: auto; }
+.coin-history.compact .coin-row { box-shadow: none; background: var(--bg); padding: 0.4rem 0.6rem; }
+.coin-history.compact .coin-row-emoji { font-size: 1.3rem; }
+.coin-history.compact .coin-row-amount { font-size: 1.1rem; }
+
+.celebrate-overlay { background: rgba(255, 244, 224, 0.85); z-index: 60; }
+.celebrate-card { text-align: center; }
+.celebrate-overlay.pop .celebrate-card { animation: hello-pop 0.35s ease; }
+.celebrate-coin { font-size: 7rem; animation: coin-spin 1s ease-in-out infinite; display: inline-block; }
+.celebrate-amount { font-size: 4rem; font-weight: 800; color: #c98a00; }
+.celebrate-text { font-size: 1.8rem; font-weight: 800; color: var(--ink); }
+@keyframes coin-spin {
+  0%, 100% { transform: rotateY(0deg) translateY(0); }
+  50% { transform: rotateY(180deg) translateY(-14px); }
+}
+
+/* ---- parent: kid rows + kid panel ---- */
+.parent-kid-coins { font-weight: 800; margin-right: 0.4rem; }
+.parent-kid-more { font-size: 1.6rem; color: var(--ink-soft); padding: 0 0.3rem; }
+.kid-card { max-width: 460px; display: flex; flex-direction: column; gap: 1rem; }
+.kid-card .overlay-title { margin-bottom: 0; }
+.kid-balance { text-align: center; font-size: 1.6rem; font-weight: 800; color: #c98a00; }
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.switch-row > span { flex: 1; }
+.switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 54px;
+  height: 32px;
+  border-radius: 999px;
+  background: #d9cdb8;
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease;
+}
+.switch:checked { background: #2ecc71; }
+.switch:checked::after { transform: translateX(22px); }
+.kid-adjust { display: flex; flex-direction: column; gap: 0.6rem; }
+.kid-adjust-row { display: flex; gap: 0.5rem; }
+.small-input { margin-bottom: 0; text-align: left; font-size: 1rem; }
+.kid-adjust-row .small-input:first-child { width: 6.5rem; flex-shrink: 0; }
+.kid-history-title { margin-bottom: -0.5rem; }
+.kid-remove-btn {
+  color: #c0392b;
+  font-weight: 700;
+  text-decoration: underline;
+  padding: 0.5rem;
+}
+
+/* ---- chore / store pictures ---- */
+.pic { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+img.pic { object-fit: cover; border-radius: 14px; background: #fff; }
+.pic-emoji { line-height: 1; }
+.pic-md { width: 52px; height: 52px; font-size: 2.4rem; }
+.pic-lg { width: 96px; height: 96px; font-size: 4.4rem; }
+
+/* ---- Setup (central computer) ---- */
+.setup-tabs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0 1rem 0.5rem;
+  flex-shrink: 0;
+}
+.setup-tab {
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 3px solid var(--card-border);
+  font-weight: 800;
+  font-size: 1rem;
+}
+.setup-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.setup-inner { gap: 1rem; padding-bottom: 6rem; }
+.setup-panel {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+.setup-panel > .parent-card-note { align-self: center; text-align: center; }
+.setup-list { width: 100%; display: flex; flex-direction: column; gap: 0.5rem; }
+.setup-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+.setup-row-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.setup-row-name { font-weight: 800; font-size: 1.1rem; }
+.setup-row-meta { color: var(--ink-soft); font-size: 0.9rem; }
+.setup-row-coins { font-weight: 800; font-size: 1.1rem; white-space: nowrap; }
+.vs-btn {
+  flex: none;
+  width: auto;
+  padding: 0.55rem 1.3rem;
+  border-radius: 999px;
+  background: #ff914d;
+  border: 3px solid #e8762e;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.vs-btn:active { transform: scale(0.96); }
+
+.game-detail-emoji { font-size: 4.5rem; text-align: center; margin-bottom: 0.5rem; }
+.vs-btn-wide { max-width: 280px; }
+
+.war-card-rank { font-weight: 900; font-size: 3.6rem; line-height: 1; }
+.war-card-suit { font-size: 4rem; margin-left: 2px; }
+.war-card-rank.red, .war-card-suit.red { color: #e0313e; }
+.war-card-rank:not(.red), .war-card-suit:not(.red) { color: #22242a; }
+.war-gameover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+.war-gameover-emoji { font-size: 4rem; }
+.war-gameover h3 { font-size: 1.4rem; margin: 0; }
+
+/* ---- War Adventure: fullscreen illustrated board. Only one theme (castle) for now -- more are
+   coming once card placement is settled, so the [data-theme] hook stays in place for that. Left
+   side is always "me" (blue), right side is always the opponent (red), matching the approved
+   mockup and the knight/dragon already baked into the background art itself. ---- */
+.war-board.war-adventure {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border-radius: 0;
+  border: none;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  background-size: cover;
+  background-position: center;
+}
+.war-adventure[data-theme="castle"] { background-image: url('icons/war/castle-courtyard-arena.png'); }
+.war-adventure[data-theme="jungle"] { background-image: url('icons/war/jungle-temple-waterfall.png'); }
+.war-adventure[data-theme="space"] { background-image: url('icons/war/neon-galactic-arena.png'); }
+.war-adventure[data-theme="ocean"] { background-image: url('icons/war/sunken-ruins-coral.png'); }
+.war-adventure[data-theme="pirate"] { background-image: url('icons/war/pirate-harbor.png'); }
+.war-adventure[data-theme="toys"] { background-image: url('icons/war/toy-block-castle.png'); }
+.war-adventure[data-theme="volcano"] { background-image: url('icons/war/volcanic-fortress.png'); }
+.war-adventure[data-theme="candy"] { background-image: url('icons/war/candy-castle.png'); }
+.war-adventure::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(#07163455, transparent 30%, #04112635 65%, #04112688);
+  pointer-events: none;
+}
+
+/* ---- Tic Tac Toe: fullscreen landscape board. STRUCTURAL rules only -- every theme-specific
+   value (background image, cell/button positions and sizes, per-mark/per-cell piece and glow
+   corrections) is set as an inline style per element in js/tictactoe.js's render(), driven by the
+   THEMES table there. That keeps CSS theme-agnostic: adding a new theme (background + pieces) is
+   purely a THEMES entry + new image files, never a CSS edit.
+   #tictactoe-frame uses the min()+aspect-ratio trick to fit the WHOLE photo with no cropping and no
+   JS/resize-listener needed: width is whichever of "full viewport width" or "full viewport height
+   scaled to the board's ratio" is smaller, and aspect-ratio fills in the matching height -- the two
+   branches of that min() always agree on which axis is the limiting one, so it never overflows
+   either way. Both current themes are 16:9 (1671x941 / 1672x941); a theme at a genuinely different
+   ratio would need this hardcoded 16/9 to become per-theme too, same as everything else now is. ---- */
+.tictactoe-board {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #101b2a;
+}
+.tictactoe-frame {
+  position: relative;
+  width: min(100vw, calc(100dvh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  background-size: 100% 100%;
+}
+.tictactoe-cell {
+  position: absolute;
+  border-radius: 8%;
+  border: none;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.tictactoe-cell:active { transform: scale(0.94); }
+/* The win glow is its own overlay element, not a box-shadow directly on .tictactoe-cell -- a
+   box-shadow's inset offset doesn't translate the shape, it simulates a light angle, so an offset
+   makes one edge thicker/closer and the opposite edge thinner, never a uniform move. Giving the
+   glow its own element lets per-cell fit use a real `transform: translate()` (set inline, per
+   theme) instead, the same fix as the piece-position split below. */
+.tictactoe-win-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 8%;
+  pointer-events: none;
+  opacity: 0;
+}
+.tictactoe-cell.won .tictactoe-win-glow {
+  opacity: 1;
+  box-shadow: inset 0 0 0 4px #75ff45, 0 0 22px #75ff45;
+  animation: tictactoe-pulse 0.7s infinite alternate;
+}
+@keyframes tictactoe-pulse { to { box-shadow: inset 0 0 0 5px #e8ff64, 0 0 35px #faff62; } }
+
+.tictactoe-piece { width: 76%; height: 82%; display: grid; place-items: center; pointer-events: none; }
+.tictactoe-piece.enter { animation: tictactoe-drop 0.42s cubic-bezier(0.17, 1.65, 0.35, 1) both; }
+/* Centering nudges live on this INNER element (set inline per theme/cell/mark in tictactoe.js),
+   not .tictactoe-piece itself -- that element's own transform is owned by the .enter drop
+   animation above, and an animation's end-keyframe transform always wins over a plain rule on the
+   same element/property, so a nudge placed there would get silently wiped out every time a piece
+   is freshly placed. */
+.tictactoe-piece-art { width: 100%; height: 100%; display: grid; place-items: center; }
+.tictactoe-piece-art img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 2px #0008); }
+@keyframes tictactoe-drop {
+  from { transform: translateY(-70%) scale(0.45) rotate(-28deg); opacity: 0; }
+  70% { transform: translateY(4%) scale(1.12) rotate(5deg); opacity: 1; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .tictactoe-piece.enter, .tictactoe-cell.won { animation: none; } }
+
+.tictactoe-circle-btn {
+  position: absolute;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+.tictactoe-circle-btn:active { transform: scale(0.94); }
+
+/* The blank nameplate bar baked into each badge above the X/O emblem. Position/size set inline
+   per theme (theme.namePlate.p1/p2 in tictactoe.js), same pattern as everything else theme-specific. */
+.tictactoe-nameplate {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 900;
+  font-size: clamp(9px, 1.9vw, 22px);
+  text-shadow: 1px 2px 3px #000a, 0 0 3px #000a;
+  pointer-events: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 6%;
+}
+
+.tictactoe-status {
+  position: absolute;
+  bottom: 0.8%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.35em 0.9em;
+  background: #0a1739db;
+  border: 2px solid #f8cf5b;
+  border-radius: 100px;
+  font-size: clamp(10px, 1.45vw, 19px);
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Settings screen: replaces the board entirely (see renderSettings() in tictactoe.js) rather than
+   overlaying it, reusing the same .tictactoe-board/.tictactoe-frame shell with the SAME theme
+   background, so it still reads as "this board" with its tiles swapped for a difficulty picker. */
+.tictactoe-settings-panel {
+  position: absolute;
+  inset: 6% 16%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2%;
+  padding: 3% 4%;
+  background: #0a1739e6;
+  border: 3px solid #f8cf5b;
+  border-radius: 24px;
+  overflow-y: auto;
+}
+.tictactoe-settings-panel h3 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(16px, 2.6vw, 26px);
+  text-align: center;
+}
+.tictactoe-settings-option {
+  width: 80%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+  padding: 0.6em 1em;
+  border-radius: 16px;
+  border: 2px solid #f8cf5b;
+  background: #13213d;
+  color: #fff;
+  cursor: pointer;
+}
+.tictactoe-settings-option.active { background: #f8b52e; border-color: #fff; }
+.tictactoe-settings-option-label { font-weight: 900; font-size: clamp(14px, 2.2vw, 20px); }
+.tictactoe-settings-option-hint { font-weight: 600; font-size: clamp(10px, 1.3vw, 14px); opacity: 0.85; text-align: center; }
+.tictactoe-settings-option.active .tictactoe-settings-option-label,
+.tictactoe-settings-option.active .tictactoe-settings-option-hint { color: #13213d; }
+.tictactoe-settings-theme-grid {
+  width: 90%;
+  max-width: 460px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5em;
+}
+.tictactoe-settings-theme-option {
+  padding: 0.55em 0.4em;
+  border-radius: 12px;
+  border: 2px solid #f8cf5b;
+  background: #13213d;
+  color: #fff;
+  font-weight: 800;
+  font-size: clamp(12px, 1.8vw, 16px);
+  cursor: pointer;
+}
+.tictactoe-settings-theme-option.active { background: #f8b52e; color: #13213d; border-color: #fff; }
+.tictactoe-settings-theme-option:active { transform: scale(0.96); }
+.tictactoe-settings-back {
+  margin-top: 1%;
+  padding: 0.5em 1.6em;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background: transparent;
+  color: #fff;
+  font-weight: 800;
+  font-size: clamp(12px, 1.6vw, 16px);
+  cursor: pointer;
+}
+.tictactoe-settings-option:active, .tictactoe-settings-back:active { transform: scale(0.97); }
+
+/* ---- Connect 4: fullscreen landscape board. The board/tokens/masking/confetti are all drawn in
+   a single <canvas> by js/connect4.js's drawFrame() -- deliberately NOT DOM/CSS elements, because
+   reproducing the prototype's real per-hole masking (a falling token only visible near each hole
+   it's currently passing) needs frame-by-frame redraw control that CSS can't give cleanly. Only
+   the nameplates/status/buttons are HTML, layered on top of the canvas -- safe to do as plain
+   overlay text here since the background art has no baked-in names/status to collide with. ---- */
+.connect4-board {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #101b2a;
+}
+.connect4-frame {
+  position: relative;
+  width: min(100vw, calc(100dvh * 16 / 9));
+  aspect-ratio: 16 / 9;
+}
+.connect4-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+.connect4-nameplate {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #14388c;
+  font-weight: 900;
+  font-size: clamp(9px, 1.9vw, 22px);
+  text-shadow: 0 1px #fff;
+  pointer-events: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 6%;
+}
+
+/* The banner is just the image box now -- position/size only. The turn text is a separate
+   absolutely-positioned child (.connect4-status-text) so moving/resizing one never touches the
+   other; left/top below are independent coordinates within this box, not flex-centering padding.
+   Tune both via connect4-align-tool.html's "Turn banner" tab. See icons/connect4/turn-banner.png. */
+.connect4-status {
+  position: absolute;
+  bottom: 0.0%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 34.5%;
+  aspect-ratio: 900 / 260;
+  background: url('icons/connect4/turn-banner.png') center / 100% 100% no-repeat;
+  pointer-events: none;
+}
+.connect4-status-text {
+  position: absolute;
+  left: 54.5%;
+  top: 47.5%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(13.9px, 2.65vw, 30.2px);
+  font-weight: 900;
+  color: #14388c;
+  text-shadow: 0 1px #fff8e0;
+  white-space: nowrap;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* All three corner buttons: `left`/`right` use min(%, px) to cap the EDGE OFFSET in lockstep with
+   `max-width` capping the SIZE, same ratio as max-width/width (120/17.5) -- without this, once the
+   frame is wide enough that max-width kicks in (past ~686px, i.e. any iPad), the buttons stop
+   growing but a plain %-based offset keeps scaling up, so refresh and settings drift toward each
+   other and can overlap. refresh's 22%/151px (not 11%, what it was actually tuned to on top of
+   this same bug) is chosen so the gap to settings stays a constant ~17px at every width from the
+   686px cap boundary up through an iPad Pro, instead of swinging from overlapping to oddly wide. */
+.connect4-home-btn {
+  position: absolute;
+  left: min(2%, 13.71px);
+  bottom: 2%;
+  width: 17.5%;
+  max-width: 120px;
+  aspect-ratio: 400 / 314;
+  background: url('icons/connect4/home-button.png') center / 100% 100% no-repeat;
+  border: none;
+  border-radius: 50%; /* the box is a rectangle but the art is an oval -- without this, a focus
+    ring or tap highlight on the element's own (square) edges shows through the art's transparent
+    corners as an unwanted square border */
+  outline: none;
+}
+.connect4-home-btn:active { transform: scale(0.94); }
+
+.connect4-again-btn {
+  position: absolute;
+  right: min(22%, 151px);
+  bottom: 2%;
+  width: 17.5%;
+  max-width: 120px;
+  aspect-ratio: 400 / 315;
+  background: url('icons/connect4/refresh-button.png') center / 100% 100% no-repeat;
+  border: none;
+  border-radius: 50%; /* see .connect4-home-btn -- same rectangle-vs-oval focus ring fix */
+  outline: none;
+}
+.connect4-again-btn:active { transform: scale(0.96); }
+
+.connect4-settings-btn {
+  position: absolute;
+  right: min(2%, 13.71px);
+  bottom: 2%;
+  width: 17.5%;
+  max-width: 120px;
+  aspect-ratio: 400 / 317;
+  background: url('icons/connect4/settings-button.png') center / 100% 100% no-repeat;
+  border: none;
+  border-radius: 50%; /* see .connect4-home-btn -- same rectangle-vs-oval focus ring fix */
+  outline: none;
+}
+.connect4-settings-btn:active { transform: scale(0.94); }
+
+/* Settings screen: replaces the board entirely (see renderSettings() in connect4.js) rather than
+   overlaying it, reusing the same .connect4-board/.connect4-frame shell with the SAME board
+   background, so it still reads as "this board" with its canvas swapped for a difficulty picker.
+   Identical shell to .tictactoe-settings-panel, just namespaced per-game like everything else. */
+.connect4-settings-panel {
+  position: absolute;
+  inset: 6% 16%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2%;
+  padding: 3% 4%;
+  background: #0a1739e6;
+  border: 3px solid #f8cf5b;
+  border-radius: 24px;
+  overflow-y: auto;
+}
+.connect4-settings-panel h3 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(16px, 2.6vw, 26px);
+  text-align: center;
+}
+.connect4-settings-option {
+  width: 80%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+  padding: 0.6em 1em;
+  border-radius: 16px;
+  border: 2px solid #f8cf5b;
+  background: #13213d;
+  color: #fff;
+  cursor: pointer;
+}
+.connect4-settings-option.active { background: #f8b52e; border-color: #fff; }
+.connect4-settings-option-label { font-weight: 900; font-size: clamp(14px, 2.2vw, 20px); }
+.connect4-settings-option-hint { font-weight: 600; font-size: clamp(10px, 1.3vw, 14px); opacity: 0.85; text-align: center; }
+.connect4-settings-option.active .connect4-settings-option-label,
+.connect4-settings-option.active .connect4-settings-option-hint { color: #13213d; }
+.connect4-settings-back {
+  margin-top: 1%;
+  padding: 0.5em 1.6em;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background: transparent;
+  color: #fff;
+  font-weight: 800;
+  font-size: clamp(12px, 1.6vw, 16px);
+  cursor: pointer;
+}
+.connect4-settings-option:active, .connect4-settings-back:active { transform: scale(0.97); }
+
+.connect4-confetti {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.war-top-controls {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 5;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: calc(0.6rem + env(safe-area-inset-top, 0px)) calc(0.6rem + env(safe-area-inset-right, 0px)) 0 calc(0.6rem + env(safe-area-inset-left, 0px));
+}
+.war-fullscreen-back-btn {
+  flex: none; width: 44px; height: 44px; border-radius: 999px;
+  border: 2px solid #fff; background: rgba(10, 20, 40, 0.55); color: #fff; font-size: 1.3rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.war-fullscreen-back-btn:active { transform: scale(0.94); }
+.war-sound-btn {
+  flex: none; width: 38px; height: 38px; border-radius: 999px;
+  border: 2px solid #fff; background: #113968; color: #fff; font-size: 1rem;
+}
+.war-sound-btn:active { transform: scale(0.94); }
+
+.war-nameplate {
+  position: absolute;
+  top: calc(3.4rem + env(safe-area-inset-top, 0px));
+  z-index: 3;
+  max-width: 38%;
+  padding: 0.5rem 1rem;
+  border-radius: 14px;
+  font-weight: 900;
+  font-size: clamp(0.95rem, 2.4vw, 1.3rem);
+  text-align: center;
+  text-shadow: 0 2px 4px #000a;
+  border: 3px solid #ffda78;
+  box-shadow: 0 6px 14px #0007;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.war-nameplate.me { left: calc(1rem + env(safe-area-inset-left, 0px)); background: linear-gradient(#14559c, #092953); }
+.war-nameplate.opp { right: calc(1rem + env(safe-area-inset-right, 0px)); background: linear-gradient(#c54846, #701c32); }
+.war-player-name { font-weight: inherit; }
+
+.war-deck-area {
+  position: absolute;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+.war-deck-area.me { left: calc(1.25rem + env(safe-area-inset-left, 0px)); }
+.war-deck-area.opp { right: calc(1.25rem + env(safe-area-inset-right, 0px)); }
+
+.war-center-stack {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: min(92vw, 460px);
+}
+.war-center-info { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; width: 100%; }
+
+.war-bottom-center {
+  position: absolute;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  width: min(90vw, 360px);
+  text-align: center;
+}
+.war-bottom-center .parent-card-note {
+  color: #fff; text-shadow: 0 2px 4px #000a; background: #071d42d9;
+  padding: 0.6rem 1rem; border-radius: 12px; margin: 0; border: 2px solid #ffda78;
+}
+
+.war-gameover {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 3;
+  background: #071d42d9; border: 3px solid #ffda78; border-radius: 20px;
+  max-width: 90vw;
+}
+
+.war-deck { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; background: transparent; border: none; color: #fff; padding: 0; }
+.war-deck-stack {
+  width: 128px; height: 172px; border-radius: 10px;
+  border: 3px solid #ffda78;
+  background: repeating-linear-gradient(45deg, #274d8c, #274d8c 9px, #3764a8 9px, #3764a8 18px);
+  box-shadow: 0 var(--depth, 6px) 0 #0b1834cc, 0 10px 14px #0007;
+}
+.war-deck.tappable { cursor: pointer; touch-action: manipulation; }
+.war-deck.tappable .war-deck-stack { animation: war-deck-pulse 1.6s infinite; }
+.war-deck:disabled, .war-deck:disabled .war-deck-stack { animation: none; }
+.war-deck-count { font-size: 0.95rem; font-weight: 800; background: #0b1834ed; border: 2px solid #fff; border-radius: 12px; padding: 3px 9px; }
+.war-deck-hint { font-size: 0.75rem; font-weight: 900; text-shadow: 0 2px 4px #000; }
+
+.war-table-cards { display: flex; gap: clamp(10px, 4vw, 20px); align-items: center; justify-content: center; }
+.war-slot {
+  width: 176px;
+  height: 240px;
+  border-radius: 14px;
+  background: #fff;
+  border: 4px solid #ffda78;
+  box-shadow: 0 6px 14px #0007;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  transition: transform 0.22s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+}
+.war-slot:not(.face-down) { animation: war-reveal 0.4s ease-out both; }
+.war-slot.face-down {
+  background: repeating-linear-gradient(45deg, #274d8c, #274d8c 9px, #3764a8 9px, #3764a8 18px);
+  color: transparent;
+  font-size: 1rem;
+}
+.war-slot.won { border-color: #ffdf66; box-shadow: 0 0 0 5px #ffe27c88, 0 0 26px #ffe27c99; animation: war-winner-pulse 1.1s ease-in-out infinite alternate; }
+.war-slot.lost { opacity: 0.65; }
+.war-slot.collecting, .war-fan-card.collecting, .war-decider-card.collecting { transition: transform 0.35s ease, opacity 0.35s ease; transform: scale(0.8); opacity: 0; }
+
+.war-flying-card {
+  position: fixed; z-index: 9999; pointer-events: none;
+  width: 112px; height: 152px; border-radius: 10px;
+  background: repeating-linear-gradient(45deg, #274d8c, #274d8c 9px, #3764a8 9px, #3764a8 18px);
+  border: 3px solid #ffda78;
+  transition: left 0.4s cubic-bezier(.2,.8,.25,1), top 0.4s cubic-bezier(.2,.8,.25,1), transform 0.4s ease;
+}
+
+/* ---- War fan: during a war (tie), the single played-card slots are replaced by a 3-stake fan
+   per side (positioned a bit LOWER than the normal center) plus a separate floating decider card
+   per side (positioned a bit HIGHER than normal) -- the decider never covers or replaces the
+   trigger card underneath it, it's a distinct "verdict" card in its own spot. ---- */
+.war-fan-zone {
+  position: absolute;
+  top: 66%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: flex;
+  gap: clamp(20px, 7vw, 56px);
+  align-items: flex-end;
+}
+.war-fan { position: relative; width: 116px; height: 158px; }
+.war-fan-card {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 116px;
+  height: 158px;
+  border-radius: 10px;
+  border: 3px solid #ffda78;
+  box-shadow: 0 8px 14px #0007;
+  transition: transform 0.35s ease, opacity 0.3s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.war-fan-card.back { background: repeating-linear-gradient(45deg, #274d8c, #274d8c 9px, #3764a8 9px, #3764a8 18px); }
+.war-fan-card.back.red { background: repeating-linear-gradient(45deg, #a92336, #a92336 9px, #6b112a 9px, #6b112a 18px); }
+.war-fan-card.face { background: #fff; }
+/* No pop/flip animation here on purpose -- the rapid scale+rotate of war-reveal against a stark
+   white card reads as a flash when it happens repeatedly during the one-by-one stake reveal. The
+   card just appears in place; .just-revealed is kept as a hook in case a calmer entrance is wanted
+   later. */
+.war-fan-card .war-card-rank { font-size: 1.6rem; }
+.war-fan-card .war-card-suit { font-size: 1.8rem; }
+.war-fan-card.hidden { opacity: 0; pointer-events: none; }
+
+/* Corner markers instead of a dead-center rank -- see the comment on cardCornersHtml in war.js for
+   why top+bottom share the SAME edge (mirrored by side) rather than the diagonal real-card layout. */
+.war-fan-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  font-weight: 900;
+  font-size: 1.05rem;
+  color: #22242a;
+}
+.war-fan-corner.red { color: #e0313e; }
+.war-fan-corner small { font-size: 0.72em; line-height: 1; margin-top: 1px; }
+.war-fan-corner.top { top: 6px; }
+.war-fan-corner.bottom { bottom: 6px; }
+.war-fan-card.side-me .war-fan-corner { left: 6px; }
+.war-fan-card.side-opp .war-fan-corner { right: 6px; }
+
+.war-decider-zone {
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  display: flex;
+  gap: clamp(20px, 7vw, 56px);
+}
+.war-decider-slot { width: 116px; height: 158px; }
+.war-decider-card {
+  width: 116px; height: 158px; border-radius: 10px;
+  background: #fff; border: 3px solid #ffdf66;
+  box-shadow: 0 0 0 4px #ffdf6666, 0 12px 20px #0009;
+  display: flex; align-items: center; justify-content: center;
+  /* No entrance animation on purpose -- every stake flip re-renders the whole board, which
+     recreates this element fresh each time, so an unconditional animation here would replay on
+     every single re-render instead of just once when the decider first appears. */
+}
+.war-decider-card .war-card-rank { font-size: 1.6rem; }
+.war-decider-card .war-card-suit { font-size: 1.8rem; }
+
+.war-fan-info {
+  position: absolute;
+  top: 49%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: min(92vw, 460px);
+}
+
+.war-pot { font-weight: 800; font-size: 1rem; padding: 0.35rem 1rem; border-radius: 999px; background: #261a52de; color: #fff; border: 3px solid #ffcf59; text-align: center; }
+.war-pot small { display: block; font-weight: 600; font-size: 0.8em; margin-top: 2px; }
+.war-result-tag { font-size: 0.85rem; font-weight: 900; color: #ffe066; margin-bottom: 2px; }
+.war-round-result { background: #071d42d9; color: #fff; text-align: center; border: 2px solid #ffda78; padding: 10px 18px; border-radius: 16px; width: min(100%, 400px); box-sizing: border-box; font-weight: 900; font-size: clamp(1rem, 3vw, 1.3rem); }
+.war-round-result small { display: block; font-weight: 600; font-size: 0.85rem; margin-top: 4px; }
+/* Winning a round reads as a celebration -- green, bigger, with a little pop-in -- losing keeps the
+   plain navy pill above so the two outcomes are never confusable at a glance. */
+.war-round-result.win {
+  background: linear-gradient(#1f9a4a, #0d6b31);
+  border-color: #7cf4a0;
+  box-shadow: 0 0 0 5px #4ade8055, 0 12px 26px #0007;
+  font-size: clamp(1.3rem, 4.6vw, 1.9rem);
+  animation: war-result-win-pop 0.45s cubic-bezier(.25,1.3,.4,1) both;
+}
+.war-round-result.win small { font-size: 0.6em; opacity: 0.95; }
+@keyframes war-result-win-pop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+
+.war-win-fx { position: absolute; inset: 0; pointer-events: none; z-index: 0; font-size: 22px; overflow: hidden; }
+.war-win-fx span { position: absolute; top: 30%; left: var(--x); animation: war-fx 1.4s ease-out both; animation-delay: var(--delay); }
+
+@keyframes war-deck-pulse { 50% { filter: drop-shadow(0 0 10px #fff19e); transform: translateY(-3px); } }
+@keyframes war-reveal { 0% { transform: rotateY(90deg) scale(0.9); } 65% { transform: rotateY(-8deg) scale(1.06); } 100% { transform: rotateY(0) scale(1); } }
+@keyframes war-winner-pulse { from { transform: scale(1); } to { transform: scale(1.04); } }
+@keyframes war-fx { from { transform: translateY(30px) scale(0.6); opacity: 0; } 25% { opacity: 1; } to { transform: translateY(-120px) rotate(30deg); opacity: 0; } }
+
+@media (max-height: 700px), (max-width: 480px) {
+  .war-slot { width: 144px; height: 196px; }
+  .war-deck-stack { width: 104px; height: 140px; }
+  .war-nameplate { top: calc(3rem + env(safe-area-inset-top, 0px)); padding: 0.35rem 0.75rem; }
+  .war-fan, .war-fan-card, .war-decider-slot, .war-decider-card { width: 92px; height: 125px; }
+  .war-fan-corner { font-size: 0.85rem; }
+  /* Same phone-width problem as War's cards -- these are sized as a % of frame width, which on a
+     phone-sized frame still reads as large/cramped next to the coin stacks and turn banner. */
+  .connect4-home-btn, .connect4-again-btn, .connect4-settings-btn { width: 9%; max-width: 56px; }
+  .connect4-home-btn { left: min(2%, 12.44px); }
+  .connect4-settings-btn { right: min(2%, 12.44px); }
+  /* Same min(%, px) reasoning as the base rule's .connect4-again-btn above, scaled to this
+     breakpoint's own width/max-width ratio (56/9) -- keeps a constant ~12-13px gap to settings
+     across every phone size, landscape or portrait, instead of collapsing on a wide phone. */
+  .connect4-again-btn { right: min(13%, 81px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .war-slot, .war-win-fx span, .war-slot.collecting, .war-deck.tappable .war-deck-stack, .war-flying-card,
+  .war-fan-card, .war-decider-card, .war-fan-card.collecting, .war-decider-card.collecting,
+  .war-fan-card.face.just-revealed, .war-round-result.win { animation: none !important; transition: none !important; }
+}
+.setup-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 244, 224, 0.96);
+  border-top: 2px solid var(--card-border);
+  flex-wrap: wrap;
+}
+.setup-footer .big-btn { max-width: 260px; }
+.setup-status { color: var(--ink-soft); font-weight: 700; }
+.setup-status[data-kind="ok"] { color: #1f9d55; }
+.setup-status[data-kind="error"] { color: #c0392b; }
+.setup-coins {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.9rem;
+}
+.setup-coin-card {
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.setup-field-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+.setup-field-inline .small-input { width: 5.5rem; flex-shrink: 0; text-align: center; }
+.setup-overall {
+  font-size: 1.15rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  background: #fff7d6;
+  border: 2px solid #ffd84d;
+}
+.setup-suggest {
+  width: 100%;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.setup-suggest .big-btn { max-width: 260px; }
+.setup-suggest-result { line-height: 1.45; }
+.setup-suggest-result ul { margin: 0.25rem 0 0.75rem; padding-left: 1.2rem; }
+.setup-warn { color: #b06a00; margin: 0.25rem 0; }
+.setup-add-kid { display: flex; gap: 0.5rem; width: 100%; }
+.setup-add-kid .big-btn { width: auto; flex-shrink: 0; }
+
+.setup-item-card { max-width: 560px; display: flex; flex-direction: column; gap: 0.9rem; }
+.setup-item-card .overlay-title { margin-bottom: 0; }
+.setup-item-card .overlay-actions .big-btn { padding: 0.8rem 0.5rem; }
+.setup-field { display: flex; flex-direction: column; gap: 0.4rem; font-weight: 700; }
+.setup-pic-row { display: flex; align-items: center; gap: 1rem; }
+.setup-pic-row .big-btn { width: auto; }
+.setup-pic-preview {
+  width: 108px;
+  height: 108px;
+  border-radius: 18px;
+  border: 3px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+.setup-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.25rem;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.setup-emoji-heading {
+  grid-column: 1 / -1;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-top: 0.25rem;
+}
+.setup-emoji {
+  font-size: 1.6rem;
+  aspect-ratio: 1;
+  border-radius: 10px;
+}
+.setup-emoji.selected { background: #fff; box-shadow: 0 0 0 3px var(--accent); }
+.setup-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; font-weight: 400; }
+.setup-chip {
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 2px solid var(--card-border);
+  background: #fff;
+  font-weight: 700;
+}
+.setup-chip.on { background: #2ecc71; border-color: #2ecc71; color: #fff; }
+select.name-input { text-align: left; background: #fff; }
+
+/* ---- bigger pictures ---- */
+.pic-sm { width: 30px; height: 30px; font-size: 1.5rem; border-radius: 8px; }
+.pic-xl { width: 110px; height: 110px; font-size: 5rem; border-radius: 20px; }
+.pic-xxl { width: 180px; height: 180px; font-size: 8.5rem; border-radius: 28px; }
+
+/* ---- chores tile count ---- */
+.tile-count {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: #ff6b6b;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- kid chores ---- */
+.chore-list {
+  width: 100%;
+  max-width: 900px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.chore-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.2rem 1rem 1rem;
+  border-radius: 26px;
+  background: #fff;
+  border: 4px solid #a8e6bf;
+  box-shadow: var(--shadow);
+}
+.chore-card.waiting { border-color: #ffd84d; background: #fffbea; }
+.chore-card.approved { border-color: #2ecc71; background: #effcf3; }
+.chore-card-text { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; text-align: center; }
+.chore-card-name { font-size: 1.35rem; font-weight: 800; }
+.chore-card-coins { font-size: 1.2rem; font-weight: 800; color: #c98a00; }
+.chore-card-action { width: 100%; display: flex; justify-content: center; }
+.done-btn {
+  width: 100%;
+  padding: 0.9rem;
+  border-radius: 999px;
+  background: #2ecc71;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 800;
+  box-shadow: 0 5px 0 #22a85a;
+}
+.done-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #22a85a; }
+.chore-state { font-size: 1.15rem; font-weight: 800; padding: 0.7rem 0; }
+.chore-state.waiting { color: #a06b00; }
+.chore-state.approved { color: #1f9d55; font-size: 1.5rem; }
+
+/* ---- kid store ---- */
+.coin-chip.small { font-size: 1.15rem; padding: 0.25rem 0.5rem 0.25rem 0.5rem; gap: 0.3rem; }
+.coin-chip.small .coin-icon { font-size: 1.3rem; }
+.coin-chip.small .voice-btn { width: 32px; height: 32px; font-size: 0.95rem; }
+.store-waiting {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius);
+  background: #fffbea;
+  border: 3px solid #ffd84d;
+}
+.store-waiting-title { font-weight: 800; margin-right: 0.25rem; }
+.store-waiting-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem 0.25rem 0.3rem;
+  border-radius: 999px;
+  background: #fff;
+  font-weight: 700;
+}
+.store-grid {
+  width: 100%;
+  max-width: 900px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.store-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 1.1rem 0.9rem 0.9rem;
+  border-radius: 26px;
+  background: #fff;
+  border: 4px solid #ffe08a;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.store-card.cant .pic, .store-card.cant .store-card-name { opacity: 0.5; }
+.store-card.goal { border-color: #ffb52e; box-shadow: 0 0 0 4px #fff1c2, var(--shadow); }
+.store-card-name { font-size: 1.15rem; font-weight: 800; }
+.store-card-price { font-size: 1.3rem; font-weight: 800; color: #c98a00; }
+.store-card-action { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; margin-top: auto; }
+.buy-open-btn {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 999px;
+  background: #ff8a5b;
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 800;
+  box-shadow: 0 5px 0 #e0683a;
+}
+.store-note { font-weight: 800; color: var(--ink-soft); }
+.goal-btn {
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 3px solid #ffd84d;
+  background: #fff;
+  font-weight: 800;
+}
+.goal-btn.on { background: #ffd84d; }
+
+.buy-card { max-width: 400px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.buy-name { font-size: 1.8rem; font-weight: 800; }
+.buy-price { font-size: 2rem; font-weight: 800; color: #c98a00; }
+.buy-actions { display: flex; gap: 1.5rem; margin-top: 0.75rem; }
+.buy-btn {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  font-size: 3rem;
+  font-weight: 800;
+  color: #fff;
+}
+.buy-btn.no { background: #ff6b6b; box-shadow: 0 6px 0 #d64545; }
+.buy-btn.yes { background: #2ecc71; box-shadow: 0 6px 0 #22a85a; }
+
+/* ---- savings goal on home ---- */
+.home-goal {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  max-width: 560px;
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius);
+  background: #fff;
+  border: 3px solid #ffd84d;
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+.home-goal.ready { animation: key-glow 1.4s ease-in-out infinite; background: #fffbea; }
+.home-goal-body { flex: 1; display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+.home-goal-label { font-weight: 800; font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-goal-count { font-weight: 800; }
+.home-goal .coin-today-bar { display: block; width: 100%; flex: none; }
+
+/* ---- parent queues ---- */
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  margin-left: 0.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: #ff6b6b;
+  color: #fff;
+  font-size: 0.9rem;
+}
+.queue-list { width: 100%; display: flex; flex-direction: column; gap: 0.5rem; }
+.queue-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.queue-row-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.queue-row-title { font-weight: 800; }
+.queue-row-meta { display: flex; align-items: center; gap: 0.3rem; color: var(--ink-soft); font-size: 0.9rem; }
+.profile-avatar.tiny { width: 20px; height: 20px; font-size: 0.7rem; }
+.queue-row-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+.queue-btn {
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  font-weight: 800;
+  border: 2px solid transparent;
+}
+.queue-btn.no { border-color: var(--card-border); background: #fff; }
+.queue-btn.yes { background: #2ecc71; color: #fff; }
+
+.coin-reserved { margin: -0.5rem 0 1rem; color: var(--ink-soft); font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+
+/* ================= Math / Reading ================= */
+.level-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.35rem 0.25rem 0.9rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  font-weight: 800;
+  white-space: nowrap;
+}
+.level-chip .voice-btn { width: 34px; height: 34px; font-size: 1rem; }
+.area-grid { max-width: 720px; }
+@media (min-width: 900px) { .area-grid { grid-template-columns: repeat(4, 1fr); max-width: 880px; } }
+.area-tile { min-height: 190px; }
+.soon-badge.more-coins { background: #ffd84d; }
+
+.practice-body, .game-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+}
+.practice-progress { display: flex; gap: 0.5rem; }
+.practice-progress i {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f0ddb8;
+}
+.practice-progress i.done { background: #2ecc71; }
+.practice-progress i.now { background: #ffb52e; transform: scale(1.25); }
+.practice-question {
+  flex: 1;
+  width: 100%;
+  max-width: 820px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+.q-ear { font-size: 6rem; }
+.q-sub { font-size: 1.3rem; color: var(--ink-soft); font-weight: 700; }
+.emoji-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.2rem; font-size: 3rem; line-height: 1.15; max-width: 640px; }
+.emoji-group.count { font-size: 3.6rem; max-width: 560px; }
+.q-picture-sum { display: flex; align-items: center; gap: 1.25rem; }
+.q-picture-sum > span { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.75rem; border-radius: 20px; background: #fff; box-shadow: var(--shadow); }
+.q-picture-sum .emoji-group { font-size: 2.6rem; max-width: 170px; }
+.q-picture-sum b { font-size: 2rem; }
+.q-picture-sum em { font-style: normal; font-size: 3rem; font-weight: 800; }
+.q-fact { font-size: clamp(3.5rem, 11vw, 6.5rem); font-weight: 800; letter-spacing: 0.04em; }
+.q-blank { display: inline-block; min-width: 1.2em; padding: 0 0.15em; border-radius: 16px; background: #fff3b0; color: #c98a00; }
+.practice-answers {
+  width: 100%;
+  max-width: 820px;
+  display: grid;
+  gap: 1rem;
+}
+.practice-answers.n2 { grid-template-columns: repeat(2, 1fr); }
+.practice-answers.n3 { grid-template-columns: repeat(3, 1fr); }
+.practice-answers.n4 { grid-template-columns: repeat(4, 1fr); }
+.answer-btn {
+  min-height: 110px;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 6px 0 #f0ddb8, var(--shadow);
+  font-size: clamp(2.6rem, 7vw, 4rem);
+  font-weight: 800;
+  color: var(--ink);
+}
+.answer-btn.correct { background: #2ecc71; color: #fff; box-shadow: 0 6px 0 #22a85a; animation: hello-pop 0.3s ease; }
+.answer-btn.wrong { background: #ffe1e1; color: #d64545; box-shadow: 0 6px 0 #ffc2c2; animation: pin-shake 0.35s ease; }
+
+.game-status { margin: 0; font-size: 1.35rem; font-weight: 800; color: var(--ink-soft); text-align: center; min-height: 1.7rem; }
+
+/* Memory Match */
+.memory-grid {
+  width: 100%;
+  max-width: 860px;
+  flex: 1;
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(3, 1fr);
+  align-content: center;
+}
+.memory-grid.c8, .memory-grid.c12 { grid-template-columns: repeat(4, 1fr); }
+.memory-card {
+  position: relative;
+  aspect-ratio: 1;
+  max-height: 30vh;
+  border-radius: 22px;
+  perspective: 800px;
+  justify-self: center;
+  width: 100%;
+}
+.memory-grid.c12 .memory-card { max-height: 20vh; }
+.memory-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 0.35s ease;
+  box-shadow: var(--shadow);
+  padding: 0.4rem;
+  overflow: hidden;
+}
+.memory-face.back {
+  background: repeating-linear-gradient(45deg, #ff8a5b 0 14px, #ff9f75 14px 28px);
+  color: #fff;
+  font-size: 3rem;
+  font-weight: 800;
+}
+.memory-face.front { background: #fff; transform: rotateY(180deg); }
+.memory-card.flipped .memory-face.back { transform: rotateY(180deg); }
+.memory-card.flipped .memory-face.front { transform: rotateY(360deg); }
+.memory-card.matched .memory-face.front { background: #e6f9ee; box-shadow: 0 0 0 4px #2ecc71; }
+.card-number { font-size: clamp(2.6rem, 7vw, 4.2rem); font-weight: 800; }
+.card-fact { font-size: clamp(1.5rem, 3.6vw, 2.3rem); font-weight: 800; white-space: nowrap; }
+.card-word { font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; }
+.card-pic { font-size: clamp(3rem, 8vw, 5rem); line-height: 1; }
+.card-pic .word-pic-img { width: clamp(3.4rem, 9vw, 5.6rem); height: clamp(3.4rem, 9vw, 5.6rem); object-fit: cover; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+.dot-group { display: grid; grid-template-columns: repeat(5, 18px); justify-content: center; gap: 7px; }
+.dot-group i { width: 18px; height: 18px; border-radius: 50%; background: #5b8def; }
+
+/* War */
+.war-scores { width: 100%; max-width: 760px; display: flex; justify-content: space-between; align-items: center; }
+.war-score { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 1rem; border-radius: 999px; background: #fff; box-shadow: var(--shadow); font-weight: 800; font-size: 1.15rem; }
+.war-score b { font-size: 1.6rem; color: #c98a00; }
+.war-round { font-weight: 800; color: var(--ink-soft); }
+.war-table { flex: 1; display: flex; gap: 2rem; align-items: center; justify-content: center; width: 100%; }
+.war-side { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.war-label { font-weight: 800; color: var(--ink-soft); }
+.war-card {
+  width: min(36vw, 280px);
+  aspect-ratio: 0.72;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 6px 0 #f0ddb8, var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border: 4px solid transparent;
+}
+.war-card.down { background: repeating-linear-gradient(45deg, #5b8def 0 16px, #7aa3f5 16px 32px); }
+.war-card.win { border-color: #2ecc71; background: #effcf3; animation: hello-pop 0.3s ease; }
+.war-card.shake { animation: pin-shake 0.35s ease; }
+.war-card .emoji-group.war { font-size: 2.3rem; }
+.war-card .card-fact { font-size: clamp(2rem, 5vw, 3rem); }
+.war-card .card-word { font-size: clamp(2rem, 5vw, 3rem); }
+.war-card .card-pic { font-size: clamp(4rem, 10vw, 7rem); }
+.war-flip { width: auto; min-width: 220px; }
+
+/* Hidden Pictures */
+.hidden-top { width: 100%; max-width: 980px; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.hidden-round, .hidden-count { font-weight: 800; color: var(--ink-soft); min-width: 6rem; }
+.hidden-count { text-align: right; font-size: 1.3rem; color: var(--ink); }
+.hidden-find { display: flex; align-items: center; gap: 0.6rem; font-size: 1.4rem; font-weight: 800; padding: 0.3rem 1rem; border-radius: 999px; background: #fff; box-shadow: var(--shadow); }
+.hidden-goal { font-size: 2.2rem; }
+.hidden-goal.num, .hidden-goal.fact, .hidden-goal.word { font-size: 1.8rem; font-weight: 800; color: #c98a00; }
+.hidden-field {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  max-width: 980px;
+  min-height: 300px;
+  border-radius: 26px;
+  background: #fffdf6;
+  box-shadow: inset 0 0 0 4px #f0ddb8;
+  overflow: hidden;
+}
+.hidden-bg { position: absolute; inset: 5%; width: 90%; height: 90%; object-fit: contain; opacity: 0.22; pointer-events: none; }
+.hidden-item {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(var(--rot)) scale(var(--scale));
+  font-size: 2.4rem;
+  line-height: 1;
+  padding: 0.2rem;
+  border-radius: 50%;
+}
+.hidden-num { font-size: 2.2rem; font-weight: 800; color: #6b5a4e; font-family: 'Trebuchet MS', Georgia, serif; }
+.hidden-word { font-size: 1.5rem; font-weight: 800; color: #6b5a4e; white-space: nowrap; }
+.hidden-item.found { box-shadow: 0 0 0 4px #2ecc71; background: rgba(46, 204, 113, 0.18); animation: found-pop 0.35s ease; }
+.hidden-item.nope { animation: wiggle 0.35s ease; }
+@keyframes found-pop {
+  0% { transform: translate(-50%, -50%) rotate(var(--rot)) scale(var(--scale)); }
+  50% { transform: translate(-50%, -50%) rotate(0deg) scale(1.5); }
+  100% { transform: translate(-50%, -50%) rotate(0deg) scale(1.2); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: translate(-50%, -50%) rotate(var(--rot)) scale(var(--scale)); }
+  50% { transform: translate(-50%, -50%) rotate(calc(var(--rot) + 15deg)) scale(var(--scale)); }
+}
+
+/* End of a round */
+.round-card { text-align: center; display: flex; flex-direction: column; gap: 0.75rem; max-width: 420px; }
+.round-stars { font-size: 3.4rem; letter-spacing: 0.2rem; }
+.round-stars .dim { filter: grayscale(1); opacity: 0.3; }
+.round-text { margin: 0; font-size: 1.3rem; font-weight: 800; }
+.round-coins { font-size: 2.2rem; font-weight: 800; color: #c98a00; }
+.round-coins.done { font-size: 1.1rem; color: var(--ink-soft); }
+
+/* Word step after a reading match (phase 6) */
+.match-step-card { text-align: center; display: flex; flex-direction: column; gap: 0.75rem; align-items: center; max-width: 520px; }
+.match-step-pic { font-size: 5rem; }
+.match-step-prompt { margin: 0; font-size: 1.3rem; font-weight: 800; }
+.match-step-body { width: 100%; }
+
+/* Parent: levels */
+.kid-learning { display: flex; flex-direction: column; gap: 0.75rem; }
+.kid-subject { padding: 0.75rem; border-radius: var(--radius-sm); background: var(--bg); display: flex; flex-direction: column; gap: 0.4rem; }
+.kid-subject-row { display: flex; flex-direction: column; gap: 0.4rem; }
+
+/* ---- first run + grown-ups header ---- */
+.first-run {
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.75rem 1.5rem;
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.first-run-emoji { font-size: 3.5rem; }
+.first-run-title { margin: 0; color: var(--accent-2); }
+.first-run-text { margin: 0 0 0.5rem; color: var(--ink-soft); line-height: 1.45; }
+.header-pill {
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  font-weight: 800;
+  white-space: nowrap;
+}
+.welcome-card { border: 3px solid #2ecc71; }
+
+/* ================= Reading ================= */
+.q-big-pic { font-size: clamp(7rem, 20vw, 11rem); line-height: 1; }
+.q-sentence {
+  font-size: clamp(2.4rem, 7vw, 4rem);
+  font-weight: 800;
+  padding: 1rem 2rem;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  font-family: 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+}
+.answer-word { font-size: clamp(2.2rem, 6vw, 3.4rem); text-transform: none; }
+.answer-pic { font-size: clamp(3.5rem, 9vw, 5rem); }
+
+/* word step after a Memory Match pair + Mystery Animal blanks */
+.word-blanks { display: flex; justify-content: center; align-items: flex-end; gap: 0.4rem; margin: 0.25rem 0 0.75rem; flex-wrap: wrap; }
+.word-blank {
+  width: 52px;
+  height: 62px;
+  border-bottom: 5px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--accent-2);
+}
+.word-blank.faint { color: #d9cdb8; }
+.word-blank.filled { color: #1f9d55; }
+.word-rest { font-size: 2.4rem; font-weight: 800; color: var(--ink-soft); padding-bottom: 0.3rem; }
+.word-blanks.big .word-blank { width: 58px; height: 62px; font-size: 2.6rem; }
+.mystery-body .word-blanks { margin: 0; }
+.match-step-card { max-width: 640px; }
+.match-step-say { margin-bottom: 0.5rem; }
+.abc-keyboard.small { gap: 0.4rem; max-width: 600px; margin: 0 auto; }
+.abc-keyboard.small .abc-row { gap: 0.4rem; }
+.abc-keyboard.small .abc-key { aspect-ratio: auto; height: clamp(44px, 7vh, 60px); min-height: 0; font-size: clamp(1.3rem, 3vw, 1.8rem); border-radius: 14px; }
+.abc-key.right { background: #2ecc71; color: #fff; box-shadow: 0 4px 0 #22a85a; }
+.abc-key.wrong { background: #eee4d6; color: #b9a99a; box-shadow: none; }
+.abc-key:disabled { cursor: default; }
+/* the last keyboard row has only 5 keys in these small keyboards */
+.abc-keyboard.small .abc-row:last-child { grid-template-columns: repeat(7, 1fr); }
+
+/* Letter Snap */
+.snap-target { background: #f5efff; border-color: #d6c4ff; }
+.war-card.flip-in { animation: flip-in 0.35s ease; }
+@keyframes flip-in {
+  0% { transform: rotateY(90deg); }
+  100% { transform: rotateY(0deg); }
+}
+.snap-actions { display: flex; gap: 1.25rem; }
+.snap-btn {
+  padding: 1rem 2.5rem;
+  border-radius: 999px;
+  background: #ff8a5b;
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 800;
+  box-shadow: 0 6px 0 #e0683a;
+}
+.snap-next {
+  padding: 1rem 2rem;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 1.6rem;
+  font-weight: 800;
+  box-shadow: 0 6px 0 #f0ddb8, var(--shadow);
+}
+
+/* Mystery Animal */
+.mystery-body { gap: 0.75rem; }
+.mystery-top { width: 100%; max-width: 760px; display: flex; justify-content: space-between; align-items: center; }
+.mystery-balls { font-size: 1.8rem; letter-spacing: 0.1rem; }
+.mystery-balls .gone { opacity: 0.15; filter: grayscale(1); }
+.mystery-picture {
+  position: relative;
+  width: min(26vh, 230px);
+  aspect-ratio: 1;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.mystery-pic { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: min(18vh, 160px); line-height: 1; }
+.mystery-pic .word-pic-img { width: 82%; height: 82%; object-fit: cover; border-radius: 18px; }
+.mystery-tiles { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
+.mystery-tiles i {
+  background: repeating-linear-gradient(45deg, #b49cff 0 12px, #c4b0ff 12px 24px);
+  border: 2px solid #fff;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.mystery-tiles i.open { opacity: 0; transform: scale(0.6); }
+.mystery-keyboard { width: 100%; }
+
+.warn-text { color: #b06a00; }

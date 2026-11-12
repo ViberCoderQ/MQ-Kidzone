@@ -1,0 +1,1113 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Kid Zone</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <meta name="theme-color" content="#fff4e0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Kid Zone" />
+  <link rel="stylesheet" href="style.css?v=159" />
+  <link rel="stylesheet" href="memory-match.css?v=159" />
+</head>
+<body>
+
+  <!-- ================= Sign-in: type your name on the ABC keyboard ================= -->
+  <section id="profile-screen" class="screen active">
+    <div class="screen-inner signin-inner">
+      <h1 class="app-title js-app-name">Kid Zone</h1>
+      <div class="signin-prompt" id="signin-prompt">
+        <span class="signin-prompt-text">Type your name</span>
+      </div>
+      <div class="signin-name" id="signin-name" aria-live="polite"></div>
+      <div class="abc-keyboard" id="abc-keyboard"></div>
+      <p class="empty-hint hidden" id="profile-empty-hint">No kids added yet.<br />A grown-up can add one with the 🔒 button.</p>
+      <div class="first-run hidden" id="first-run">
+        <div class="first-run-emoji">👋</div>
+        <h2 class="first-run-title">Welcome!</h2>
+        <p class="first-run-text">Let's get this iPad ready. A grown-up creates a parent PIN, then adds the boy who uses this iPad.</p>
+        <button type="button" class="big-btn primary-btn" id="first-run-btn">Grown-ups: set up this iPad</button>
+      </div>
+      <div class="install-hint hidden" id="install-hint">
+        <strong>Grown-ups:</strong> for the best results, add this app to the Home Screen.
+        Tap the Share button <span aria-hidden="true">⬆️</span>, then <em>Add to Home Screen</em>, and always open it from that icon.
+        <button type="button" class="install-hint-close" id="install-hint-close" aria-label="Hide this tip">✕</button>
+      </div>
+    </div>
+    <button type="button" class="parent-entry-btn" id="parent-entry-btn" aria-label="Grown-ups">🔒</button>
+  </section>
+
+  <!-- ================= Hello! (shown for a moment after signing in) ================= -->
+  <div class="overlay hello-overlay hidden" id="hello-overlay">
+    <div class="hello-card">
+      <div class="hello-wave">👋</div>
+      <div class="hello-text" id="hello-text">Hi!</div>
+    </div>
+  </div>
+
+  <!-- ================= Kid home: one tile per section ================= -->
+  <section id="home-screen" class="screen">
+    <header class="home-header">
+      <button type="button" class="coin-chip" id="home-coin-chip" aria-label="My coins"><span class="coin-icon">🪙</span><span id="home-coin-count">0</span></button>
+      <button type="button" class="profile-chip" id="home-profile-chip"></button>
+    </header>
+    <div class="screen-inner home-inner">
+      <img class="home-logo" src="icons/home-logo.png?v=159" alt="Kid Zone" />
+      <button type="button" class="home-goal hidden" id="home-goal"></button>
+      <div class="section-grid" id="section-grid"></div>
+    </div>
+  </section>
+
+  <!-- ================= My coins ================= -->
+  <section id="coins-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="coins-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">My Coins</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <div class="coin-balance" id="coin-balance"></div>
+      <div class="coin-today" id="coin-today"></div>
+      <div class="coin-history" id="coin-history"></div>
+      <p class="empty-hint hidden" id="coin-history-empty">No coins yet. Color a picture and save it to earn some! 🖍️</p>
+    </div>
+  </section>
+
+  <!-- ================= Chores (kid) ================= -->
+  <section id="chores-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="chores-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">My Chores</h2>
+      <span class="header-spacer" id="chores-voice-slot"></span>
+    </header>
+    <div class="screen-inner">
+      <div class="chore-list" id="chore-list"></div>
+      <p class="empty-hint hidden" id="chore-empty">No chores today! 🎉</p>
+    </div>
+  </section>
+
+  <!-- ================= Store (kid) ================= -->
+  <section id="store-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="store-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Store</h2>
+      <span class="coin-chip" id="store-coins"></span>
+    </header>
+    <div class="screen-inner">
+      <div class="store-waiting hidden" id="store-waiting"></div>
+      <div class="store-grid" id="store-grid"></div>
+      <p class="empty-hint hidden" id="store-empty">The store is empty right now.</p>
+    </div>
+  </section>
+
+  <!-- ================= Buy it? ================= -->
+  <div class="overlay hidden" id="buy-overlay">
+    <div class="overlay-card buy-card">
+      <div class="buy-pic" id="buy-pic"></div>
+      <div class="buy-name" id="buy-name"></div>
+      <div class="buy-price" id="buy-price"></div>
+      <div class="buy-actions">
+        <button type="button" class="buy-btn no" id="buy-no-btn" aria-label="No">✕</button>
+        <button type="button" class="buy-btn yes" id="buy-yes-btn" aria-label="Yes, buy it">✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Games (kid) ================= -->
+  <section id="games-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="games-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Games</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <div class="setup-list" id="games-resume-list"></div>
+      <div class="section-grid" id="games-list"></div>
+    </div>
+  </section>
+
+  <!-- ================= Games: one game's detail -- VS or Play against Computer ================= -->
+  <section id="game-detail-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="game-detail-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title" id="game-detail-title">Game</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <div class="game-detail-emoji" id="game-detail-emoji"></div>
+      <button type="button" class="big-btn primary-btn vs-btn-wide" id="game-detail-vs-btn">VS a kid</button>
+      <button type="button" class="big-btn" id="game-detail-computer-btn">🤖 Play against Computer</button>
+    </div>
+  </section>
+
+  <!-- ================= Games: pick an opponent to challenge ================= -->
+  <div class="overlay hidden" id="vs-picker-overlay">
+    <div class="overlay-card">
+      <h3 class="overlay-title" id="vs-picker-title">Challenge who?</h3>
+      <div class="setup-list" id="vs-picker-list"></div>
+      <div class="overlay-actions">
+        <button type="button" class="big-btn" id="vs-picker-cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Games: waiting for the other kid to respond ================= -->
+  <div class="overlay hidden" id="vs-waiting-overlay">
+    <div class="overlay-card">
+      <h3 class="overlay-title" id="vs-waiting-title">Waiting...</h3>
+      <p class="parent-card-note" id="vs-waiting-note"></p>
+      <div class="overlay-actions">
+        <button type="button" class="big-btn" id="vs-waiting-cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Games: an incoming challenge from another kid ================= -->
+  <div class="overlay hidden" id="vs-challenge-overlay">
+    <div class="overlay-card">
+      <h3 class="overlay-title" id="vs-challenge-title">You've been challenged!</h3>
+      <div class="overlay-actions">
+        <button type="button" class="big-btn" id="vs-challenge-decline-btn">Not now</button>
+        <button type="button" class="big-btn primary-btn" id="vs-challenge-accept-btn">Accept!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Games: play screen (War today; Go Fish still a placeholder) ================= -->
+  <section id="vs-play-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="vs-play-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title" id="vs-play-title">Game</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner" id="vs-play-body"></div>
+  </section>
+
+  <!-- ================= Math / Reading menu ================= -->
+  <section id="subject-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="subject-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title" id="subject-title">Math</h2>
+      <span class="level-chip" id="subject-level"></span>
+    </header>
+    <div class="screen-inner home-inner">
+      <div class="section-grid area-grid" id="subject-tiles"></div>
+    </div>
+  </section>
+
+  <!-- ================= Practice ================= -->
+  <section id="practice-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="practice-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title" id="practice-title">Practice</h2>
+      <button type="button" class="icon-btn" id="practice-replay-btn" aria-label="Say it again">🔊</button>
+    </header>
+    <div class="practice-body">
+      <div class="practice-progress" id="practice-progress"></div>
+      <div class="practice-question" id="practice-question"></div>
+      <div class="practice-answers" id="practice-answers"></div>
+    </div>
+  </section>
+
+  <!-- ================= Memory Match (Math only -- Reading has its own castle-themed game in
+       memory-match-screen) ================= -->
+  <section id="memory-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="memory-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Memory Match</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="game-body">
+      <p class="game-status" id="memory-status"></p>
+      <div class="memory-grid" id="memory-grid"></div>
+    </div>
+  </section>
+
+  <!-- ================= Reading's Memory Match: a separate castle-themed game, ported from the
+       Cursor handoff (see js/memory-match-game.js). Everything inside memory-match-root keeps the
+       handoff's own ids (prefixed mm- to avoid collisions) and classes. No app sub-header here --
+       the stage fills the whole screen, and mm-backBtn is a transparent hit target over the house
+       icon already baked into castle-select-layered.png (same trick as the play-screen's
+       top-action buttons over castle-board-reference.png's icons). ================= -->
+  <section id="memory-match-screen" class="screen">
+    <div class="memory-match-wrap" id="memory-match-root">
+      <div class="stage" id="mm-stage" aria-label="Kid Zone Memory Match">
+        <section class="screen select-screen" id="mm-selectScreen" aria-label="Choose board size">
+          <button class="top-action home" id="mm-backBtn" type="button" aria-label="Back to Reading menu"></button>
+          <div class="select-buttons" id="mm-sizeButtons">
+            <button data-cols="5" type="button">5 × 4 <small>10 pairs</small></button>
+            <button data-cols="6" type="button">6 × 4 <small>12 pairs</small></button>
+            <button data-cols="7" type="button">7 × 4 <small>14 pairs</small></button>
+            <button data-cols="8" type="button">8 × 4 <small>16 pairs</small></button>
+          </div>
+        </section>
+        <section class="screen play-screen hidden" id="mm-playScreen" aria-label="Memory cards">
+          <button class="top-action home" id="mm-homeBtn" type="button" aria-label="Return to board selection"></button>
+          <button class="top-action sound" id="mm-soundBtn" type="button" aria-label="Toggle sound"></button>
+          <button class="top-action settings" id="mm-settingsBtn" type="button" aria-label="Game instructions"></button>
+          <div class="board-mat"><div class="memory-grid" id="mm-grid" aria-label="Memory card grid"></div></div>
+          <div class="status-bar mm-original-progress">
+            <img class="mm-progress-art" src="assets/memory-match/progress-bar-clean.png" alt="" draggable="false">
+            <b class="mm-live-number" id="mm-pairsText">0 / 10</b>
+            <b class="mm-live-number" id="mm-attemptsText">0</b>
+            <b class="mm-live-number" id="mm-progressText">0%</b>
+            <div class="mm-live-track" role="progressbar" aria-label="Pairs completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="mm-meterFill"></div></div>
+          </div>
+          <button class="reset-button" id="mm-resetBtn" type="button" aria-label="Reset the board"></button>
+        </section>
+        <div class="shade hidden" id="mm-shade" aria-hidden="true"></div>
+        <section class="match-dialog hidden" id="mm-matchDialog" role="dialog" aria-modal="true" aria-labelledby="mm-matchTitle">
+          <div class="dialog-content">
+            <h2 id="mm-matchTitle">You Got a Match!</h2>
+            <div class="challenge">
+              <img id="mm-challengeImage" alt="Matched object">
+              <div class="spell-area">
+                <p id="mm-challengePrompt">Spell the word<br>to complete the match!</p>
+                <div id="mm-letterSlots" class="letter-slots" aria-label="Spelling answer"></div>
+              </div>
+            </div>
+            <div id="mm-traceArea" class="mm-trace-area hidden" aria-label="Trace each dotted letter"></div>
+            <div id="mm-choiceArea" class="mm-choice-area hidden"></div>
+            <div id="mm-keyboard" class="keyboard"></div>
+            <div class="dialog-actions">
+              <button id="mm-eraseBtn" type="button" class="erase-button">⌫ Erase</button>
+              <button id="mm-hintBtn" type="button" class="erase-button">★ Hint</button>
+              <button id="mm-submitBtn" type="button" class="submit-button">✓ Submit</button>
+            </div>
+            <p id="mm-feedback" class="feedback" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+        <section class="small-dialog hidden" id="mm-confirmDialog" role="dialog" aria-modal="true" aria-labelledby="mm-confirmTitle">
+          <h2 id="mm-confirmTitle">Start over?</h2>
+          <p id="mm-confirmMessage">Your current progress will be lost.</p>
+          <div>
+            <button id="mm-cancelConfirm" type="button">Keep playing</button>
+            <button id="mm-acceptConfirm" type="button">Yes, continue</button>
+          </div>
+        </section>
+        <section class="small-dialog hidden" id="mm-infoDialog" role="dialog" aria-modal="true" aria-labelledby="mm-infoTitle">
+          <h2 id="mm-infoTitle">How to play</h2>
+          <p id="mm-infoMessage">Flip two cards. If they match, spell the picture's name to keep the pair. Find all the pairs to win!</p>
+          <button id="mm-closeInfo" type="button">OK</button>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= War ================= -->
+  <section id="war-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="war-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">War</h2>
+      <button type="button" class="icon-btn" id="war-replay-btn" aria-label="Say it again">🔊</button>
+    </header>
+    <div class="game-body war-body">
+      <div class="war-scores">
+        <span class="war-score"><span class="war-who">🙂 You</span><b id="war-score-me">0</b></span>
+        <span class="war-round" id="war-round"></span>
+        <span class="war-score"><span class="war-who"><span id="war-buddy">🐻</span> <span id="war-buddy-name">Bear</span></span><b id="war-score-them">0</b></span>
+      </div>
+      <div class="war-table">
+        <div class="war-side"><span class="war-label">Your card</span><button type="button" class="war-card down" id="war-mine"></button></div>
+        <div class="war-side"><span class="war-label" id="war-theirs-label">Buddy's card</span><button type="button" class="war-card down" id="war-theirs"></button></div>
+      </div>
+      <p class="game-status" id="war-prompt"></p>
+      <button type="button" class="done-btn war-flip" id="war-flip-btn">Flip!</button>
+    </div>
+  </section>
+
+  <!-- ================= Hidden Pictures ================= -->
+  <section id="hidden-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="hidden-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Hidden Pictures</h2>
+      <button type="button" class="icon-btn" id="hidden-replay-btn" aria-label="Say it again">🔊</button>
+    </header>
+    <div class="game-body hidden-body">
+      <div class="hidden-top">
+        <span class="hidden-round" id="hidden-round"></span>
+        <span class="hidden-find">Find: <span id="hidden-goal"></span></span>
+        <span class="hidden-count" id="hidden-count"></span>
+      </div>
+      <div class="hidden-field" id="hidden-field"></div>
+    </div>
+  </section>
+
+  <!-- ================= Letter Snap (Reading) ================= -->
+  <section id="snap-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="snap-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Letter Snap</h2>
+      <button type="button" class="icon-btn" id="snap-replay-btn" aria-label="Say it again">🔊</button>
+    </header>
+    <div class="game-body">
+      <p class="game-status">Snaps: <span id="snap-count">0 / 5</span></p>
+      <div class="war-table">
+        <div class="war-side"><span class="war-label">Match this</span><div class="war-card snap-target" id="snap-target"></div></div>
+        <div class="war-side"><span class="war-label">Next card</span><div class="war-card" id="snap-card"></div></div>
+      </div>
+      <div class="snap-actions">
+        <button type="button" class="snap-btn" id="snap-btn">✋ Snap!</button>
+        <button type="button" class="snap-next" id="snap-next-btn">Next ➡️</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Mystery Animal (Reading) ================= -->
+  <section id="mystery-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="mystery-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Mystery Animal</h2>
+      <button type="button" class="icon-btn" id="mystery-replay-btn" aria-label="Say it again">🔊</button>
+    </header>
+    <div class="game-body mystery-body">
+      <div class="mystery-top">
+        <span class="hidden-round" id="mystery-round"></span>
+        <span class="mystery-balls" id="mystery-balls"></span>
+      </div>
+      <div class="mystery-picture">
+        <span class="mystery-pic" id="mystery-pic"></span>
+        <div class="mystery-tiles" id="mystery-tiles"></div>
+      </div>
+      <div class="word-blanks big" id="mystery-blanks"></div>
+      <div class="mystery-keyboard" id="mystery-keyboard"></div>
+    </div>
+  </section>
+
+  <!-- ================= End of a round ================= -->
+  <div class="overlay hidden" id="round-overlay">
+    <div class="overlay-card round-card">
+      <div class="round-stars" id="round-stars"></div>
+      <p class="round-text" id="round-text"></p>
+      <div class="round-coins" id="round-coins"></div>
+      <div class="overlay-actions">
+        <button type="button" class="big-btn" id="round-again-btn">🔁 Again</button>
+        <button type="button" class="big-btn primary-btn" id="round-done-btn">✓ Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Coloring section menu (the old home screen) ================= -->
+  <section id="coloring-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="coloring-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Coloring</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner home-inner">
+      <div class="home-menu">
+        <button type="button" class="menu-card" id="nav-free-draw" data-accent="pink" data-say="Free Draw">
+          <span class="menu-card-icon">✏️</span>
+          <span class="menu-card-label">Free Draw</span>
+        </button>
+        <button type="button" class="menu-card" id="nav-coloring-book" data-accent="blue" data-say="Coloring Book">
+          <span class="menu-card-icon">📖</span>
+          <span class="menu-card-label">Coloring Book</span>
+        </button>
+        <button type="button" class="menu-card" id="nav-gallery" data-accent="yellow" data-say="My Gallery">
+          <span class="menu-card-icon">🖼️</span>
+          <span class="menu-card-label">My Gallery</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Coloring Book: category picker ================= -->
+  <section id="category-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="category-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Coloring Book</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <div class="template-grid" id="category-grid"></div>
+    </div>
+  </section>
+
+  <!-- ================= Template picker (one category) ================= -->
+  <section id="template-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="template-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title" id="template-screen-title">Pick a Picture</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <div class="template-grid" id="template-grid"></div>
+    </div>
+  </section>
+
+  <!-- ================= Canvas (shared by Free Draw + Coloring Book) ================= -->
+  <section id="canvas-screen" class="screen">
+    <header class="canvas-header">
+      <div class="canvas-pill-bar">
+        <button type="button" class="pill pill-circle" id="canvas-back-btn" aria-label="Back">←</button>
+
+        <button type="button" class="pill" id="tool-fill-btn" aria-label="Fill">
+          <span class="pill-icon">🪣</span><span class="pill-label">Fill</span>
+        </button>
+        <button type="button" class="pill" id="tool-eraser-btn" aria-label="Eraser">
+          <span class="pill-icon">🧽</span><span class="pill-label">Eraser</span>
+        </button>
+        <button type="button" class="pill hidden" id="sticker-launcher-btn" aria-label="Stickers">
+          <span class="pill-icon">⭐</span><span class="pill-label">Stickers</span>
+        </button>
+        <button type="button" class="pill hidden" id="shape-launcher-btn" aria-label="Shapes">
+          <span class="pill-icon">📐</span><span class="pill-label">Shapes</span>
+        </button>
+        <button type="button" class="pill pill-disabled" id="text-tool-btn" aria-label="Text (coming soon)">
+          <span class="pill-icon pill-icon-text">T</span><span class="pill-label">Text</span>
+        </button>
+        <button type="button" class="pill pill-disabled" id="background-picker-btn" aria-label="Backgrounds (coming soon)">
+          <span class="pill-icon">🖼️</span><span class="pill-label">Backgrounds</span>
+        </button>
+
+        <span class="pill-divider" aria-hidden="true"></span>
+
+        <button type="button" class="pill" id="tool-undo" aria-label="Undo">
+          <span class="pill-icon">↩️</span><span class="pill-label">Undo</span>
+        </button>
+        <button type="button" class="pill" id="tool-redo" aria-label="Redo">
+          <span class="pill-icon">↪️</span><span class="pill-label">Redo</span>
+        </button>
+        <button type="button" class="pill" id="tool-clear" aria-label="Clear">
+          <span class="pill-icon">🗑️</span><span class="pill-label">Clear</span>
+        </button>
+        <button type="button" class="pill pill-save" id="canvas-save-btn" aria-label="Save">
+          <span class="pill-icon">💾</span><span class="pill-label">Save</span>
+        </button>
+      </div>
+      <h2 class="sr-only" id="canvas-title">Free Draw</h2>
+    </header>
+
+    <div class="canvas-body">
+      <div class="canvas-stage">
+        <canvas id="draw-canvas"></canvas>
+        <canvas id="rainbow-gl-canvas"></canvas>
+        <canvas id="sticker-canvas" class="hidden"></canvas>
+        <canvas id="shape-canvas" class="hidden"></canvas>
+        <canvas id="lasso-canvas" class="hidden"></canvas>
+        <div class="lasso-mode-controls hidden" id="lasso-mode-controls">
+          <button type="button" class="lasso-mode-btn active" id="lasso-mode-freehand-btn" data-mode="freehand" aria-label="Freehand lasso">➰</button>
+          <button type="button" class="lasso-mode-btn" id="lasso-mode-rect-btn" data-mode="rect" aria-label="Rectangle select">⬜</button>
+          <button type="button" class="lasso-mode-btn" id="lasso-mode-circle-btn" data-mode="circle" aria-label="Circle select">⭕</button>
+        </div>
+        <div class="lasso-action-controls hidden" id="lasso-action-controls">
+          <button type="button" class="lasso-action-btn lasso-copy-btn" id="lasso-copy-btn">📋 Copy</button>
+          <button type="button" class="lasso-action-btn lasso-cut-btn" id="lasso-cut-btn">✂️ Cut</button>
+        </div>
+        <div class="zoom-controls">
+          <button type="button" class="zoom-btn" id="zoom-in-btn" aria-label="Zoom in">+</button>
+          <button type="button" class="zoom-btn" id="zoom-out-btn" aria-label="Zoom out">−</button>
+          <button type="button" class="zoom-btn hidden" id="zoom-reset-btn" aria-label="Reset zoom">↺</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="side-outer-pill">
+          <div class="tool-row" id="brush-size-row">
+            <div class="brush-size-controls">
+              <button type="button" class="stylus-launcher-btn" id="stylus-launcher-btn" aria-label="Choose a stylus">
+                <span id="stylus-launcher-emoji">🖌️</span>
+                <span class="tool-label" id="stylus-launcher-label">Brush</span>
+                <span class="stylus-launcher-caret">▾</span>
+              </button>
+              <div class="brush-size-wrap">
+                <input type="range" id="brush-size" min="2" max="40" value="10" aria-label="Brush size" />
+              </div>
+            </div>
+            <div class="brush-extra-tools" id="brush-controls">
+              <button type="button" class="tool-btn" id="tool-eyedropper" aria-label="Color match">💧</button>
+              <button type="button" class="tool-btn" id="tool-line" aria-label="Straight line">📏</button>
+              <button type="button" class="tool-btn" id="tool-lasso" aria-label="Select (lasso)">➰</button>
+              <button type="button" class="tool-btn hidden" id="admin-protect-toggle" aria-label="Toggle ink protection">🔓</button>
+              <button type="button" class="tool-btn hidden" id="admin-download-btn" aria-label="Download PNG">⬇️</button>
+              <button type="button" class="tool-btn hidden" id="admin-delete-btn" aria-label="Delete this picture">❌</button>
+            </div>
+          </div>
+
+          <div class="panel-tabs">
+            <button type="button" class="panel-tab active" id="colors-tab-btn" data-tab="colors"><span>🎨</span>Colors</button>
+            <button type="button" class="panel-tab" id="effects-tab-btn" data-tab="effects"><span>🪄</span>Effects</button>
+          </div>
+
+          <div class="side-inner-pill">
+            <div class="tool-group" id="colors-tab-panel">
+              <div class="palette" id="color-palette"></div>
+              <div class="shade-row" id="shade-row"></div>
+            </div>
+
+            <div class="tool-group hidden" id="effects-tab-panel">
+              <button type="button" class="neon-mode-btn hidden" id="neon-mode-btn">🌟 Neon Mode</button>
+              <button type="button" class="rainbow-mode-btn paint-effect-toggle" id="rainbow-mode-btn" data-effect="">🌈 Rainbow</button>
+              <button type="button" class="paint-effect-btn paint-effect-toggle" id="ribbon-effect-btn" data-effect="ribbon">🎀 Rainbow Ribbon</button>
+              <button type="button" class="paint-effect-btn paint-effect-toggle" id="fire-effect-btn" data-effect="fire">🔥 Fire</button>
+              <button type="button" class="paint-effect-btn paint-effect-toggle" id="candy-effect-btn" data-effect="candy">🍬 Candy Stripe</button>
+              <button type="button" class="paint-effect-btn paint-effect-toggle" id="hollow-effect-btn" data-effect="hollow">⭕ Hollow Outline</button>
+              <button type="button" class="paint-effect-btn paint-effect-toggle" id="sparkle-effect-btn" data-effect="sparkle">✨ Sparkle</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Little messages (anywhere in the app) ================= -->
+  <div class="toast hidden" id="toast"></div>
+
+  <!-- ================= Coins earned! ================= -->
+  <div class="overlay celebrate-overlay hidden" id="celebrate-overlay">
+    <div class="celebrate-card">
+      <div class="celebrate-coin">🪙</div>
+      <div class="celebrate-amount" id="celebrate-amount">+2</div>
+      <div class="celebrate-text" id="celebrate-text">You earned 2 coins!</div>
+    </div>
+  </div>
+
+  <!-- ================= Stylus picker overlay ================= -->
+  <div class="overlay hidden" id="stylus-overlay">
+    <div class="overlay-card stylus-overlay-card">
+      <button type="button" class="icon-btn overlay-close-btn" id="stylus-overlay-close">✕</button>
+      <h3 class="overlay-title">Choose a Stylus</h3>
+      <div id="stylus-picker-body"></div>
+    </div>
+  </div>
+
+  <!-- ================= Sticker picker overlay ================= -->
+  <div class="overlay hidden" id="sticker-overlay">
+    <div class="overlay-card stylus-overlay-card">
+      <button type="button" class="icon-btn overlay-close-btn" id="sticker-overlay-close">✕</button>
+      <h3 class="overlay-title">Pick a Sticker</h3>
+      <div id="sticker-picker-body"></div>
+    </div>
+  </div>
+
+  <!-- ================= Shape picker overlay ================= -->
+  <div class="overlay hidden" id="shape-overlay">
+    <div class="overlay-card stylus-overlay-card">
+      <button type="button" class="icon-btn overlay-close-btn" id="shape-overlay-close">✕</button>
+      <h3 class="overlay-title">Pick a Shape</h3>
+      <div id="shape-picker-body"></div>
+    </div>
+  </div>
+
+  <!-- ================= Gallery ================= -->
+  <section id="gallery-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="gallery-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">My Gallery</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <div class="gallery-grid" id="gallery-grid"></div>
+      <p class="empty-hint hidden" id="gallery-empty-hint">Nothing saved yet — go make something! 🎨</p>
+    </div>
+  </section>
+
+  <!-- ================= Gallery piece viewer (shown at the same size as the coloring screen) ================= -->
+  <section id="artwork-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="artwork-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">My Artwork</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="artwork-view-stage">
+      <img id="artwork-view-img" alt="Saved artwork" />
+    </div>
+    <div class="artwork-view-actions">
+      <button type="button" class="big-btn primary-btn" id="artwork-edit-btn">✏️ Keep Coloring</button>
+      <button type="button" class="big-btn danger-btn" id="artwork-delete-btn">🗑️ Delete</button>
+    </div>
+  </section>
+
+  <!-- ================= Parent area (behind the PIN) ================= -->
+  <section id="parent-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="parent-back-btn" aria-label="Lock and go back">←</button>
+      <h2 class="sub-header-title">Grown-ups</h2>
+      <button type="button" class="header-pill" id="header-change-pin-btn">🔑 Change PIN</button>
+    </header>
+    <div class="screen-inner parent-inner">
+      <div class="parent-card" id="family-account-card">
+        <h3 class="parent-card-title">Family Account</h3>
+        <p class="parent-card-note">Sign in once on this iPad so kids, chores, store items and coins stay the same on every iPad.</p>
+
+        <div id="family-account-signed-out">
+          <input type="email" id="family-email" class="name-input" placeholder="Email" autocomplete="email" />
+          <input type="password" id="family-password" class="name-input" placeholder="Password" autocomplete="current-password" />
+          <p class="parent-card-note hidden" id="family-account-error"></p>
+          <button type="button" class="big-btn primary-btn" id="family-signin-btn">Sign In</button>
+          <button type="button" class="big-btn" id="family-signup-btn">Create Family Account</button>
+        </div>
+
+        <div class="hidden" id="family-account-signed-in">
+          <ul class="parent-status">
+            <li id="family-account-email-line"></li>
+          </ul>
+          <button type="button" class="big-btn" id="family-signout-btn">Sign Out</button>
+        </div>
+      </div>
+
+      <div class="parent-card welcome-card hidden" id="parent-welcome-card">
+        <h3 class="parent-card-title">Almost done!</h3>
+        <ul class="parent-status">
+          <li>✅ Parent PIN is set</li>
+          <li>👉 Now add the boy who uses this iPad</li>
+        </ul>
+        <button type="button" class="big-btn primary-btn" id="welcome-add-kid-btn">+ Add a kid</button>
+      </div>
+
+      <div class="parent-card">
+        <h3 class="parent-card-title">Waiting for approval <span class="count-badge hidden" id="approvals-count"></span></h3>
+        <div class="queue-list" id="parent-approvals"></div>
+      </div>
+
+      <div class="parent-card">
+        <h3 class="parent-card-title">To deliver <span class="count-badge hidden" id="deliveries-count"></span></h3>
+        <div class="queue-list" id="parent-deliveries"></div>
+      </div>
+
+      <div class="parent-card">
+        <h3 class="parent-card-title">Kids in your family</h3>
+        <div class="parent-kid-list" id="parent-kid-list"></div>
+        <button type="button" class="big-btn" id="add-profile-btn">+ Add a kid</button>
+      </div>
+
+      <div class="parent-card">
+        <h3 class="parent-card-title">Coin rules</h3>
+        <ul class="parent-status" id="parent-coin-rules"></ul>
+        <p class="parent-card-note">Change these in Setup -- changes save instantly and show up on every iPad.</p>
+      </div>
+
+      <div class="parent-card" id="parent-setup-card">
+        <h3 class="parent-card-title">Setup for all iPads</h3>
+        <p class="parent-card-note">Chores, store items and coin rules. Changes save instantly and sync to every iPad. Adding a brand-new photo still needs a desktop computer; emoji pictures work anywhere.</p>
+        <button type="button" class="big-btn primary-btn" id="open-setup-btn">⚙️ Open Setup</button>
+      </div>
+
+      <div class="parent-card hidden" id="parent-photo-hub-card">
+        <h3 class="parent-card-title">Photo Editor</h3>
+        <p class="parent-card-note">Manage every photo in the app -- coloring pages, stickers, chore pictures, and store pictures. Saves straight into the project folder, ready to drag to Netlify.</p>
+        <button type="button" class="big-btn" id="open-photo-hub-btn">📷 Open the Photo Editor</button>
+      </div>
+
+      <div class="parent-card">
+        <h3 class="parent-card-title">Backup</h3>
+        <p class="parent-card-note" id="backup-note"></p>
+        <button type="button" class="big-btn primary-btn" id="backup-save-btn">💾 Back up this iPad</button>
+        <button type="button" class="big-btn" id="backup-restore-btn">📂 Restore from a backup</button>
+        <input type="file" accept=".json,application/json" id="backup-file" class="hidden" />
+      </div>
+
+      <div class="parent-card">
+        <h3 class="parent-card-title">This device</h3>
+        <ul class="parent-status" id="parent-status"></ul>
+        <button type="button" class="big-btn" id="check-updates-btn">🔄 Check for updates</button>
+        <button type="button" class="big-btn" id="test-voice-btn">🔊 Test the voice</button>
+      </div>
+
+      <div class="parent-card">
+        <h3 class="parent-card-title">Parent PIN</h3>
+        <button type="button" class="big-btn" id="change-pin-btn">Change PIN</button>
+      </div>
+
+      <button type="button" class="big-btn primary-btn" id="parent-lock-btn">🔒 Lock and go back</button>
+    </div>
+  </section>
+
+  <!-- ================= Setup for all iPads (central computer only) ================= -->
+  <section id="setup-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="setup-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Setup for all iPads</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <nav class="setup-tabs" id="setup-tabs">
+      <button type="button" class="setup-tab active" data-tab="chores">🧹 Chores</button>
+      <button type="button" class="setup-tab" data-tab="store">🛍️ Store</button>
+      <button type="button" class="setup-tab" data-tab="coins">🪙 Coins</button>
+    </nav>
+    <div class="screen-inner setup-inner">
+      <div class="setup-panel" data-panel="chores">
+        <p class="parent-card-note">Each chore shows on the boys' iPads with its picture and name. Tap a chore to change it.</p>
+        <div class="setup-list" id="setup-chore-list"></div>
+        <button type="button" class="big-btn" id="setup-add-chore-btn">+ Add a chore</button>
+      </div>
+
+      <div class="setup-panel hidden" data-panel="store">
+        <p class="parent-card-note">Rewards the boys can buy with coins. You'll mark each one Paid on his iPad when you hand it over.</p>
+        <div class="setup-list" id="setup-store-list"></div>
+        <button type="button" class="big-btn" id="setup-add-store-btn">+ Add a store item</button>
+      </div>
+
+      <div class="setup-panel hidden" data-panel="coins">
+        <p class="parent-card-note">Each section has its own daily limit. The overall daily limit is those added together.</p>
+        <div class="setup-coins" id="setup-coins"></div>
+        <div class="setup-overall" id="setup-overall"></div>
+        <div class="setup-suggest">
+          <h3 class="parent-card-title">Suggest values from store prices</h3>
+          <label class="setup-field-inline">How many days of earning should a typical store item take?
+            <input type="number" min="1" max="60" value="3" id="setup-suggest-days" class="name-input small-input" />
+          </label>
+          <button type="button" class="big-btn" id="setup-suggest-btn">💡 Suggest values</button>
+          <div class="setup-suggest-result hidden" id="setup-suggest-result"></div>
+        </div>
+      </div>
+    </div>
+    <footer class="setup-footer">
+      <span class="setup-status" id="setup-status"></span>
+    </footer>
+  </section>
+
+  <!-- ================= Setup: edit one chore or store item ================= -->
+  <div class="overlay hidden" id="setup-item-overlay">
+    <div class="overlay-card setup-item-card">
+      <h3 class="overlay-title" id="setup-item-title">Chore</h3>
+      <label class="setup-field">Name
+        <input type="text" id="setup-item-name" class="name-input small-input" maxlength="40" placeholder="e.g. Brush teeth" />
+      </label>
+
+      <div class="setup-field">Picture
+        <div class="setup-pic-row">
+          <div class="setup-pic-preview" id="setup-pic-preview"></div>
+          <button type="button" class="big-btn" id="setup-pic-upload-btn">📷 Use a photo</button>
+          <input type="file" accept="image/*" id="setup-pic-upload" class="hidden" />
+        </div>
+        <div class="setup-emoji-grid" id="setup-emoji-grid"></div>
+      </div>
+
+      <label class="setup-field"><span id="setup-item-amount-label">Coins earned</span>
+        <input type="number" inputmode="numeric" min="0" max="999" id="setup-item-amount" class="name-input small-input" />
+      </label>
+
+      <div class="setup-field" id="setup-item-kids-field">For
+        <div class="setup-chips" id="setup-item-kids"></div>
+      </div>
+
+      <div class="setup-field" id="setup-item-days-field">Days
+        <div class="setup-chips" id="setup-item-days"></div>
+      </div>
+
+      <label class="setup-field" id="setup-item-limit-field">How often can he buy it?
+        <select id="setup-item-limit" class="name-input small-input">
+          <option value="">Any time</option>
+          <option value="day">Once a day</option>
+          <option value="week">Once a week</option>
+        </select>
+      </label>
+
+      <div class="overlay-actions">
+        <button type="button" class="big-btn danger-btn" id="setup-item-delete-btn">Delete</button>
+        <button type="button" class="big-btn" id="setup-item-cancel-btn">Cancel</button>
+        <button type="button" class="big-btn primary-btn" id="setup-item-done-btn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= One kid's settings and coins (parent area) ================= -->
+  <div class="overlay hidden" id="kid-overlay">
+    <div class="overlay-card kid-card">
+      <button type="button" class="icon-btn overlay-close-btn" id="kid-close-btn" aria-label="Close">✕</button>
+      <h3 class="overlay-title" id="kid-title">Kid</h3>
+      <div class="kid-balance" id="kid-balance"></div>
+
+      <label class="switch-row">
+        <span>
+          <strong>Spelling helper</strong><br />
+          <span class="parent-card-note">The next letter of his name glows on the sign-in keyboard.</span>
+        </span>
+        <input type="checkbox" id="kid-helper-toggle" class="switch" />
+      </label>
+
+      <label class="switch-row">
+        <span>
+          <strong>Read questions out loud</strong><br />
+          <span class="parent-card-note">Math and reading questions say themselves. The 🔊 buttons always work.</span>
+        </span>
+        <input type="checkbox" id="kid-autoread-toggle" class="switch" />
+      </label>
+
+      <div class="kid-learning" id="kid-learning"></div>
+
+      <div class="kid-adjust">
+        <strong>Add or take away coins</strong>
+        <div class="kid-adjust-row">
+          <input type="number" inputmode="numeric" min="1" max="999" id="kid-adjust-amount" class="name-input small-input" placeholder="Coins" />
+          <input type="text" id="kid-adjust-reason" class="name-input small-input" placeholder="Reason (e.g. birthday bonus)" maxlength="40" />
+        </div>
+        <div class="overlay-actions">
+          <button type="button" class="big-btn" id="kid-remove-coins-btn">− Take away</button>
+          <button type="button" class="big-btn primary-btn" id="kid-add-coins-btn">+ Add</button>
+        </div>
+      </div>
+
+      <strong class="kid-history-title">Coin history</strong>
+      <div class="coin-history compact" id="kid-history"></div>
+
+      <button type="button" class="kid-remove-btn" id="kid-remove-btn">Remove this kid from the device</button>
+    </div>
+  </div>
+
+  <!-- ================= PIN pad ================= -->
+  <div class="overlay hidden" id="pin-overlay">
+    <div class="overlay-card pin-card">
+      <button type="button" class="icon-btn overlay-close-btn" id="pin-close-btn" aria-label="Cancel">✕</button>
+      <h3 class="overlay-title" id="pin-title">Grown-ups only</h3>
+      <p class="pin-message" id="pin-message">Enter the parent PIN</p>
+      <div class="pin-dots" id="pin-dots"></div>
+      <div class="pin-pad" id="pin-pad"></div>
+      <button type="button" class="pin-forgot" id="pin-forgot-btn">Forgot PIN?</button>
+    </div>
+  </div>
+
+  <!-- ================= Forgot PIN: a grown-up question ================= -->
+  <div class="overlay hidden" id="pin-reset-overlay">
+    <div class="overlay-card">
+      <h3 class="overlay-title">Reset the PIN</h3>
+      <p class="pin-message">Answer this grown-up question to set a new PIN.</p>
+      <p class="pin-question" id="pin-reset-question"></p>
+      <input type="text" inputmode="numeric" id="pin-reset-answer" class="name-input" placeholder="Answer" maxlength="5" />
+      <div class="overlay-actions">
+        <button type="button" class="big-btn" id="pin-reset-cancel-btn">Cancel</button>
+        <button type="button" class="big-btn primary-btn" id="pin-reset-ok-btn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Photo Editor hub: pick which area's photos to manage ================= -->
+  <section id="photo-hub-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="photo-hub-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Photo Editor</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <p class="screen-subtitle">Choose what you want to edit</p>
+      <div class="photo-hub-grid">
+        <button type="button" class="photo-hub-choice" id="photo-hub-coloring-btn">
+          <span class="photo-hub-emoji">🖼️</span><span class="photo-hub-label">Coloring Pages</span>
+        </button>
+        <button type="button" class="photo-hub-choice" id="photo-hub-stickers-btn">
+          <span class="photo-hub-emoji">✨</span><span class="photo-hub-label">Stickers</span>
+        </button>
+        <button type="button" class="photo-hub-choice" id="photo-hub-chores-btn">
+          <span class="photo-hub-emoji">🧹</span><span class="photo-hub-label">Chore Photos</span>
+        </button>
+        <button type="button" class="photo-hub-choice" id="photo-hub-store-btn">
+          <span class="photo-hub-emoji">🛍️</span><span class="photo-hub-label">Store Photos</span>
+        </button>
+        <button type="button" class="photo-hub-choice" id="photo-hub-reading-btn">
+          <span class="photo-hub-emoji">📖</span><span class="photo-hub-label">Reading Pictures</span>
+        </button>
+        <button type="button" class="photo-hub-choice" id="photo-hub-memory-btn">
+          <span class="photo-hub-emoji">🃏</span><span class="photo-hub-label">Memory Match Words</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Admin: Reading Pictures (real photos for Memory Match / Letter Snap /
+       Mystery Animal, keyed by word -- not part of the kid-facing flow, reached only via the
+       photo editor hub) ================= -->
+  <section id="reading-pics-admin-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="reading-pics-admin-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Reading Pictures</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <p class="screen-subtitle">Real photos for Memory Match and Mystery Animal, in place of the built-in pictures</p>
+      <button type="button" class="big-btn" id="reading-pics-connect-folder-btn">📁 Connect Project Folder</button>
+      <p class="admin-folder-status" id="reading-pics-folder-status"></p>
+      <div class="template-grid" id="reading-pics-grid"></div>
+      <input type="file" id="reading-pics-upload-input" accept="image/png,image/jpeg" class="hidden" />
+    </div>
+  </section>
+
+  <!-- ================= Admin: Memory Match Words (the dedicated 50-word picture catalog for
+       Reading's Memory Match -- reached only via the photo editor hub) ================= -->
+  <section id="memory-match-admin-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="memory-match-admin-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Memory Match Words</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <p class="screen-subtitle">Add new picture words, or turn existing ones on/off for Memory Match. Needs 16 on to fill the biggest board.</p>
+      <button type="button" class="big-btn" id="memory-match-connect-folder-btn">📁 Connect Project Folder</button>
+      <p class="admin-folder-status" id="memory-match-folder-status"></p>
+      <p class="admin-folder-status" id="memory-match-count-status"></p>
+      <div class="template-grid" id="memory-match-grid"></div>
+      <input type="file" id="memory-match-upload-input" accept="image/png,image/jpeg" class="hidden" />
+    </div>
+  </section>
+
+  <!-- ================= Admin: act on one Reading Picture word (no canvas editor -- these stay
+       real photos, not line art, so it's just Replace or Remove) ================= -->
+  <div class="overlay hidden" id="word-pic-overlay">
+    <div class="overlay-card">
+      <h3 class="overlay-title" id="word-pic-title">Word</h3>
+      <p class="parent-card-note">Replace the picture for this word with a real photo, or remove a photo you already added to go back to the default.</p>
+      <div class="overlay-actions">
+        <button type="button" class="big-btn danger-btn hidden" id="word-pic-remove-btn">↩️ Remove Photo</button>
+        <button type="button" class="big-btn" id="word-pic-cancel-btn">Cancel</button>
+        <button type="button" class="big-btn primary-btn" id="word-pic-replace-btn">🖼️ Replace with a Photo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Admin: name a brand-new Reading Picture ================= -->
+  <div class="overlay hidden" id="reading-pic-name-overlay">
+    <div class="overlay-card">
+      <h3 class="overlay-title">New Reading Picture</h3>
+      <p class="parent-card-note">What word is this a picture of? Use a simple word, lowercase, like "bear".</p>
+      <input type="text" id="reading-pic-name-input" class="name-input" placeholder="Word, e.g. bear" maxlength="20" />
+      <div class="overlay-actions">
+        <button type="button" class="big-btn" id="reading-pic-name-cancel-btn">Cancel</button>
+        <button type="button" class="big-btn primary-btn" id="reading-pic-name-continue-btn">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Admin: name a brand-new Memory Match word (3-4 letters, since every
+       match ends in spelling it) ================= -->
+  <div class="overlay hidden" id="memory-match-name-overlay">
+    <div class="overlay-card">
+      <h3 class="overlay-title">New Memory Match Word</h3>
+      <p class="parent-card-note">3-4 letters, and the picture shouldn't show the word itself. Example: "frog".</p>
+      <input type="text" id="memory-match-name-input" class="name-input" placeholder="Word, e.g. frog" maxlength="4" />
+      <select id="memory-match-category-input" class="name-input">
+        <option value="animals">Animals</option>
+        <option value="food">Food</option>
+        <option value="objects" selected>Objects</option>
+        <option value="nature">Nature</option>
+        <option value="vehicles">Vehicles</option>
+      </select>
+      <div class="overlay-actions">
+        <button type="button" class="big-btn" id="memory-match-name-cancel-btn">Cancel</button>
+        <button type="button" class="big-btn primary-btn" id="memory-match-name-continue-btn">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Admin: template editor (not part of the kid-facing flow -- reached only
+       via the photo editor hub) ================= -->
+  <section id="admin-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="admin-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Photo Editor</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <p class="screen-subtitle">Clean up an uploaded image, or touch up an existing template</p>
+      <button type="button" class="big-btn" id="admin-connect-folder-btn">📁 Connect Project Folder</button>
+      <p class="admin-folder-status" id="admin-folder-status"></p>
+      <div class="template-grid" id="admin-grid"></div>
+      <input type="file" id="admin-upload-input" accept="image/png,image/jpeg" class="hidden" />
+    </div>
+  </section>
+
+  <!-- ================= Admin: sticker editor (not part of the kid-facing flow -- reached only
+       via the photo editor hub) ================= -->
+  <section id="sticker-admin-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="sticker-admin-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Sticker Editor</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <p class="screen-subtitle">Upload a photo or clipart to turn it into a paintable sticker</p>
+      <button type="button" class="big-btn" id="sticker-admin-connect-folder-btn">📁 Connect Project Folder</button>
+      <p class="admin-folder-status" id="sticker-admin-folder-status"></p>
+      <div class="template-grid" id="sticker-admin-grid"></div>
+      <input type="file" id="sticker-admin-upload-input" accept="image/png,image/jpeg" class="hidden" />
+    </div>
+  </section>
+
+  <!-- ================= Admin: act on a built-in sticker shape (no pixels to touch up, so just
+       Delete or Replace instead of the full editor) ================= -->
+  <div class="overlay hidden" id="sticker-builtin-overlay">
+    <div class="overlay-card">
+      <h3 class="overlay-title" id="sticker-builtin-title">Sticker</h3>
+      <p class="parent-card-note">This is a built-in shape, not a photo -- there's nothing to touch up, but you can replace it with a photo or remove it from the picker.</p>
+      <div class="overlay-actions">
+        <button type="button" class="big-btn danger-btn" id="sticker-builtin-delete-btn">🗑️ Delete</button>
+        <button type="button" class="big-btn" id="sticker-builtin-cancel-btn">Cancel</button>
+        <button type="button" class="big-btn primary-btn" id="sticker-builtin-replace-btn">🖼️ Replace with a Photo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Admin: assign a new upload to a coloring book (or name a new sticker) ================= -->
+  <div class="overlay hidden" id="admin-assign-overlay">
+    <div class="overlay-card">
+      <h3 class="overlay-title" id="admin-assign-title">New Picture Details</h3>
+      <input type="text" id="admin-assign-name" class="name-input" placeholder="Picture name..." maxlength="40" />
+      <select id="admin-assign-category" class="name-input"></select>
+      <div id="admin-assign-new-category-fields" class="hidden">
+        <input type="text" id="admin-assign-new-cat-name" class="name-input" placeholder="New coloring book name..." maxlength="30" />
+        <input type="text" id="admin-assign-new-cat-emoji" class="name-input" placeholder="Emoji (optional, e.g. 🎨)" maxlength="4" />
+      </div>
+      <div class="overlay-actions">
+        <button type="button" class="big-btn" id="admin-assign-cancel-btn">Cancel</button>
+        <button type="button" class="big-btn primary-btn" id="admin-assign-continue-btn">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= New profile overlay ================= -->
+  <div class="overlay hidden" id="new-profile-overlay">
+    <div class="overlay-card">
+      <h3 class="overlay-title">Add a Kid</h3>
+      <input type="text" id="new-profile-name" class="name-input" placeholder="Type a name..." maxlength="18" />
+      <div class="avatar-color-grid" id="new-profile-color-grid"></div>
+      <div class="overlay-actions">
+        <button type="button" class="big-btn" id="new-profile-cancel-btn">Cancel</button>
+        <button type="button" class="big-btn primary-btn" id="new-profile-create-btn">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/config.js?v=159"></script>
+  <script src="js/supabase-client.js?v=159"></script>
+  <script src="js/parent-auth.js?v=159"></script>
+  <script src="js/store.js?v=159"></script>
+  <script src="js/voice.js?v=159"></script>
+  <script src="js/parent-pin.js?v=159"></script>
+  <script src="js/settings.js?v=159"></script>
+  <script src="js/coins.js?v=159"></script>
+  <script src="js/rewards-data.js?v=159"></script>
+  <script src="js/profiles.js?v=159"></script>
+  <script src="js/templates.js?v=159"></script>
+  <script src="js/raster-art.js?v=159"></script>
+  <script src="js/styluses.js?v=159"></script>
+  <script src="js/custom-stickers.js?v=159"></script>
+  <script src="js/stickers.js?v=159"></script>
+  <script src="js/shapes.js?v=159"></script>
+  <script src="js/colors.js?v=159"></script>
+  <script src="js/rainbow-gl.js?v=159"></script>
+  <script src="js/canvas-engine.js?v=159"></script>
+  <script src="js/gallery.js?v=159"></script>
+  <script src="js/backup.js?v=159"></script>
+  <script src="js/app.js?v=159"></script>
+  <script src="js/math-content.js?v=159"></script>
+  <script src="js/learning.js?v=159"></script>
+  <script src="js/custom-reading-pics.js?v=159"></script>
+  <script src="js/reading-content.js?v=159"></script>
+  <script src="js/memory-match-words.js?v=159"></script>
+  <script src="js/mm-trace-glyphs.js?v=1"></script>
+  <script src="js/memory-match-game.js?v=160"></script>
+  <script src="js/setup.js?v=159"></script>
+  <script src="js/kid-rewards.js?v=159"></script>
+  <script src="js/war.js?v=159"></script>
+  <script src="js/tictactoe.js?v=159"></script>
+  <script src="js/connect4.js?v=159"></script>
+  <script src="js/games.js?v=159"></script>
+</body>
+</html>

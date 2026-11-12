@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-24T17:30:00.000Z",
+  "kids": [],
+  "coinRules": {
+    "sections": {
+      "coloring": { "perItem": 2, "dailyLimit": 6, "minActions": 3 },
+      "chores": { "dailyLimit": 20 },
+      "math": { "perItem": 3, "gamePerItem": 1, "dailyLimit": 10 },
+      "reading": { "perItem": 3, "gamePerItem": 1, "dailyLimit": 10 }
+    }
+  },
+  "chores": [
+    { "id": "brush-teeth", "name": "Brush teeth", "picture": { "type": "emoji", "value": "🪥" }, "coins": 2, "kids": [], "days": [] },
+    { "id": "make-bed", "name": "Make your bed", "picture": { "type": "emoji", "value": "🛏️" }, "coins": 3, "kids": [], "days": [] },
+    { "id": "pick-up-toys", "name": "Pick up toys", "picture": { "type": "emoji", "value": "🧸" }, "coins": 3, "kids": [], "days": [] },
+    { "id": "clear-plate", "name": "Clear your plate", "picture": { "type": "emoji", "value": "🍽️" }, "coins": 2, "kids": [], "days": [] }
+  ],
+  "store": [
+    { "id": "ice-cream", "name": "Ice cream", "picture": { "type": "emoji", "value": "🍦" }, "price": 30, "limit": "week" },
+    { "id": "video-games", "name": "30 minutes of video games", "picture": { "type": "emoji", "value": "🎮" }, "price": 40, "limit": "day" },
+    { "id": "pick-dinner", "name": "Pick what's for dinner", "picture": { "type": "emoji", "value": "🍕" }, "price": 50, "limit": "week" },
+    { "id": "small-toy", "name": "A small toy", "picture": { "type": "emoji", "value": "🎁" }, "price": 150, "limit": null }
+  ]
+}

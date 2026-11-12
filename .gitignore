@@ -1,0 +1,13 @@
+# Real photos uploaded through the admin photo editor -- keep the folder, not its contents.
+data/pictures/*
+!data/pictures/.keep
+
+# Dev-only tooling lives in the sibling kid-zone-app-dev folder, never here, but ignore
+# defensively in case it ever reappears.
+node_modules/
+_backup-before-*/
+
+# OS/editor cruft
+Thumbs.db
+desktop.ini
+.DS_Store
