@@ -13,7 +13,11 @@ const Games = (() => {
     { id: 'go_fish', name: 'Go Fish', emoji: '🎣', accent: 'blue' },
     { id: 'tic_tac_toe', name: 'Tic Tac Toe', emoji: '⭕', accent: 'purple' },
     { id: 'connect_4', name: 'Connect 4', emoji: '🔴', accent: 'red' },
+    { id: 'spot_the_difference', name: 'Spot the Difference', emoji: '🔎', accent: 'green' },
   ];
+  // Spot the Difference is single-player (no opponent), so it skips the VS-a-kid/Computer picker
+  // entirely instead of going through openGameDetail like every other game here.
+  const SINGLE_PLAYER = new Set(['spot_the_difference']);
   // Games with a real driver (buildInitialState/render) wired up, for both the vs-computer path and
   // the real kid-vs-kid challenge pipeline below -- a lookup object rather than an if/else chain so
   // each call site below stays a one-liner and a missing entry (go_fish) falls through to a single
@@ -227,9 +231,17 @@ const Games = (() => {
       tile.className = 'section-tile';
       tile.dataset.accent = g.accent;
       tile.innerHTML = `<span class="section-tile-icon">${g.emoji}</span><span class="section-tile-label">${esc(g.name)}</span>`;
-      tile.addEventListener('click', () => openGameDetail(g.id));
+      tile.addEventListener('click', () => (SINGLE_PLAYER.has(g.id) ? openSinglePlayerGame(g.id) : openGameDetail(g.id)));
       box.appendChild(tile);
     });
+  }
+
+  // ---------- single-player games: straight into the game, no VS/Computer picker ----------
+  function openSinglePlayerGame(gameId) {
+    if (gameId === 'spot_the_difference' && window.SpotTheDifference) {
+      SpotTheDifference.open(openGamesScreen);
+      AppBridge.showScreen('spot-diff-screen');
+    }
   }
 
   // ---------- one game's detail: VS a kid, or play against the computer ----------

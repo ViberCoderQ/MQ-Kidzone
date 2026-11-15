@@ -1,0 +1,121 @@
+/* Spot the Difference (ported from the Cursor handoff). Scoped under #spot-diff-root so its
+   .stage/.board/.marks/etc. classes (all prefixed "sd-" to be safe) can't collide with the rest of
+   the app's own global classes of the same name -- notably .overlay/.modal, which style.css already
+   uses for the Games VS-picker/waiting/challenge dialogs. */
+
+#spot-diff-root {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #14233d;
+  color: #fff;
+  font-family: system-ui, Arial, sans-serif;
+  container-type: size;
+}
+#spot-diff-root * { box-sizing: border-box; }
+#spot-diff-root button { font: inherit; cursor: pointer; touch-action: manipulation; }
+#spot-diff-root button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+#spot-diff-root .hidden { display: none !important; }
+
+/* 1672:941, same letterboxing approach as Memory Match's .stage -- cqw/cqh measure
+   #spot-diff-root's own box, not the viewport, since this sits inside the app shell. */
+#spot-diff-root .sd-stage {
+  position: relative;
+  width: min(100cqw, 177.6833cqh);
+  aspect-ratio: 1672 / 941;
+  background: url('assets/spot-the-difference/castle-background.png') center / 100% 100% no-repeat;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#spot-diff-root .sd-board {
+  position: absolute; top: 24.9%; height: 54.2%; width: 42.8%;
+  border-radius: 2.2%; overflow: hidden; cursor: crosshair; touch-action: manipulation;
+}
+#spot-diff-root .sd-board.sd-left { left: 4.95%; }
+#spot-diff-root .sd-board.sd-right { left: 52.18%; }
+#spot-diff-root .sd-board img { width: 100%; height: 100%; display: block; pointer-events: none; }
+#spot-diff-root .sd-marks { position: absolute; inset: 0; pointer-events: none; }
+
+#spot-diff-root .sd-ring {
+  position: absolute; transform: translate(-50%, -50%);
+  border: 3px solid #39f87e; border-radius: 50%;
+  box-shadow: 0 0 0 2px #104627, 0 0 10px #2cff70;
+  background: #1cff3610; pointer-events: none;
+  animation: sd-pop 0.23s ease-out;
+}
+#spot-diff-root .sd-ring.hint {
+  border-color: #fff06b; box-shadow: 0 0 0 3px #b75d08, 0 0 24px #fff200;
+  animation: sd-pulse 0.8s ease-in-out infinite alternate;
+}
+
+#spot-diff-root .sd-toolbar {
+  position: absolute; left: 20%; right: 20%; bottom: 1.8%; height: 8%;
+  display: flex; align-items: center; justify-content: center; gap: 1.3%;
+  background: #0a357edb; border: 2px solid #eeb54b; border-radius: 999px;
+  box-shadow: 0 2px 8px #0009;
+}
+#spot-diff-root .sd-toolbar button,
+#spot-diff-root .sd-top button,
+#spot-diff-root .sd-modal button {
+  font: 800 clamp(10px, 1.4cqw, 20px) system-ui;
+  border: 2px solid #ffdb77; background: linear-gradient(#2775d4, #0a3989); color: #fff;
+  border-radius: 999px; padding: 0.4em 0.75em; white-space: nowrap;
+}
+#spot-diff-root .sd-toolbar button:disabled { opacity: 0.45; cursor: default; }
+#spot-diff-root .sd-counter { font-weight: 900; font-size: clamp(10px, 1.55cqw, 22px); white-space: nowrap; }
+#spot-diff-root .sd-dots { display: flex; gap: 5px; }
+#spot-diff-root .sd-dot {
+  width: clamp(10px, 1.5cqw, 21px); aspect-ratio: 1; border: 2px solid #ffdf80;
+  border-radius: 50%; background: #18294b;
+}
+#spot-diff-root .sd-dot.found { background: #34df74; }
+
+/* No baked-in icon in castle-background.png to sit a transparent hit-target over (unlike Memory
+   Match's), so this is a real visible pill button, same colors/border as .sd-top/.sd-toolbar. */
+#spot-diff-root .sd-back-btn {
+  position: absolute; top: 1.8%; left: 2.1%; z-index: 6; width: 7%; aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  background: #083d88e6; border: 2px solid #ffdb7e; border-radius: 50%;
+  color: #fff; font-size: clamp(14px, 2.4cqw, 30px); font-weight: 900;
+}
+
+#spot-diff-root .sd-top {
+  position: absolute; top: 18.3%; left: 29%; right: 29%; height: 5%;
+  display: flex; align-items: center; justify-content: center; gap: 2%;
+  background: #083d88e6; border: 2px solid #ffdb7e; border-radius: 999px;
+}
+#spot-diff-root .sd-top span { font-size: clamp(11px, 1.45cqw, 21px); font-weight: 900; white-space: nowrap; }
+#spot-diff-root .sd-top button { font-size: clamp(9px, 1.05cqw, 15px); }
+
+#spot-diff-root .sd-status {
+  position: absolute; top: 91.2%; left: 3%; right: 3%; text-align: center;
+  font-size: clamp(10px, 1.15cqw, 17px); font-weight: 750; text-shadow: 0 2px 3px #000;
+  pointer-events: none;
+}
+
+#spot-diff-root .sd-overlay {
+  position: absolute; inset: 0; background: #06142cc9;
+  display: flex; align-items: center; justify-content: center; z-index: 5;
+}
+#spot-diff-root .sd-modal {
+  width: min(66%, 520px); padding: 3%; border: 5px solid #f4c65b; border-radius: 25px;
+  background: linear-gradient(#2769b7, #092f72); box-shadow: 0 12px 45px #0009; text-align: center;
+}
+#spot-diff-root .sd-modal h2 { font-size: clamp(22px, 3cqw, 43px); margin: 0 0 0.3em; }
+#spot-diff-root .sd-modal p { font-size: clamp(13px, 1.7cqw, 24px); }
+#spot-diff-root .sd-modal button { font-size: clamp(12px, 1.6cqw, 23px); margin: 0.3em; }
+
+@keyframes sd-pop { from { scale: 0.3; opacity: 0; } to { scale: 1; opacity: 1; } }
+@keyframes sd-pulse { to { opacity: 0.45; scale: 1.25; } }
+
+@media (max-width: 650px) {
+  #spot-diff-root .sd-toolbar { left: 12%; right: 12%; height: 9%; }
+  #spot-diff-root .sd-top { left: 23%; right: 23%; }
+  #spot-diff-root .sd-dots { gap: 2px; }
+  #spot-diff-root .sd-ring { border-width: 2px; }
+}

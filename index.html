@@ -15,6 +15,7 @@
   <meta name="apple-mobile-web-app-title" content="Kid Zone" />
   <link rel="stylesheet" href="style.css?v=159" />
   <link rel="stylesheet" href="memory-match.css?v=159" />
+  <link rel="stylesheet" href="spot-the-difference.css?v=1" />
 </head>
 <body>
 
@@ -187,6 +188,50 @@
       <span class="header-spacer"></span>
     </header>
     <div class="screen-inner" id="vs-play-body"></div>
+  </section>
+
+  <!-- ================= Spot the Difference: a separate castle-themed puzzle, ported from the
+       Cursor handoff (see js/spot-the-difference.js). Single-player, reached directly from the
+       Games tile -- js/games.js special-cases it to skip the VS-a-kid/Computer picker entirely.
+       All its own DOM ids are prefixed "sd-"; its CSS is scoped under #spot-diff-root in
+       spot-the-difference.css. No app sub-header here -- the stage fills the whole screen, same
+       as Memory Match; sd-backBtn is its own visible pill button in the stage's corner instead
+       (unlike Memory Match's, there's no baked-in icon in castle-background.png to sit over).
+       ================= -->
+  <section id="spot-diff-screen" class="screen">
+    <div id="spot-diff-root">
+      <div class="sd-stage" aria-label="Spot the Difference castle puzzle">
+        <button type="button" class="sd-back-btn" id="sd-backBtn" aria-label="Back">←</button>
+        <div class="sd-top">
+          <button type="button" id="sd-prevBtn" aria-label="Previous puzzle">◀</button>
+          <span id="sd-levelName"></span>
+          <button type="button" id="sd-nextBtn" aria-label="Next puzzle">▶</button>
+        </div>
+        <div class="sd-board sd-left" id="sd-boardLeft" aria-label="First picture">
+          <img alt="Original castle puzzle" draggable="false">
+          <div class="sd-marks"></div>
+        </div>
+        <div class="sd-board sd-right" id="sd-boardRight" aria-label="Second picture">
+          <img alt="Castle puzzle with five changes" draggable="false">
+          <div class="sd-marks"></div>
+        </div>
+        <div class="sd-toolbar">
+          <span class="sd-counter" id="sd-counter">0 / 5</span>
+          <div class="sd-dots" id="sd-dots"></div>
+          <button type="button" id="sd-hintBtn">💡 Hint</button>
+          <button type="button" id="sd-restartBtn">↻ Restart</button>
+        </div>
+        <div class="sd-status" id="sd-status" role="status" aria-live="polite"></div>
+        <div class="sd-overlay hidden" id="sd-overlay">
+          <div class="sd-modal" role="dialog" aria-modal="true" aria-labelledby="sd-winTitle">
+            <h2 id="sd-winTitle">🏆 Great job!</h2>
+            <p>You found all five differences!</p>
+            <button type="button" id="sd-againBtn">Play again</button>
+            <button type="button" id="sd-winNextBtn">Next puzzle</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ================= Math / Reading menu ================= -->
@@ -1103,6 +1148,8 @@
   <script src="js/memory-match-words.js?v=159"></script>
   <script src="js/mm-trace-glyphs.js?v=1"></script>
   <script src="js/memory-match-game.js?v=160"></script>
+  <script src="js/spot-the-difference-levels.js?v=1"></script>
+  <script src="js/spot-the-difference.js?v=1"></script>
   <script src="js/setup.js?v=159"></script>
   <script src="js/kid-rewards.js?v=159"></script>
   <script src="js/war.js?v=159"></script>

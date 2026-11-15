@@ -7,6 +7,11 @@ data/pictures/*
 node_modules/
 _backup-before-*/
 
+# Align tools need to live next to assets/icons (relative image paths + serve.js's single root),
+# so they stay here instead of kid-zone-app-dev -- not part of the shipped app, just excluded from
+# git rather than relocated.
+*-align-tool.html
+
 # OS/editor cruft
 Thumbs.db
 desktop.ini

@@ -2366,8 +2366,10 @@
     }
   }
 
-  // Memory Match word pictures stay square like Reading Pictures, but transparent PNG (not a
-  // white-filled JPG) since these sit inside a card face with its own frame art.
+  // Memory Match word pictures are square-cropped and then framed with the same gold/cream/bronze
+  // border and soft blue gradient that's baked into every built-in card-front PNG (colors and
+  // proportions measured directly off assets/memory-match/card-fronts/cat.png), so a parent's own
+  // photo sits on the board looking like it belongs there instead of floating with no frame.
   function shrinkMemoryMatchPhoto(file) {
     const MAX = 512;
     return new Promise((resolve, reject) => {
@@ -2375,12 +2377,44 @@
       const img = new Image();
       img.onload = () => {
         const side = Math.min(img.naturalWidth, img.naturalHeight);
-        const out = Math.min(MAX, side);
+        const n = Math.min(MAX, Math.max(300, side));
         const c = document.createElement('canvas');
-        c.width = out;
-        c.height = out;
+        c.width = n;
+        c.height = n;
         const ctx = c.getContext('2d');
-        ctx.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, out, out);
+        const roundRectPath = (x, y, w, h, r) => {
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.arcTo(x + w, y, x + w, y + h, r);
+          ctx.arcTo(x + w, y + h, x, y + h, r);
+          ctx.arcTo(x, y + h, x, y, r);
+          ctx.arcTo(x, y, x + w, y, r);
+          ctx.closePath();
+        };
+        const outerR = n * 0.09;
+        const ring = (inset, color) => {
+          const r = Math.max(0, outerR - inset);
+          roundRectPath(inset, inset, n - inset * 2, n - inset * 2, r);
+          ctx.fillStyle = color;
+          ctx.fill();
+          return r;
+        };
+        roundRectPath(0, 0, n, n, outerR);
+        ctx.clip();
+        ring(0, '#efb83e'); // outer gold
+        ring(n * 0.04, '#fff7d1'); // cream highlight
+        ring(n * 0.0567, '#b16d18'); // bronze shadow
+        const inner = n * 0.0733;
+        const innerR = Math.max(0, outerR - inner);
+        roundRectPath(inner, inner, n - inner * 2, n - inner * 2, innerR);
+        const grad = ctx.createLinearGradient(0, inner, 0, n - inner);
+        grad.addColorStop(0, '#f4fdfe');
+        grad.addColorStop(1, '#c8ecf9');
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.clip();
+        const photoSide = n - inner * 2;
+        ctx.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, inner, inner, photoSide, photoSide);
         URL.revokeObjectURL(url);
         c.toBlob((b) => (b ? resolve(b) : reject(new Error('Could not convert the picture'))), 'image/png');
       };

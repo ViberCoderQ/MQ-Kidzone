@@ -1,12 +1,13 @@
 ﻿// Offline support. "Network first": when the iPad is online it always gets the newest files
 // from Netlify (so a new deploy shows up right away), and a copy of each file is kept. When it's
 // offline, the kept copy is used instead, so the app still opens and works.
-const CACHE = 'family-app-v102';
+const CACHE = 'family-app-v103';
 const CORE = [
   './',
   'index.html',
   'style.css',
   'memory-match.css',
+  'spot-the-difference.css',
   'manifest.json',
   'icons/icon.svg',
   'icons/icon-180.png',
@@ -46,6 +47,8 @@ const CORE = [
   'js/memory-match-words.js',
   'js/mm-trace-glyphs.js',
   'js/memory-match-game.js',
+  'js/spot-the-difference-levels.js',
+  'js/spot-the-difference.js',
 ];
 
 self.addEventListener('install', (event) => {
