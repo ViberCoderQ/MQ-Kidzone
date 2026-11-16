@@ -1,0 +1,77 @@
+/* Kid Zone home screen artwork overlay.
+   Source artwork: icons/home-background.png, 1670 x 941, unmodified.
+   This file only repositions existing elements -- app.js/config.js still own every
+   click handler and nav route. Loaded after style.css; only applies under #home-screen. */
+
+/* Do not touch position here: .screen already sets position:fixed;inset:0 to size the
+   whole screen to the viewport. Overriding it to "relative" collapses this element to
+   zero height once its children go position:absolute (no sized box left to fill). */
+#home-screen.kz-art-home { overflow: hidden; }
+
+#home-screen.kz-art-home .home-inner {
+  position: relative; width: 100%; height: 100%; max-width: none; padding: 0; margin: 0;
+}
+#home-screen.kz-art-home .home-inner::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: url('icons/home-background.png') center center / 100% 100% no-repeat;
+}
+
+/* Family photo stays visible in the open sky area above the buttons, instead of being
+   hidden. Width/max-height come from the "Home Screen Photo" card in Grown-ups settings
+   (js/app.js sets --home-photo-width / --home-photo-max-height) so size can be changed
+   from the iPad itself, without editing this file. No ceiling on the size: z-index puts it
+   behind #section-grid (below) and pointer-events:none means it can never intercept a tap,
+   so if it's sized big enough to reach the buttons, it just passes behind them instead of
+   covering/blocking them. */
+#home-screen.kz-art-home .home-logo {
+  display: block; position: absolute; z-index: 1; pointer-events: none;
+  left: 50%; top: 2%; transform: translateX(-50%);
+  width: var(--home-photo-width, 36%); height: auto; max-height: var(--home-photo-max-height, 28%);
+  object-fit: contain; margin: 0; border-radius: 14px;
+}
+
+/* Savings-goal pill: kept working (tap still opens the store), just moved off the artwork
+   buttons instead of being hidden. Only shows when a kid has an active goal. */
+#home-screen.kz-art-home #home-goal {
+  position: absolute; z-index: 4; left: 50%; top: 33%; transform: translateX(-50%);
+  width: 46%; max-width: 560px; margin: 0;
+}
+
+#home-screen.kz-art-home #section-grid {
+  position: absolute; inset: 0; display: block; margin: 0; padding: 0; max-width: none;
+  pointer-events: none; z-index: 2;
+}
+#home-screen.kz-art-home #section-grid > button[data-section] {
+  position: absolute; box-sizing: border-box; display: block; padding: 0; margin: 0;
+  border: 0; background: transparent; box-shadow: none; transform: none;
+  opacity: 1; pointer-events: auto; cursor: pointer; border-radius: 17%;
+  -webkit-tap-highlight-color: transparent;
+}
+/* The artwork already shows the icon + label; hide only those two, not the pending-count
+   badge or the voice "say it" button, so those stay functional and visible in the corner. */
+#home-screen.kz-art-home #section-grid > button[data-section] > .section-tile-icon,
+#home-screen.kz-art-home #section-grid > button[data-section] > .section-tile-label {
+  display: none !important;
+}
+#home-screen.kz-art-home #section-grid > button[data-section]:hover,
+#home-screen.kz-art-home #section-grid > button[data-section]:focus-visible {
+  outline: none; background: transparent;
+}
+#home-screen.kz-art-home #section-grid > button[data-section="chores"],
+#home-screen.kz-art-home #section-grid > button[data-section="store"] { border-radius: 999px; }
+
+/* Parent gear: hit-region only -- the artwork already draws the gear icon. Positioned inside
+   .home-inner (not .home-header) so its percentages share the same 1670x941 coordinate space
+   as the button rects above. Click handler reuses the existing PIN-gated openParentEntry(). */
+#home-screen.kz-art-home #home-parent-settings {
+  position: absolute; z-index: 6; background: transparent; border: 0; border-radius: 50%;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  left: 91.3174%; top: 2.1254%; width: 5.5689%; height: 9.7768%;
+}
+
+/* Coin/profile chips float over the artwork instead of pushing it down. Not part of the
+   supplied art -- position only, not tied to the button-map coordinate space. */
+#home-screen.kz-art-home .home-header {
+  z-index: 7; position: absolute; top: 2%; left: 2%; right: 20%; pointer-events: none;
+}
+#home-screen.kz-art-home .home-header button { pointer-events: auto; }

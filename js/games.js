@@ -202,6 +202,14 @@ const Games = (() => {
     AppBridge.showScreen('games-screen');
   }
   $('games-back-btn').addEventListener('click', () => AppBridge.enterHome());
+  $('kz-games-home').addEventListener('click', () => AppBridge.enterHome());
+  $('kz-games-settings').addEventListener('click', () => {
+    // Same gear used on the kid home screen (js/app.js), not a second settings path --
+    // this just gives the redesigned Games screen its own trigger for it.
+    const settings = document.getElementById('home-parent-settings') || document.getElementById('parent-entry-btn');
+    if (settings) settings.click();
+    else AppBridge.showToast('Open parent settings from the home screen.');
+  });
 
   function renderGamesList() {
     const resumeBox = $('games-resume-list');
@@ -223,17 +231,13 @@ const Games = (() => {
       });
     }
 
-    const box = $('games-list');
-    box.innerHTML = '';
-    CATALOG.forEach((g) => {
-      const tile = document.createElement('button');
-      tile.type = 'button';
-      tile.className = 'section-tile';
-      tile.dataset.accent = g.accent;
-      tile.innerHTML = `<span class="section-tile-icon">${g.emoji}</span><span class="section-tile-label">${esc(g.name)}</span>`;
-      tile.addEventListener('click', () => (SINGLE_PLAYER.has(g.id) ? openSinglePlayerGame(g.id) : openGameDetail(g.id)));
-      box.appendChild(tile);
-    });
+    // Games are rendered as a carousel (games-carousel.js), not the old tile grid. To add a
+    // game: add its CATALOG entry above and drop assets/games-carousel/<id>.png -- no layout
+    // edits needed here.
+    document.getElementById('games-screen').classList.add('kz-games-redesign');
+    KidZoneGamesCarousel.mount($('kz-games-carousel'), CATALOG.map((g) => ({
+      id: g.id, name: g.name, image: 'assets/games-carousel/' + g.id + '.png',
+    })), (game) => (SINGLE_PLAYER.has(game.id) ? openSinglePlayerGame(game.id) : openGameDetail(game.id)));
   }
 
   // ---------- single-player games: straight into the game, no VS/Computer picker ----------

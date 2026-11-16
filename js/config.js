@@ -11,6 +11,8 @@ const SECTIONS = [
   { id: 'reading', label: 'Reading', emoji: '📚', accent: 'purple', ready: true },
   { id: 'games', label: 'Games', emoji: '🎮', accent: 'orange', ready: true },
   { id: 'store', label: 'Store', emoji: '🛍️', accent: 'yellow', ready: true },
+  { id: 'puzzles', label: 'Puzzles', emoji: '🧩', accent: 'red', ready: false },
+  { id: 'music', label: 'Music', emoji: '🎵', accent: 'purple', ready: false },
 ];
 
 // Coin values, chores and store items are no longer set here: parents change them in Setup on

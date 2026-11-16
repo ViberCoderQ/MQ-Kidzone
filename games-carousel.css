@@ -1,0 +1,22 @@
+/* No position override here: .screen already sets position:fixed;inset:0 to size the whole
+   screen to the viewport. Overriding it to "relative" collapses this element to zero height
+   once .screen-inner (and everything in it) goes position:absolute below. */
+#games-screen.kz-games-redesign{background:#3ba8ed url('assets/games-carousel/games-meadow.png') center/100% 100% no-repeat!important;overflow:hidden}
+#games-screen.kz-games-redesign>.sub-header,#games-screen.kz-games-redesign>.screen-inner>.section-grid{display:none!important}
+#games-screen.kz-games-redesign>.screen-inner{position:absolute;inset:0;max-width:none!important;width:100%;height:100%;padding:0!important;margin:0!important;overflow:visible!important}
+.kz-games-home,.kz-games-settings{position:absolute;z-index:10;border:0;background:transparent;cursor:pointer;touch-action:manipulation}.kz-games-home{left:2%;top:1%;width:7.5%;height:13%;border-radius:50%}.kz-games-settings{right:1.5%;top:1%;width:7%;height:12%;border-radius:50%}
+.kz-carousel{position:absolute;inset:17% 0 3%;font-family:system-ui,sans-serif;user-select:none;overflow:hidden}
+.kz-carousel-stage{position:absolute;left:10%;right:10%;top:2%;height:76%;perspective:1100px;touch-action:pan-y;cursor:grab}.kz-carousel-stage:active{cursor:grabbing}
+.kz-game-card{position:absolute;left:50%;top:49%;width:36%;height:82%;padding:0;border:0;background:transparent;cursor:pointer;will-change:transform,opacity;filter:drop-shadow(0 12px 12px #00305b77);transform-style:preserve-3d;backface-visibility:hidden}
+.kz-game-card img{width:100%;height:100%;object-fit:contain;pointer-events:none}.kz-game-card:focus-visible{outline:5px solid #ffed54;border-radius:18%}
+.kz-arrow{position:absolute;top:33%;z-index:110;width:7.5%;aspect-ratio:1;border-radius:50%;border:4px solid #fff5a0;background:linear-gradient(#fff64a,#ffad00);color:#1452c0;font-size:clamp(23px,4vw,64px);font-weight:900;box-shadow:0 6px 0 #ba6900,0 9px 15px #002a5570;cursor:pointer}.kz-prev{left:1.5%}.kz-next{right:1.5%}
+.kz-dots{position:absolute;top:80%;left:10%;right:10%;display:flex;justify-content:center;gap:12px}.kz-dot{width:clamp(10px,1.9vw,27px);height:clamp(10px,1.9vw,27px);border-radius:50%;border:2px solid #0074b9;background:white;cursor:pointer}.kz-dot.active{background:#ffd22d;border-color:white;transform:scale(1.18)}
+.kz-swipe-tip{position:absolute;top:89%;left:28%;right:28%;text-align:center;border-radius:40px;background:#082d3ee8;color:white;padding:7px;font-size:clamp(12px,1.7vw,25px);font-weight:800;white-space:nowrap}
+.kz-resume-wrapper{position:absolute;z-index:8;left:24%;right:24%;top:12%;max-height:13%;overflow:auto}.kz-resume-wrapper:empty{display:none}
+@media(prefers-reduced-motion:reduce){.kz-game-card{will-change:auto}}
+
+/* Defensive reinforcement: guarantees floating transparent icons with no card background/
+   border/shadow box, regardless of what else might cascade in from style.css later. */
+#games-screen .kz-carousel-stage{overflow:visible!important}
+#games-screen .kz-game-card{background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important}
+#games-screen .kz-game-card img{display:block;object-fit:contain!important;background:transparent!important}

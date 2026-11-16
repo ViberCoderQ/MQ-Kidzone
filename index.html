@@ -16,6 +16,9 @@
   <link rel="stylesheet" href="style.css?v=159" />
   <link rel="stylesheet" href="memory-match.css?v=159" />
   <link rel="stylesheet" href="spot-the-difference.css?v=1" />
+  <link rel="stylesheet" href="games-carousel.css?v=1" />
+  <link rel="stylesheet" href="reading-carousel.css?v=1" />
+  <link rel="stylesheet" href="home-overlay.css?v=1" />
 </head>
 <body>
 
@@ -62,6 +65,7 @@
       <img class="home-logo" src="icons/home-logo.png?v=159" alt="Kid Zone" />
       <button type="button" class="home-goal hidden" id="home-goal"></button>
       <div class="section-grid" id="section-grid"></div>
+      <button type="button" id="home-parent-settings" aria-label="Grown-ups: settings"></button>
     </div>
   </section>
 
@@ -128,8 +132,11 @@
       <span class="header-spacer"></span>
     </header>
     <div class="screen-inner">
-      <div class="setup-list" id="games-resume-list"></div>
-      <div class="section-grid" id="games-list"></div>
+      <div class="setup-list kz-resume-wrapper" id="games-resume-list"></div>
+      <div class="section-grid" id="games-list" style="display:none"></div>
+      <div id="kz-games-carousel" class="kz-carousel"></div>
+      <button id="kz-games-home" class="kz-games-home" aria-label="Back to home"></button>
+      <button id="kz-games-settings" class="kz-games-settings" aria-label="Parent settings"></button>
     </div>
   </section>
 
@@ -243,6 +250,9 @@
     </header>
     <div class="screen-inner home-inner">
       <div class="section-grid area-grid" id="subject-tiles"></div>
+      <div id="kz-reading-carousel" class="kz-carousel"></div>
+      <button id="kz-reading-home" class="kz-reading-home" aria-label="Back to home"></button>
+      <button id="kz-reading-settings" class="kz-reading-settings" aria-label="Parent settings"></button>
     </div>
   </section>
 
@@ -729,6 +739,20 @@
         <p class="parent-card-note">Change these in Setup -- changes save instantly and show up on every iPad.</p>
       </div>
 
+      <div class="parent-card" id="home-photo-card">
+        <h3 class="parent-card-title">Home Screen Photo</h3>
+        <p class="parent-card-note">The family photo shown above the buttons on the kids' home screen. If you size it big enough to reach the buttons, it tucks behind them automatically -- it'll never cover or block one.</p>
+        <img class="home-photo-preview" id="home-photo-preview" alt="Current home screen photo" />
+        <label class="parent-card-note" for="home-photo-size">Photo size</label>
+        <input type="range" id="home-photo-size" min="20" max="70" step="1" />
+        <div class="home-photo-actions">
+          <button type="button" class="big-btn primary-btn" id="home-photo-choose-btn">🖼️ Choose a New Photo</button>
+          <button type="button" class="big-btn" id="home-photo-preview-btn">👀 Preview &amp; Resize on Home Screen</button>
+          <button type="button" class="big-btn" id="home-photo-reset-btn">Reset to Default</button>
+        </div>
+        <input type="file" accept="image/*" id="home-photo-file" class="hidden" />
+      </div>
+
       <div class="parent-card" id="parent-setup-card">
         <h3 class="parent-card-title">Setup for all iPads</h3>
         <p class="parent-card-note">Chores, store items and coin rules. Changes save instantly and sync to every iPad. Adding a brand-new photo still needs a desktop computer; emoji pictures work anywhere.</p>
@@ -899,6 +923,14 @@
   </div>
 
   <!-- ================= PIN pad ================= -->
+  <!-- ================= Home photo live-resize bar: floats over the real home screen (no
+       dark backdrop) so Grown-ups can see the actual photo while dragging the slider ================= -->
+  <div class="home-photo-live-bar hidden" id="home-photo-live-bar">
+    <span class="home-photo-live-label">Photo size <span id="home-photo-live-pct">36%</span></span>
+    <input type="range" id="home-photo-size-live" min="20" max="70" step="1" />
+    <button type="button" class="big-btn primary-btn" id="home-photo-live-done-btn">✅ Done</button>
+  </div>
+
   <div class="overlay hidden" id="pin-overlay">
     <div class="overlay-card pin-card">
       <button type="button" class="icon-btn overlay-close-btn" id="pin-close-btn" aria-label="Cancel">✕</button>
@@ -1155,6 +1187,9 @@
   <script src="js/war.js?v=159"></script>
   <script src="js/tictactoe.js?v=159"></script>
   <script src="js/connect4.js?v=159"></script>
+  <script src="games-carousel.js?v=1"></script>
+  <script src="reading-carousel.js?v=1"></script>
   <script src="js/games.js?v=159"></script>
+  <script src="js/home-overlay.js?v=1"></script>
 </body>
 </html>

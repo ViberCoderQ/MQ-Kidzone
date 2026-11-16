@@ -286,6 +286,7 @@
       btn.type = 'button';
       btn.className = 'section-tile' + (sec.ready ? '' : ' not-ready');
       btn.dataset.accent = sec.accent;
+      btn.dataset.section = sec.id;
       btn.innerHTML = `<span class="section-tile-icon">${sec.emoji}</span><span class="section-tile-label">${escapeHtml(sec.label)}</span>${sec.ready ? '' : '<span class="soon-badge">Soon</span>'}`;
       btn.appendChild(Voice.button(sec.label, 'corner'));
       if (sec.id === 'chores') {
@@ -3754,6 +3755,98 @@
   document.getElementById('photo-hub-store-btn').addEventListener('click', () => Setup.open('store'));
   document.getElementById('photo-hub-reading-btn').addEventListener('click', openReadingPicsEditorScreen);
   document.getElementById('photo-hub-memory-btn').addEventListener('click', openMemoryMatchEditorScreen);
+
+  // ---- Home screen photo (Grown-ups can swap + size the family photo themselves) ----
+  // Reuses idbGet/idbSet -- same IndexedDB store the project-folder handle lives in, just a
+  // different key -- since a photo-sized string is too big to trust to localStorage.
+  const HOME_PHOTO_DB_KEY = 'homePhotoDataUrl';
+  const HOME_PHOTO_SIZE_KEY = 'family-app.home-photo-size-pct';
+  const homeLogoImg = document.querySelector('#home-screen .home-logo');
+  const homePhotoPreview = document.getElementById('home-photo-preview');
+  const homePhotoSizeInput = document.getElementById('home-photo-size');
+  const homePhotoFileInput = document.getElementById('home-photo-file');
+  const homePhotoLiveBar = document.getElementById('home-photo-live-bar');
+  const homePhotoSizeLiveInput = document.getElementById('home-photo-size-live');
+  const homePhotoLivePct = document.getElementById('home-photo-live-pct');
+
+  function applyHomePhotoSize(pct) {
+    document.documentElement.style.setProperty('--home-photo-width', pct + '%');
+    // No ceiling: max-height grows in lockstep with width so the photo keeps getting
+    // visibly bigger across the whole slider range. It's safe to let it grow past the
+    // button row because home-overlay.css puts it behind the buttons (z-index + pointer-
+    // events:none) -- it can overlap without ever covering or blocking a tap.
+    document.documentElement.style.setProperty('--home-photo-max-height', Math.round(pct * 0.78) + '%');
+    homePhotoSizeInput.value = pct;
+    homePhotoSizeLiveInput.value = pct;
+    homePhotoLivePct.textContent = pct + '%';
+  }
+
+  async function refreshHomePhoto() {
+    const customUrl = await idbGet(HOME_PHOTO_DB_KEY).catch(() => null);
+    const src = customUrl || 'icons/home-logo.png?v=159';
+    homeLogoImg.src = src;
+    homePhotoPreview.src = src;
+    applyHomePhotoSize(getData(HOME_PHOTO_SIZE_KEY, 36));
+  }
+  refreshHomePhoto();
+
+  document.getElementById('home-photo-choose-btn').addEventListener('click', () => homePhotoFileInput.click());
+
+  homePhotoFileInput.addEventListener('change', () => {
+    const file = homePhotoFileInput.files[0];
+    homePhotoFileInput.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = async () => {
+        // Downscale before storing -- phone/camera photos are overkill at full resolution
+        // for a logo that tops out around half the screen width.
+        const maxEdge = 900;
+        const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        await idbSet(HOME_PHOTO_DB_KEY, canvas.toDataURL('image/jpeg', 0.85));
+        await refreshHomePhoto();
+        showToast('📸 Home screen photo updated', 2200);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('home-photo-reset-btn').addEventListener('click', async () => {
+    await idbSet(HOME_PHOTO_DB_KEY, null);
+    await refreshHomePhoto();
+    showToast('Reset to the default photo', 2000);
+  });
+
+  homePhotoSizeInput.addEventListener('input', () => {
+    const pct = Number(homePhotoSizeInput.value);
+    applyHomePhotoSize(pct);
+    setData(HOME_PHOTO_SIZE_KEY, pct);
+  });
+  homePhotoSizeLiveInput.addEventListener('input', () => {
+    const pct = Number(homePhotoSizeLiveInput.value);
+    applyHomePhotoSize(pct);
+    setData(HOME_PHOTO_SIZE_KEY, pct);
+  });
+
+  // "Preview & Resize on Home Screen": shows the real home screen (with the actual artwork
+  // and buttons) underneath a floating slider bar, instead of judging size from the small
+  // thumbnail on the settings card.
+  document.getElementById('home-photo-preview-btn').addEventListener('click', () => {
+    showScreen('home-screen');
+    renderSectionGrid();
+    homePhotoLiveBar.classList.remove('hidden');
+  });
+  document.getElementById('home-photo-live-done-btn').addEventListener('click', () => {
+    homePhotoLiveBar.classList.add('hidden');
+    enterParentArea();
+  });
+
   document.getElementById('test-voice-btn').addEventListener('click', () => Voice.speak('Hi! I will read things out loud.'));
   document.getElementById('check-updates-btn').addEventListener('click', async (e) => {
     const btn = e.currentTarget;
@@ -3782,6 +3875,10 @@
   }
   let welcomePending = false;
   document.getElementById('parent-entry-btn').addEventListener('click', openParentEntry);
+  // Gear hit-region baked into the home-screen artwork (icons/home-background.png); same
+  // PIN-gated entry point as the lock button on the sign-in screen, just a second trigger for it.
+  const homeParentSettingsBtn = document.getElementById('home-parent-settings');
+  if (homeParentSettingsBtn) homeParentSettingsBtn.addEventListener('click', openParentEntry);
   document.getElementById('first-run-btn').addEventListener('click', openParentEntry);
   document.getElementById('welcome-add-kid-btn').addEventListener('click', () => addProfileBtn.click());
   const changePin = () => openPinPad('change', () => showToast('🔑 PIN changed', 2200));

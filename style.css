@@ -1357,6 +1357,35 @@ input {
   font-size: 0.95rem;
   line-height: 1.4;
 }
+.home-photo-preview {
+  display: block;
+  max-width: 220px;
+  max-height: 140px;
+  width: auto;
+  height: auto;
+  margin: 0.25rem 0;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  object-fit: contain;
+  background: #f4f4f4;
+}
+#home-photo-size { width: 100%; margin: 0.25rem 0 0.5rem; }
+.home-photo-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; width: 100%; }
+.home-photo-actions .big-btn { width: auto; flex: 1; min-width: 160px; }
+
+/* Floats over the real home screen (no dark backdrop) while resizing, so the photo is
+   visible while dragging instead of only a small thumbnail on the settings card. */
+.home-photo-live-bar {
+  position: fixed; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%); z-index: 60;
+  display: flex; align-items: center; gap: 1rem;
+  background: var(--card-bg); box-shadow: var(--shadow); border-radius: 999px;
+  padding: 0.6rem 1rem 0.6rem 1.25rem;
+  width: min(640px, calc(100% - 1.5rem));
+}
+.home-photo-live-label { font-weight: 700; white-space: nowrap; font-size: 0.95rem; }
+#home-photo-size-live { flex: 1; min-width: 0; margin: 0; }
+.home-photo-live-bar .big-btn { width: auto; margin: 0; padding: 0.6rem 1.1rem; white-space: nowrap; }
 .parent-kid-list {
   width: 100%;
   display: flex;

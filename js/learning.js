@@ -68,22 +68,42 @@ const Learning = (() => {
     const areas = (subject.areas || AREAS.map((a) => a.id))
       .map((id) => AREAS.find((a) => a.id === id) || (subject.extraAreas && subject.extraAreas[id] && { id, ...subject.extraAreas[id] }))
       .filter(Boolean);
-    areas.forEach((a) => {
-      const label = (subject.areaLabels && subject.areaLabels[a.id]) || a.label;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'section-tile area-tile';
-      btn.dataset.accent = subject.accent;
-      btn.innerHTML = `<span class="section-tile-icon">${a.emoji}</span><span class="section-tile-label">${label}</span>`;
-      if (a.id === 'practice') btn.innerHTML += '<span class="soon-badge more-coins">More coins</span>';
-      btn.appendChild(Voice.button(label, 'corner'));
-      btn.addEventListener('click', () => startArea(a.id));
-      tiles.appendChild(btn);
-    });
+    const subjectScreen = document.getElementById('subject-screen');
+    if (subject.id === 'reading' && window.KidZoneReadingCarousel) {
+      // Reading gets the artwork carousel (reading-carousel.js); Math keeps the plain tile grid
+      // below. To add a Reading activity: add it to areas/extraAreas above and drop
+      // assets/reading-carousel/<id>.png -- no layout edits needed here.
+      subjectScreen.classList.add('kz-reading-redesign');
+      KidZoneReadingCarousel.mount($('kz-reading-carousel'), areas.map((a) => ({
+        id: a.id, name: (subject.areaLabels && subject.areaLabels[a.id]) || a.label, image: 'assets/reading-carousel/' + a.id + '.png',
+      })), (item) => startArea(item.id));
+    } else {
+      subjectScreen.classList.remove('kz-reading-redesign');
+      areas.forEach((a) => {
+        const label = (subject.areaLabels && subject.areaLabels[a.id]) || a.label;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'section-tile area-tile';
+        btn.dataset.accent = subject.accent;
+        btn.innerHTML = `<span class="section-tile-icon">${a.emoji}</span><span class="section-tile-label">${label}</span>`;
+        if (a.id === 'practice') btn.innerHTML += '<span class="soon-badge more-coins">More coins</span>';
+        btn.appendChild(Voice.button(label, 'corner'));
+        btn.addEventListener('click', () => startArea(a.id));
+        tiles.appendChild(btn);
+      });
+    }
     AppBridge.showScreen('subject-screen');
   }
 
   $('subject-back-btn').addEventListener('click', () => AppBridge.enterHome());
+  $('kz-reading-home').addEventListener('click', () => AppBridge.enterHome());
+  $('kz-reading-settings').addEventListener('click', () => {
+    // Same gear used on the kid home screen and the redesigned Games screen (js/app.js,
+    // js/games.js) -- not a second settings path, just another trigger for it.
+    const settings = document.getElementById('home-parent-settings') || document.getElementById('parent-entry-btn');
+    if (settings) settings.click();
+    else AppBridge.showToast('Open parent settings from the home screen.');
+  });
 
   function startArea(id) {
     area = id;
