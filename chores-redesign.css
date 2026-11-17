@@ -159,8 +159,17 @@
 }
 #chores-screen.kz-chores-redesign .chore-card > .pic {
   /* 20% smaller than the original slot (36% x 78%), recentered within the same footprint
-     so it shrinks toward the middle instead of toward a corner. */
-  position: absolute; left: 8.6%; top: 18.8%; width: 28.8%; height: 62.4%; margin: 0; border: 0; border-radius: 12%; overflow: hidden;
+     so it shrinks toward the middle instead of toward a corner. Width/height-scale are real
+     layout size (not a transform), recentered around the same middle as they change -- a
+     transform:scale() here would visually stretch the photo whenever width/height scale
+     differently, but a real width/height change just gives the img (object-fit:cover in
+     style.css) a differently-shaped box to cover, so it crops/reveals more without distorting. */
+  position: absolute;
+  left: calc(8.6% - (28.8% * (var(--kzc-chore-pic-width-scale, 1) - 1)) / 2 + var(--kzc-chore-pic-x, 0%));
+  top: calc(18.8% - (62.4% * (var(--kzc-chore-pic-height-scale, 1) - 1)) / 2);
+  width: calc(28.8% * var(--kzc-chore-pic-width-scale, 1));
+  height: calc(62.4% * var(--kzc-chore-pic-height-scale, 1));
+  margin: 0; border: 0; border-radius: 12%; overflow: hidden;
   /* No white fill behind the picture on this screen -- overrides style.css's global
      img.pic{background:#fff} default, scoped to just the Chores redesign so screens that
      still rely on that default (Store, Setup, etc.) are unaffected. */
@@ -213,7 +222,7 @@
     transform: translateX(-50%) translate(var(--kzc-header-x-ipad, 0%), var(--kzc-header-y-ipad, 1%)) scale(var(--kzc-header-scale-ipad, 0.76));
   }
   #chores-screen.kz-chores-redesign .kz-chores-sign-text {
-    transform: translate(var(--kzc-header-text-x-ipad, 0%), var(--kzc-header-text-y-ipad, -6%));
+    transform: translate(var(--kzc-header-text-x-ipad, 1.5%), var(--kzc-header-text-y-ipad, -6%));
   }
   #chores-screen.kz-chores-redesign .kz-chores-sign-label {
     font-size: calc(60px * var(--kzc-header-text-size-ipad, 1.33));
@@ -243,6 +252,12 @@
   }
   #chores-screen.kz-chores-redesign .chore-card {
     transform: scale(var(--kzc-pills-scale-ipad, 0.99));
+  }
+  #chores-screen.kz-chores-redesign .chore-card > .pic {
+    left: calc(8.6% - (28.8% * (var(--kzc-chore-pic-width-scale-ipad, 1.27) - 1)) / 2 + var(--kzc-chore-pic-x-ipad, 1%));
+    top: calc(18.8% - (62.4% * (var(--kzc-chore-pic-height-scale-ipad, 1.01) - 1)) / 2);
+    width: calc(28.8% * var(--kzc-chore-pic-width-scale-ipad, 1.27));
+    height: calc(62.4% * var(--kzc-chore-pic-height-scale-ipad, 1.01));
   }
 }
 

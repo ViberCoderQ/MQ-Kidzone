@@ -25,6 +25,27 @@ const KidRewards = (() => {
   // second trigger for it (same pattern as the Games/Reading screen redesigns).
   $('kz-chores-home').addEventListener('click', () => AppBridge.enterHome());
 
+  // Keeps the curved name text centered on the sign's arc regardless of name length (short or
+  // long) or which curve/slope is currently active (computer vs iPad -- see applyChoresLayout).
+  // text-anchor="middle" + startOffset="50%" (the SVG-native way to center text on a path) looks
+  // right for ONE specific textLength, but combined with an explicitly forced textLength (needed
+  // so short/long names don't look stretched/squished), browsers inconsistently anchor off the
+  // text's natural width instead of the forced one -- the visible center (and the curve's peak,
+  // the "tip of the slope") drifted depending on name length. Computing startOffset numerically
+  // here instead -- half the arc's total length minus half the text's forced length -- centers
+  // the text block exactly regardless of either one, with text-anchor left at its default
+  // ("start") in index.html so nothing re-adjusts on top of this. Called both when the name
+  // renders AND whenever the arc's `d` (its curve/slope) changes, since the arc's total length
+  // changes with it.
+  function centerChoresSignText() {
+    const arc = $('kz-chores-sign-arc');
+    const nameEl = $('kz-chores-sign-name');
+    if (!arc || !nameEl) return;
+    const textLen = Number(nameEl.getAttribute('textLength'));
+    if (!textLen) return;
+    nameEl.setAttribute('startOffset', (arc.getTotalLength() - textLen) / 2);
+  }
+
   // Child's name in curved text on the wooden sign, plus the coin-balance pill -- textLength
   // keeps the curve looking proportional for both short and long names.
   function renderChoresBanner(profile) {
@@ -44,6 +65,7 @@ const KidRewards = (() => {
     const nameEl = $('kz-chores-sign-name');
     nameEl.textContent = `${profile.name}’s Chores`;
     nameEl.setAttribute('textLength', Math.min(680, Math.max(490, (profile.name.length + 9) * 39)));
+    centerChoresSignText();
   }
 
   function renderChores() {
@@ -98,6 +120,21 @@ const KidRewards = (() => {
   // over each card. Extend-up/-down are independent: one grows the pill row from the top edge,
   // the other from the bottom edge, without disturbing the opposite edge.
   const CHORES_LAYOUT_LOCAL_KEY = 'family-app.chores-layout-DRAFT';
+  // The draft is stored split by device (computer/ipad), same as the defaults below -- a single
+  // shared draft meant tuning something on an emulated iPad silently overwrote the computer's
+  // saved values (and vice versa) the next time either loaded, since there was nothing to tell
+  // the two apart once saved. On two genuinely separate physical devices this never showed up
+  // (separate browser storage already keeps them apart), but testing both "devices" via one
+  // browser's emulation toggle hit it on every switch.
+  function loadChoresDraft() {
+    const all = getData(CHORES_LAYOUT_LOCAL_KEY, null) || {};
+    return all[isTouch() ? 'ipad' : 'computer'] || {};
+  }
+  function saveChoresDraft(s) {
+    const all = getData(CHORES_LAYOUT_LOCAL_KEY, null) || {};
+    all[isTouch() ? 'ipad' : 'computer'] = s;
+    setData(CHORES_LAYOUT_LOCAL_KEY, all);
+  }
   // isTouch() re-checks matchMedia on every call rather than caching it once -- a one-time
   // snapshot goes stale the moment a browser's device-emulation mode is toggled after the page
   // already loaded, since CSS media queries re-evaluate live but a frozen JS boolean doesn't
@@ -120,15 +157,17 @@ const KidRewards = (() => {
       todayX: 0, todayY: -15.5, todaySize: 87,
       countX: 0.5, countY: -23, countSize: 105,
       pillsX: 0, pillsY: 0, pillsScale: 101, pillsExtendUp: 0, pillsExtendDown: 0,
+      chorePicX: 0, chorePicWidthScale: 100, chorePicHeightScale: 100,
     },
     ipad: {
       headerX: 0, headerY: 1, headerScale: 76,
-      headerTextX: 0, headerTextY: -6, headerTextCurve: 80, headerTextSize: 133,
+      headerTextX: 1.5, headerTextY: -6, headerTextCurve: 80, headerTextSize: 133,
       bannerX: 0, bannerY: -2.5, bannerScale: 97, bannerHeightScale: 196,
       avatarX: 1, avatarY: -25, avatarSize: 104,
       todayX: -0.5, todayY: -14.5, todaySize: 87,
       countX: 0, countY: -23.5, countSize: 105,
       pillsX: 0, pillsY: 0, pillsScale: 99, pillsExtendUp: 0, pillsExtendDown: 0,
+      chorePicX: 1, chorePicWidthScale: 127, chorePicHeightScale: 101,
     },
   };
   function currentChoresDefaults() {
@@ -145,6 +184,8 @@ const KidRewards = (() => {
     ['countX', 'cl-count-x', '%'], ['countY', 'cl-count-y', '%'], ['countSize', 'cl-count-size', '%'],
     ['pillsX', 'cl-pills-x', '%'], ['pillsY', 'cl-pills-y', '%'], ['pillsScale', 'cl-pills-scale', '%'],
     ['pillsExtendUp', 'cl-pills-extend-up', '%'], ['pillsExtendDown', 'cl-pills-extend-down', '%'],
+    ['chorePicX', 'cl-chore-pic-x', '%'],
+    ['chorePicWidthScale', 'cl-chore-pic-width', '%'], ['chorePicHeightScale', 'cl-chore-pic-height', '%'],
   ];
   // Maps a CHORES_LAYOUT_SPEC key (e.g. "headerX") to its CSS var base name (e.g. "header-x").
   function kzcBase(key) {
@@ -170,6 +211,7 @@ const KidRewards = (() => {
     // using the current device's own curve value (L.headerTextCurve already picked the right one).
     const arc = document.getElementById('kz-chores-sign-arc');
     if (arc) arc.setAttribute('d', `M 150 270 Q 500 ${270 - L.headerTextCurve} 850 270`);
+    centerChoresSignText(); // arc length just changed with the curve above -- keep the name centered on it
     root.setProperty(kzcVar('bannerX'), L.bannerX + '%');
     root.setProperty(kzcVar('bannerY'), L.bannerY + '%');
     root.setProperty(kzcVar('bannerScale'), L.bannerScale / 100);
@@ -188,6 +230,9 @@ const KidRewards = (() => {
     root.setProperty(kzcVar('pillsScale'), L.pillsScale / 100);
     root.setProperty(kzcVar('pillsExtendUp'), L.pillsExtendUp + '%');
     root.setProperty(kzcVar('pillsExtendDown'), L.pillsExtendDown + '%');
+    root.setProperty(kzcVar('chorePicX'), L.chorePicX + '%');
+    root.setProperty(kzcVar('chorePicWidthScale'), L.chorePicWidthScale / 100);
+    root.setProperty(kzcVar('chorePicHeightScale'), L.chorePicHeightScale / 100);
     CHORES_LAYOUT_SPEC.forEach(([key, id, unit]) => {
       const input = $(id);
       if (input) input.value = L[key];
@@ -197,7 +242,7 @@ const KidRewards = (() => {
     return L;
   }
 
-  let choresLayoutState = { ...currentChoresDefaults(), ...(getData(CHORES_LAYOUT_LOCAL_KEY, null) || {}) };
+  let choresLayoutState = { ...currentChoresDefaults(), ...loadChoresDraft() };
   applyChoresLayout(choresLayoutState);
 
   CHORES_LAYOUT_SPEC.forEach(([key, id]) => {
@@ -206,7 +251,7 @@ const KidRewards = (() => {
     input.addEventListener('input', () => {
       choresLayoutState = { ...choresLayoutState, [key]: Number(input.value) };
       applyChoresLayout(choresLayoutState);
-      setData(CHORES_LAYOUT_LOCAL_KEY, choresLayoutState); // draft only, so re-opening keeps your in-progress numbers
+      saveChoresDraft(choresLayoutState); // draft only, so re-opening keeps your in-progress numbers
     });
   });
 
@@ -222,7 +267,7 @@ const KidRewards = (() => {
   $('chores-layout-reset-btn').addEventListener('click', () => {
     choresLayoutState = currentChoresDefaults();
     applyChoresLayout(choresLayoutState);
-    setData(CHORES_LAYOUT_LOCAL_KEY, choresLayoutState);
+    saveChoresDraft(choresLayoutState);
   });
   $('chores-layout-copy-btn').addEventListener('click', async () => {
     const L = choresLayoutState;
@@ -238,6 +283,7 @@ const KidRewards = (() => {
       `  ${kzcVar('countX')}: ${L.countX}%; ${kzcVar('countY')}: ${L.countY}%; ${kzcVar('countSize')}: ${L.countSize / 100};\n` +
       `  ${kzcVar('pillsX')}: ${L.pillsX}%; ${kzcVar('pillsY')}: ${L.pillsY}%; ${kzcVar('pillsScale')}: ${L.pillsScale / 100};\n` +
       `  ${kzcVar('pillsExtendUp')}: ${L.pillsExtendUp}%; ${kzcVar('pillsExtendDown')}: ${L.pillsExtendDown}%;\n` +
+      `  ${kzcVar('chorePicX')}: ${L.chorePicX}%; ${kzcVar('chorePicWidthScale')}: ${L.chorePicWidthScale / 100}; ${kzcVar('chorePicHeightScale')}: ${L.chorePicHeightScale / 100};\n` +
       `}` +
       (isTouch() ? `\n/* paste the lines above inside chores-redesign.css's existing\n   @media (pointer: coarse) { ... } block, not at the top level */` : '');
     const btn = $('chores-layout-copy-btn');

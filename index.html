@@ -13,12 +13,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kid Zone" />
-  <link rel="stylesheet" href="style.css?v=159" />
+  <link rel="stylesheet" href="style.css?v=161" />
   <link rel="stylesheet" href="memory-match.css?v=159" />
   <link rel="stylesheet" href="spot-the-difference.css?v=1" />
   <link rel="stylesheet" href="games-carousel.css?v=5" />
   <link rel="stylesheet" href="reading-carousel.css?v=3" />
-  <link rel="stylesheet" href="chores-redesign.css?v=3" />
+  <link rel="stylesheet" href="chores-redesign.css?v=10" />
   <link rel="stylesheet" href="home-overlay.css?v=19" />
 </head>
 <body>
@@ -96,8 +96,8 @@
       <div class="kz-chores-sign">
         <img class="kz-chores-sign-img" src="assets/chores/wooden-header.png" alt="" />
         <svg class="kz-chores-sign-text" viewBox="0 0 1000 333" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-          <defs><path id="kz-chores-sign-arc" d="M 150 270 Q 500 188 850 270"/></defs>
-          <text class="kz-chores-sign-label" text-anchor="middle"><textPath id="kz-chores-sign-name" href="#kz-chores-sign-arc" startOffset="50%" textLength="630" lengthAdjust="spacingAndGlyphs"></textPath></text>
+          <defs><path id="kz-chores-sign-arc" d="M 150 270 Q 500 190 850 270"/></defs>
+          <text class="kz-chores-sign-label"><textPath id="kz-chores-sign-name" href="#kz-chores-sign-arc" startOffset="50%" textLength="630" lengthAdjust="spacingAndGlyphs"></textPath></text>
         </svg>
       </div>
       <button type="button" class="kz-chores-home" id="kz-chores-home" aria-label="Back to home">⌂ Home</button>
@@ -1039,6 +1039,14 @@
     <label for="cl-pills-extend-down">Extend downward <output id="cl-pills-extend-down-val"></output></label>
     <input type="range" id="cl-pills-extend-down" min="0" max="40" step="0.5" value="0">
 
+    <div class="chores-layout-section">Chore picture (inside each pill)</div>
+    <label for="cl-chore-pic-x">Left / right <output id="cl-chore-pic-x-val"></output></label>
+    <input type="range" id="cl-chore-pic-x" min="-40" max="40" step="0.5" value="0">
+    <label for="cl-chore-pic-width">Width <output id="cl-chore-pic-width-val"></output></label>
+    <input type="range" id="cl-chore-pic-width" min="50" max="220" step="1" value="100">
+    <label for="cl-chore-pic-height">Height (independent of Width) <output id="cl-chore-pic-height-val"></output></label>
+    <input type="range" id="cl-chore-pic-height" min="50" max="220" step="1" value="100">
+
     <div class="chores-layout-actions">
       <button type="button" id="chores-layout-reset-btn" class="big-btn">Reset to Default</button>
       <button type="button" id="chores-layout-copy-btn" class="big-btn primary-btn">📋 Copy CSS</button>
@@ -1121,19 +1129,45 @@
 
   <!-- Crop dialog for Child Photos: the box matches the exact proportions/rounding of the real
        avatar slot in the Chores banner (measured live: ~1.983:1, 23% border-radius), so only
-       what's visible inside it gets saved -- drag to pan, slider or pinch to zoom. -->
-  <div class="hidden" id="kid-photo-crop-dialog" role="dialog" aria-modal="true" aria-labelledby="kid-photo-crop-title">
-    <div class="kid-photo-crop-card">
+       what's visible inside it gets saved -- drag to pan, slider or pinch to zoom. Shell classes
+       (.photo-crop-*) are shared with the Chore Picture crop dialog below; only the box's own
+       shape is dialog-specific (set per-#id in style.css). -->
+  <div class="hidden photo-crop-dialog" id="kid-photo-crop-dialog" role="dialog" aria-modal="true" aria-labelledby="kid-photo-crop-title">
+    <div class="photo-crop-card">
       <h3 id="kid-photo-crop-title">Position the Photo</h3>
-      <p class="kid-photo-crop-hint">Drag to move, pinch or use the slider to zoom. Only what's inside the box will be saved.</p>
-      <div class="kid-photo-crop-viewport" id="kid-photo-crop-viewport">
+      <p class="photo-crop-hint">Drag to move, pinch or use the slider to zoom. Only what's inside the box will be saved.</p>
+      <div class="photo-crop-viewport" id="kid-photo-crop-viewport">
         <img id="kid-photo-crop-img" alt="" draggable="false" />
-        <div class="kid-photo-crop-box" id="kid-photo-crop-box"></div>
+        <div class="photo-crop-box" id="kid-photo-crop-box"></div>
       </div>
-      <input type="range" id="kid-photo-crop-zoom" class="kid-photo-crop-zoom-slider" min="0" max="100" value="0" step="1" aria-label="Zoom" />
-      <div class="kid-photo-crop-actions">
+      <input type="range" id="kid-photo-crop-zoom" class="photo-crop-zoom-slider" min="0" max="100" value="0" step="1" aria-label="Zoom" />
+      <div class="photo-crop-actions">
         <button type="button" class="big-btn" id="kid-photo-crop-cancel-btn">Cancel</button>
         <button type="button" class="big-btn" id="kid-photo-crop-save-btn">Use Photo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crop dialog for Chore Pictures (Setup > a chore's picture, upload-your-own only -- emoji
+       pictures skip this). The box matches .chore-card > .pic's real proportions/rounding
+       (28.8% x 62.4% of the card, 12% border-radius -- chores-redesign.css) -- a tall rectangle,
+       not square, since that's the actual slot a chore's picture shows in. Same drag/pinch/
+       slider-zoom interaction as the Child Photo dialog above, including the white-filled-gap
+       behavior when zoomed out past "fills the box" (js/setup.js). Store items share the same
+       picture-upload button today but are NOT wired to this dialog -- they still get the old
+       blind center-square auto-crop until Store gets its own box shape. -->
+  <div class="hidden photo-crop-dialog" id="chore-pic-crop-dialog" role="dialog" aria-modal="true" aria-labelledby="chore-pic-crop-title">
+    <div class="photo-crop-card">
+      <h3 id="chore-pic-crop-title">Position the Picture</h3>
+      <p class="photo-crop-hint">Drag to move, pinch or use the slider to zoom. Only what's inside the box will be saved.</p>
+      <div class="photo-crop-viewport" id="chore-pic-crop-viewport">
+        <img id="chore-pic-crop-img" alt="" draggable="false" />
+        <div class="photo-crop-box" id="chore-pic-crop-box"></div>
+      </div>
+      <input type="range" id="chore-pic-crop-zoom" class="photo-crop-zoom-slider" min="0" max="100" value="0" step="1" aria-label="Zoom" />
+      <div class="photo-crop-actions">
+        <button type="button" class="big-btn" id="chore-pic-crop-cancel-btn">Cancel</button>
+        <button type="button" class="big-btn" id="chore-pic-crop-save-btn">Use Picture</button>
       </div>
     </div>
   </div>
@@ -1332,14 +1366,14 @@
   <script src="js/memory-match-game.js?v=160"></script>
   <script src="js/spot-the-difference-levels.js?v=1"></script>
   <script src="js/spot-the-difference.js?v=1"></script>
-  <script src="js/setup.js?v=159"></script>
-  <script src="js/kid-rewards.js?v=160"></script>
+  <script src="js/setup.js?v=160"></script>
+  <script src="js/kid-rewards.js?v=167"></script>
   <script src="js/war.js?v=159"></script>
   <script src="js/tictactoe.js?v=159"></script>
   <script src="js/connect4.js?v=159"></script>
   <script src="games-carousel.js?v=2"></script>
   <script src="reading-carousel.js?v=2"></script>
   <script src="js/games.js?v=159"></script>
-  <script src="js/home-overlay.js?v=20"></script>
+  <script src="js/home-overlay.js?v=21"></script>
 </body>
 </html>

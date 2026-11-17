@@ -106,7 +106,22 @@
   // as js/kid-rewards.js's Chores Layout Tool) -- draft-only in localStorage, under its own
   // key (not reused from the old pixel-rect tool, whose draft shape is incompatible). ----
   const DRAFT_KEY = 'family-app.home-buttons-DRAFT';
-  let state = { ...currentDefaults(), ...(getData(DRAFT_KEY, null) || {}) };
+  // The draft is stored split by device (computer/ipad), same as the defaults -- a single
+  // shared draft meant tuning something on an emulated iPad silently overwrote the computer's
+  // saved values (and vice versa) the next time either loaded, since there was nothing to tell
+  // the two apart once saved. On two genuinely separate physical devices this never showed up
+  // (separate browser storage already keeps them apart), but testing both "devices" via one
+  // browser's emulation toggle hit it on every switch.
+  function loadDraft() {
+    const all = getData(DRAFT_KEY, null) || {};
+    return all[isTouch() ? 'ipad' : 'computer'] || {};
+  }
+  function saveDraft(s) {
+    const all = getData(DRAFT_KEY, null) || {};
+    all[isTouch() ? 'ipad' : 'computer'] = s;
+    setData(DRAFT_KEY, all);
+  }
+  let state = { ...currentDefaults(), ...loadDraft() };
   BUTTONS.forEach(({ id }) => { state[id] = clampButtonState(state[id]); });
 
   const root = document.documentElement.style;
@@ -138,7 +153,7 @@
     });
     applyLayout();
     syncControls();
-    setData(DRAFT_KEY, state);
+    saveDraft(state);
   }
 
   // Left/right (and the icon-row group's left/right/up/down/size) are step buttons -- a fixed
@@ -247,7 +262,7 @@
       const commit = () => {
         applyLayout();
         syncControls();
-        setData(DRAFT_KEY, state); // draft only, so re-opening keeps your in-progress numbers
+        saveDraft(state); // draft only, so re-opening keeps your in-progress numbers
       };
       if (kind === 'step') {
         const step = field === 'y' ? Y_STEP : STEP;
@@ -289,7 +304,7 @@
     state = currentDefaults();
     applyLayout();
     syncControls();
-    setData(DRAFT_KEY, state);
+    saveDraft(state);
   });
   document.getElementById('home-layout-copy-btn').addEventListener('click', async () => {
     const text = `:root {\n` +

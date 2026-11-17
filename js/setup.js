@@ -203,23 +203,185 @@ const Setup = (() => {
     });
   }
 
+  // Lets the uploaded picture get swapped in once it's ready -- either immediately (store items,
+  // the old blind center-square auto-crop) or after the grown-up positions/zooms it in the Chore
+  // Picture crop dialog below (chores). Same pendingPhotos/editPicture bookkeeping either way, so
+  // the rest of the editor (Done/Cancel, persistPendingPhoto) doesn't need to know which path ran.
+  function adoptPicture(blob) {
+    const fileName = `${slugify($('setup-item-name').value || 'picture')}-${Date.now()}.jpg`;
+    const previewUrl = URL.createObjectURL(blob);
+    pendingPhotos.set(previewUrl, { blob, fileName });
+    editPicture = { type: 'image', src: previewUrl };
+    renderPicturePicker();
+  }
+
   $('setup-pic-upload-btn').addEventListener('click', () => $('setup-pic-upload').click());
   $('setup-pic-upload').addEventListener('change', async () => {
     const input = $('setup-pic-upload');
     const file = input.files && input.files[0];
     input.value = '';
     if (!file) return;
+    // Chores get the interactive crop box (matches .chore-card > .pic's real shape); store items
+    // keep the old blind auto-crop until Store gets its own box shape to crop against.
+    if (editing && editing.kind === 'chores') {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); openChorePicCropper(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); alert("That picture couldn't be opened. Try a JPG or PNG photo."); };
+      img.src = url;
+      return;
+    }
     try {
-      const blob = await shrinkPhoto(file);
-      const fileName = `${slugify($('setup-item-name').value || 'picture')}-${Date.now()}.jpg`;
-      const previewUrl = URL.createObjectURL(blob);
-      pendingPhotos.set(previewUrl, { blob, fileName });
-      editPicture = { type: 'image', src: previewUrl };
-      renderPicturePicker();
+      adoptPicture(await shrinkPhoto(file));
     } catch (err) {
       console.error('[Setup] photo could not be read:', err);
       alert("That picture couldn't be opened. Try a JPG or PNG photo.");
     }
+  });
+
+  // ---- Chore Picture crop dialog: same pan/zoom-inside-a-shaped-box interaction as js/app.js's
+  // Child Photo crop dialog, just producing a pendingPhotos blob (via adoptPicture) instead of
+  // uploading straight to a kid's profile -- the chore item itself isn't saved until Setup's own
+  // Done button, same as every other picture choice here. ----
+  let choreCropState = null;
+  const choreCropPointers = new Map();
+  let choreCropPinchStartDist = 0;
+  let choreCropPinchStartScale = 1;
+  const choreCropDialog = $('chore-pic-crop-dialog');
+  const choreCropViewport = $('chore-pic-crop-viewport');
+  const choreCropImg = $('chore-pic-crop-img');
+  const choreCropBox = $('chore-pic-crop-box');
+  const choreCropZoomInput = $('chore-pic-crop-zoom');
+
+  function openChorePicCropper(img) {
+    choreCropImg.src = img.src;
+    choreCropDialog.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      const vpRect = choreCropViewport.getBoundingClientRect();
+      const boxRect = choreCropBox.getBoundingClientRect();
+      const boxLeft = boxRect.left - vpRect.left;
+      const boxTop = boxRect.top - vpRect.top;
+      const coverScale = Math.max(boxRect.width / img.naturalWidth, boxRect.height / img.naturalHeight);
+      const containScale = Math.min(boxRect.width / img.naturalWidth, boxRect.height / img.naturalHeight);
+      const minScale = containScale * 0.5;
+      choreCropState = {
+        naturalW: img.naturalWidth, naturalH: img.naturalHeight,
+        boxLeft, boxTop, boxW: boxRect.width, boxH: boxRect.height,
+        minScale, maxScale: coverScale * 4, scale: coverScale,
+      };
+      choreCropState.offsetX = boxLeft + boxRect.width / 2 - (img.naturalWidth * coverScale) / 2;
+      choreCropState.offsetY = boxTop + boxRect.height / 2 - (img.naturalHeight * coverScale) / 2;
+      choreClampCropOffset();
+      choreCropZoomInput.value = Math.round(((coverScale - minScale) / (choreCropState.maxScale - minScale)) * 100);
+      choreRenderCropImage();
+    });
+  }
+
+  function choreClampCropOffset() {
+    const s = choreCropState;
+    const dispW = s.naturalW * s.scale;
+    const dispH = s.naturalH * s.scale;
+    s.offsetX = dispW >= s.boxW
+      ? Math.min(s.boxLeft, Math.max(s.boxLeft + s.boxW - dispW, s.offsetX))
+      : s.boxLeft + (s.boxW - dispW) / 2;
+    s.offsetY = dispH >= s.boxH
+      ? Math.min(s.boxTop, Math.max(s.boxTop + s.boxH - dispH, s.offsetY))
+      : s.boxTop + (s.boxH - dispH) / 2;
+  }
+
+  function choreRenderCropImage() {
+    const s = choreCropState;
+    choreCropImg.style.width = `${s.naturalW * s.scale}px`;
+    choreCropImg.style.height = `${s.naturalH * s.scale}px`;
+    choreCropImg.style.transform = `translate(${s.offsetX}px, ${s.offsetY}px)`;
+  }
+
+  function choreApplyCropZoom(newScaleRaw, anchorX, anchorY) {
+    const s = choreCropState;
+    const newScale = Math.min(s.maxScale, Math.max(s.minScale, newScaleRaw));
+    const imgX = (anchorX - s.offsetX) / s.scale;
+    const imgY = (anchorY - s.offsetY) / s.scale;
+    s.scale = newScale;
+    s.offsetX = anchorX - imgX * newScale;
+    s.offsetY = anchorY - imgY * newScale;
+    choreClampCropOffset();
+    choreRenderCropImage();
+    choreCropZoomInput.value = Math.round(((s.scale - s.minScale) / (s.maxScale - s.minScale || 1)) * 100);
+  }
+
+  choreCropZoomInput.addEventListener('input', (e) => {
+    if (!choreCropState) return;
+    const s = choreCropState;
+    const t = Number(e.target.value) / 100;
+    choreApplyCropZoom(s.minScale + t * (s.maxScale - s.minScale), s.boxLeft + s.boxW / 2, s.boxTop + s.boxH / 2);
+  });
+
+  function choreCropPoint(e) {
+    const r = choreCropViewport.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  choreCropViewport.addEventListener('pointerdown', (e) => {
+    if (!choreCropState) return;
+    try { choreCropViewport.setPointerCapture(e.pointerId); } catch { /* pointer already gone -- harmless */ }
+    choreCropPointers.set(e.pointerId, choreCropPoint(e));
+    if (choreCropPointers.size === 2) {
+      const pts = [...choreCropPointers.values()];
+      choreCropPinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      choreCropPinchStartScale = choreCropState.scale;
+    }
+  });
+  choreCropViewport.addEventListener('pointermove', (e) => {
+    if (!choreCropState || !choreCropPointers.has(e.pointerId)) return;
+    const prev = choreCropPointers.get(e.pointerId);
+    const curr = choreCropPoint(e);
+    choreCropPointers.set(e.pointerId, curr);
+    if (choreCropPointers.size === 1) {
+      choreCropState.offsetX += curr.x - prev.x;
+      choreCropState.offsetY += curr.y - prev.y;
+      choreClampCropOffset();
+      choreRenderCropImage();
+    } else if (choreCropPointers.size === 2 && choreCropPinchStartDist > 0) {
+      const pts = [...choreCropPointers.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const midX = (pts[0].x + pts[1].x) / 2;
+      const midY = (pts[0].y + pts[1].y) / 2;
+      choreApplyCropZoom(choreCropPinchStartScale * (dist / choreCropPinchStartDist), midX, midY);
+    }
+  });
+  function choreCropPointerEnd(e) {
+    choreCropPointers.delete(e.pointerId);
+    if (choreCropPointers.size < 2) choreCropPinchStartDist = 0;
+  }
+  choreCropViewport.addEventListener('pointerup', choreCropPointerEnd);
+  choreCropViewport.addEventListener('pointercancel', choreCropPointerEnd);
+
+  function closeChorePicCropper() {
+    choreCropDialog.classList.add('hidden');
+    choreCropState = null;
+    choreCropPointers.clear();
+    choreCropPinchStartDist = 0;
+  }
+  $('chore-pic-crop-cancel-btn').addEventListener('click', closeChorePicCropper);
+  $('chore-pic-crop-save-btn').addEventListener('click', () => {
+    if (!choreCropState) return;
+    const s = choreCropState;
+    const srcX = (s.boxLeft - s.offsetX) / s.scale;
+    const srcY = (s.boxTop - s.offsetY) / s.scale;
+    const srcW = s.boxW / s.scale;
+    const srcH = s.boxH / s.scale;
+    const outW = 480;
+    const outH = Math.round(outW / (s.boxW / s.boxH));
+    const canvas = document.createElement('canvas');
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    // Zoomed out past "fits the box" leaves a gap on one or both axes -- fill it white first so
+    // JPEG export (no alpha channel) doesn't turn that gap black.
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, outW, outH);
+    ctx.drawImage(choreCropImg, srcX, srcY, srcW, srcH, 0, 0, outW, outH);
+    closeChorePicCropper();
+    canvas.toBlob((blob) => { if (blob) adoptPicture(blob); }, 'image/jpeg', 0.85);
   });
 
   // Photos are cut to a centered square and shrunk to 512 x 512 so they load fast on the iPads.
