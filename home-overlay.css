@@ -1,26 +1,23 @@
 /* Kid Zone home screen artwork overlay.
-   Source artwork: icons/home-background.png, 1448 x 1086, unmodified.
-   This file only repositions existing elements -- app.js/config.js still own every
-   click handler and nav route. Loaded after style.css; only applies under #home-screen. */
+   Background art: icons/home-background.png -- purely decorative scenery (no buttons baked
+   into it), same pattern as chores-redesign.css's #chores-screen background: cover directly on
+   the full screen element, cropping as needed to fill edge-to-edge on ANY device shape (iPad or
+   computer) with no letterbox bars and no stretching/distortion. Buttons are positioned
+   independently below (not tied to this image's pixel grid), same as Chores' sign/banner/pills
+   each having their own position -- so the background is free to crop without needing to match
+   any particular ratio. This file only repositions existing elements -- app.js/config.js still
+   own every click handler and nav route. Loaded after style.css; only applies under
+   #home-screen. */
+#home-screen.kz-art-home {
+  overflow: hidden;
+  background: #54c7f3 url('icons/home-background.png?v=5') center / cover no-repeat;
+}
 
 /* Do not touch position here: .screen already sets position:fixed;inset:0 to size the
    whole screen to the viewport. Overriding it to "relative" collapses this element to
    zero height once its children go position:absolute (no sized box left to fill). */
-#home-screen.kz-art-home { overflow: hidden; }
-
 #home-screen.kz-art-home .home-inner {
-  /* Locked to the artwork's own 1448x1086 ratio (~4:3, already close to a standard iPad's own
-     screen shape -- little to no letterboxing there) and centered in the viewport instead of
-     stretching to fill it. Every child here is positioned as a % of THIS box, so locking its
-     ratio keeps both the art undistorted and every button's alignment with it correct. */
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 100%; height: 100%; aspect-ratio: 1448 / 1086;
-  max-width: calc(100vh * 1448 / 1086); max-height: calc(100vw * 1086 / 1448);
-  padding: 0; margin: 0;
-}
-#home-screen.kz-art-home .home-inner::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background: url('icons/home-background.png') center center / 100% 100% no-repeat;
+  position: relative; width: 100%; height: 100%; max-width: none; padding: 0; margin: 0;
 }
 
 /* Family photo stays visible in the open sky area above the buttons, instead of being
@@ -51,35 +48,113 @@
 #home-screen.kz-art-home #section-grid > button[data-section] {
   position: absolute; box-sizing: border-box; display: block; padding: 0; margin: 0;
   border: 0; background: transparent; box-shadow: none; transform: none;
-  opacity: 1; pointer-events: auto; cursor: pointer; border-radius: 17%;
+  opacity: 1; pointer-events: auto; cursor: pointer; border-radius: 0;
   -webkit-tap-highlight-color: transparent;
-  /* left/top/width/height intentionally NOT set here -- js/home-overlay.js sets those as
-     inline styles (higher specificity than anything here) from its `rects` pixel map, and
-     also drives the Home Layout Tool's live overrides. Don't add them here; they'd just be
-     silently overridden and confusing to read. */
+  background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
+  /* left/top/width driven by CSS vars (--kzb-<id>-x/-y/-w, set by js/home-overlay.js's Button
+     Layout Tool) so every button can be nudged/resized live -- see the per-button rules below
+     for each one's fallback default and aspect-ratio. All in %, so "bigger/smaller" (width)
+     and position scale identically on an iPad or a computer screen; height is never set
+     directly, only derived from width via aspect-ratio, so a button can never distort. */
 }
-/* The artwork already shows the icon + label; hide only those two, not the pending-count
-   badge or the voice "say it" button, so those stay functional and visible in the corner. */
+/* All eight buttons are standalone sprite images now (icons/home-buttons/*.png) -- hide the
+   native emoji/text the base .section-tile markup would otherwise show. */
 #home-screen.kz-art-home #section-grid > button[data-section] > .section-tile-icon,
 #home-screen.kz-art-home #section-grid > button[data-section] > .section-tile-label {
   display: none !important;
 }
 #home-screen.kz-art-home #section-grid > button[data-section]:hover,
 #home-screen.kz-art-home #section-grid > button[data-section]:focus-visible {
-  outline: none; background: transparent;
+  /* background-color, not the `background` shorthand -- shorthand resets every background
+     sub-property including background-image back to none, which would wipe out the sprite
+     on hover/focus the moment this rule matched. */
+  outline: none; background-color: transparent;
+}
+
+/* Icon row: Games, Coloring, Reading, Math, Puzzles, Music -- six glossy button sprites, each
+   ~1327x1185 (~1.12:1). My Chores / Rewards Store -- two wide pill sprites inside the wooden
+   sign, each ~2172x724 (~3:1). Each group shares one aspect-ratio (locks true proportions on
+   any screen, so it never needs a letterboxed/cropped shared container -- same idea as
+   chores-redesign.css's independently-sized sign/banner/pills), but gets its own
+   position/size vars from the Button Layout Tool. Defaults are eyeballed, not pixel-measured --
+   nudge with the tool (Grown-ups > Home Screen Buttons) if they feel off. */
+#home-screen.kz-art-home #section-grid > button[data-section="games"],
+#home-screen.kz-art-home #section-grid > button[data-section="coloring"],
+#home-screen.kz-art-home #section-grid > button[data-section="reading"],
+#home-screen.kz-art-home #section-grid > button[data-section="math"],
+#home-screen.kz-art-home #section-grid > button[data-section="puzzles"],
+#home-screen.kz-art-home #section-grid > button[data-section="music"] {
+  aspect-ratio: 1327 / 1185;
 }
 #home-screen.kz-art-home #section-grid > button[data-section="chores"],
-#home-screen.kz-art-home #section-grid > button[data-section="store"] { border-radius: 999px; }
+#home-screen.kz-art-home #section-grid > button[data-section="store"] {
+  aspect-ratio: 2172 / 724;
+}
+#home-screen.kz-art-home #section-grid > button[data-section="games"] {
+  left: var(--kzb-games-x, 3.6%); top: var(--kzb-games-y, 45.6%); width: var(--kzb-games-w, 16%);
+  background-image: url('icons/home-buttons/games.png');
+}
+#home-screen.kz-art-home #section-grid > button[data-section="coloring"] {
+  left: var(--kzb-coloring-x, 18.7071%); top: var(--kzb-coloring-y, 45.6%); width: var(--kzb-coloring-w, 16%);
+  background-image: url('icons/home-buttons/coloring.png');
+}
+#home-screen.kz-art-home #section-grid > button[data-section="reading"] {
+  left: var(--kzb-reading-x, 33.8143%); top: var(--kzb-reading-y, 45.6%); width: var(--kzb-reading-w, 16%);
+  background-image: url('icons/home-buttons/reading.png');
+}
+#home-screen.kz-art-home #section-grid > button[data-section="math"] {
+  left: var(--kzb-math-x, 48.9214%); top: var(--kzb-math-y, 45.6%); width: var(--kzb-math-w, 16%);
+  background-image: url('icons/home-buttons/math.png');
+}
+#home-screen.kz-art-home #section-grid > button[data-section="puzzles"] {
+  left: var(--kzb-puzzles-x, 64.5286%); top: var(--kzb-puzzles-y, 45.6%); width: var(--kzb-puzzles-w, 16%);
+  background-image: url('icons/home-buttons/puzzles.png');
+}
+#home-screen.kz-art-home #section-grid > button[data-section="music"] {
+  left: var(--kzb-music-x, 80.1357%); top: var(--kzb-music-y, 45.6%); width: var(--kzb-music-w, 16%);
+  background-image: url('icons/home-buttons/music.png');
+}
+#home-screen.kz-art-home #section-grid > button[data-section="chores"] {
+  left: var(--kzb-chores-x, 14.6%); top: var(--kzb-chores-y, 72.2%); width: var(--kzb-chores-w, 34.2%);
+  background-image: url('icons/home-buttons/chores.png');
+}
+#home-screen.kz-art-home #section-grid > button[data-section="store"] {
+  left: var(--kzb-store-x, 50.2%); top: var(--kzb-store-y, 72.4%); width: var(--kzb-store-w, 35.4%);
+  background-image: url('icons/home-buttons/store.png');
+}
+/* iPad override for just these two: they're the only buttons that sit inside a specific
+   drawn shape in the background (the wooden banner), and background-size:cover (above) crops
+   that banner differently depending on the screen's aspect ratio -- a computer window (close
+   to the background's own ~16:9-ish shape) crops very little, while an iPad's squarer ~4:3
+   screen crops noticeably more off the sides, shifting where the banner visually ends up.
+   Icon row/gear don't need this -- they float over plain grass/sky with no specific shape to
+   stay aligned with. pointer:coarse means touch (the iPad), not the mouse-driven computer used
+   to tune the values above -- the Button Layout Tool (js/home-overlay.js) detects which one
+   it's running on and writes to the matching set of variables automatically. */
+@media (pointer: coarse) {
+  #home-screen.kz-art-home #section-grid > button[data-section="chores"] {
+    left: var(--kzb-chores-x-ipad, 14.6%); top: var(--kzb-chores-y-ipad, 72.2%); width: var(--kzb-chores-w-ipad, 34.2%);
+  }
+  #home-screen.kz-art-home #section-grid > button[data-section="store"] {
+    left: var(--kzb-store-x-ipad, 50.2%); top: var(--kzb-store-y-ipad, 72.4%); width: var(--kzb-store-w-ipad, 35.4%);
+  }
+}
 
-/* Parent gear: hit-region only -- the artwork already draws the gear icon. Positioned inside
-   .home-inner (not .home-header) so its percentages share the same 1448x1086 coordinate space
-   as the button rects above. Click handler reuses the existing PIN-gated openParentEntry().
-   Eyeballed from the art's own drawn gear circle, not pixel-measured -- nudge if it feels off
-   (there's no slider for this one in the Home Layout Tool, just edit the numbers here). */
+/* Parent gear: now a standalone sprite (icons/home-buttons/settings.png, ~1402x1122,
+   ~1.25:1), same CSS-var-driven left/top/width + fixed aspect-ratio pattern as the section-grid
+   buttons above, and included in the Button Layout Tool (Grown-ups > Home Screen Buttons) --
+   positioned inside .home-inner (not .home-header) so it's a % of the full screen like those.
+   Click handler reuses the existing PIN-gated openParentEntry(). */
 #home-screen.kz-art-home #home-parent-settings {
-  position: absolute; z-index: 6; background: transparent; border: 0; border-radius: 50%;
-  cursor: pointer; -webkit-tap-highlight-color: transparent;
-  right: 1%; top: 2.6%; width: 6.2%; height: 8.3%;
+  position: absolute; z-index: 6; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background-image: url('icons/home-buttons/settings.png'); background-size: 100% 100%;
+  background-repeat: no-repeat; background-position: center;
+  aspect-ratio: 1402 / 1122;
+  left: var(--kzb-settings-x, 92%); top: var(--kzb-settings-y, 2%); width: var(--kzb-settings-w, 6.8%);
+}
+#home-screen.kz-art-home #home-parent-settings:hover,
+#home-screen.kz-art-home #home-parent-settings:focus-visible {
+  outline: none; background-color: transparent;
 }
 
 /* Coin/profile chips float over the artwork instead of pushing it down. Not part of the

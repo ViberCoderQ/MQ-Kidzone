@@ -1,17 +1,22 @@
 /* No position override here: .screen already sets position:fixed;inset:0 to size the whole
    screen to the viewport. Overriding it to "relative" collapses this element to zero height
    once .screen-inner (and everything in it) goes position:absolute below. */
-#games-screen.kz-games-redesign{background:#3ba8ed!important;overflow:hidden}
+/* Background art is purely decorative scenery (no home/gear icons or labels baked into it) --
+   same pattern as chores-redesign.css's #chores-screen background: cover directly on the full
+   screen element, cropping as needed to fill edge-to-edge on ANY device shape (iPad or
+   computer), no letterbox bars, no stretching/distortion. */
+#games-screen.kz-games-redesign{background:#3ba8ed url('assets/games-carousel/games-meadow.png?v=3') center/cover no-repeat!important;overflow:hidden}
 #games-screen.kz-games-redesign>.sub-header,#games-screen.kz-games-redesign>.screen-inner>.section-grid{display:none!important}
-/* Locked to the artwork's own 1448x1086 ratio (~4:3, already close to a standard iPad's own
-   screen shape -- little to no letterboxing there) and centered in the viewport instead of
-   stretching to fill it. Every child here (.kz-carousel, the home/settings buttons, etc.) is
-   positioned as a % of THIS box, so locking its ratio keeps both the art undistorted and
-   every button aligned with it. */
-#games-screen.kz-games-redesign>.screen-inner{position:absolute;top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:100%;height:100%;aspect-ratio:1448/1086;max-width:calc(100vh*1448/1086)!important;max-height:calc(100vw*1086/1448)!important;padding:0!important;margin:0!important;overflow:visible!important;background:url('assets/games-carousel/games-meadow.png') center/100% 100% no-repeat!important}
-/* left/top/width/height below are eyeballed from the art's own drawn home-icon/gear-icon
-   circles (in its 1448x1086 pixel grid), not pixel-measured -- nudge if they feel off. */
-.kz-games-home,.kz-games-settings{position:absolute;z-index:10;border:0;background:transparent;cursor:pointer;touch-action:manipulation}.kz-games-home{left:3.6%;top:2.5%;width:6.1%;height:8.4%;border-radius:50%}.kz-games-settings{right:1.2%;top:2.6%;width:6%;height:8.3%;border-radius:50%}
+#games-screen.kz-games-redesign>.screen-inner{position:absolute;inset:0;max-width:none!important;width:100%;height:100%;padding:0!important;margin:0!important;overflow:visible!important}
+.kz-games-home,.kz-games-settings{position:absolute;z-index:10;border:0;background:transparent;cursor:pointer;touch-action:manipulation}
+/* Standalone sprite (assets/games-carousel/games-home-btn.png, ~2205x713, ~3.1:1 -- home icon
+   + "Games" label on a wooden plaque), same aspect-ratio-locked pattern as the Home screen's
+   icon row/gear. Eyeballed placement -- nudge if it feels off. */
+.kz-games-home{left:1.5%;top:1.5%;width:24%;aspect-ratio:2205/713;border-radius:0;background-image:url('assets/games-carousel/games-home-btn.png');background-size:100% 100%;background-repeat:no-repeat;background-position:center}
+/* Standalone sprite (assets/games-carousel/games-settings-btn.png, ~1402x1122, ~1.25:1 --
+   same gear art as the Home screen's settings button), aspect-ratio-locked like games-home
+   above. Eyeballed placement -- nudge if it feels off. */
+.kz-games-settings{right:1.2%;top:1.5%;width:7%;aspect-ratio:1402/1122;border-radius:0;background-image:url('assets/games-carousel/games-settings-btn.png');background-size:100% 100%;background-repeat:no-repeat;background-position:center}
 .kz-carousel{position:absolute;inset:17% 0 3%;font-family:system-ui,sans-serif;user-select:none;overflow:hidden}
 .kz-carousel-stage{position:absolute;left:10%;right:10%;top:2%;height:76%;perspective:1100px;touch-action:pan-y;cursor:grab}.kz-carousel-stage:active{cursor:grabbing}
 .kz-game-card{position:absolute;left:50%;top:49%;width:36%;height:82%;padding:0;border:0;background:transparent;cursor:pointer;will-change:transform,opacity;filter:drop-shadow(0 12px 12px #00305b77);transform-style:preserve-3d;backface-visibility:hidden}
