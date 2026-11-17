@@ -1,29 +1,34 @@
 /* Kid Zone home screen artwork overlay.
-   Background art: icons/home-background.png -- purely decorative scenery (no buttons baked
-   into it), same pattern as chores-redesign.css's #chores-screen background: cover directly on
-   the full screen element, cropping as needed to fill edge-to-edge with no letterbox bars and
-   no stretching/distortion. Buttons are positioned independently below (not tied to this
-   image's pixel grid), same as Chores' sign/banner/pills each having their own position -- so
-   the background is free to crop without needing to match any particular ratio. This file only
-   repositions existing elements -- app.js/config.js still own every click handler and nav
-   route. Loaded after style.css; only applies under #home-screen. */
+   Background art: icons/home-background.png (computer) / icons/home-background-ipad.png
+   (iPad, below) -- purely decorative scenery (no buttons baked into either), same pattern as
+   chores-redesign.css's #chores-screen background: cover directly on the full screen element,
+   cropping as needed to fill edge-to-edge with no letterbox bars and no stretching/distortion.
+   Buttons are positioned independently below (not tied to either image's pixel grid), same as
+   Chores' sign/banner/pills each having their own position -- so the background is free to crop
+   without needing to match any particular ratio. This file only repositions existing elements
+   -- app.js/config.js still own every click handler and nav route. Loaded after style.css;
+   only applies under #home-screen. */
 #home-screen.kz-art-home {
   overflow: hidden;
   background: #54c7f3 url('icons/home-background.png?v=5') center / cover no-repeat;
 }
-/* iPad only: lock the screen itself to a 4:3 box (letterboxed/centered if the real device isn't
-   exactly 4:3, e.g. iPad Air/Pro 11) instead of covering whatever the real device's exact
-   aspect ratio happens to be. Every child positioned as a % of #home-screen (the icon row,
-   My Chores/Rewards Store, the gear) is a % of THIS locked box here, so the banner crops by the
-   same fixed, predictable amount on every iPad model -- not a little more on a mini, a little
-   less on an Air -- which is what the chores/store pointer:coarse values further down are tuned
-   against. The computer keeps the plain rule above: cover the raw window, whatever shape it is. */
+/* iPad only: a separate background image (already 4:3, same shape as the locked box below, so
+   it shows in full with no internal crop at all -- only the OUTER letterbox, if the real
+   device isn't exactly 4:3, e.g. iPad Air/Pro 11, adds bars) instead of the computer's image,
+   plus locking the screen itself to a 4:3 box instead of covering whatever the real device's
+   exact aspect ratio happens to be. Every child positioned as a % of #home-screen (the icon
+   row, My Chores/Rewards Store, the gear) is a % of THIS locked box, so the banner sits at the
+   same predictable spot on every iPad model. Because this is a different image with the
+   banner in a different spot than the computer's, My Chores/Rewards Store likely need
+   re-tuning on an actual iPad with the Button Layout Tool -- the pointer:coarse values further
+   down were tuned against the old shared image, not this one. */
 @media (pointer: coarse) {
   #home-screen.kz-art-home {
     position: fixed; top: 50%; left: 50%; right: auto; bottom: auto;
     transform: translate(-50%, -50%);
     width: 100%; height: 100%; aspect-ratio: 4 / 3;
     max-width: calc(100vh * 4 / 3); max-height: calc(100vw * 3 / 4);
+    background: #54c7f3 url('icons/home-background-ipad.png?v=1') center / cover no-repeat;
   }
 }
 
@@ -142,23 +147,6 @@
   left: var(--kzb-store-x, 50.2%); top: var(--kzb-store-y, 72.4%); width: var(--kzb-store-w, 35.4%);
   background-image: url('icons/home-buttons/store.png');
 }
-/* iPad override for just these two: they're the only buttons that sit inside a specific
-   drawn shape in the background (the wooden banner), and background-size:cover (above) crops
-   that banner differently depending on the screen's aspect ratio -- a computer window (close
-   to the background's own ~16:9-ish shape) crops very little, while an iPad's squarer ~4:3
-   screen crops noticeably more off the sides, shifting where the banner visually ends up.
-   Icon row/gear don't need this -- they float over plain grass/sky with no specific shape to
-   stay aligned with. pointer:coarse means touch (the iPad), not the mouse-driven computer used
-   to tune the values above -- the Button Layout Tool (js/home-overlay.js) detects which one
-   it's running on and writes to the matching set of variables automatically. */
-@media (pointer: coarse) {
-  #home-screen.kz-art-home #section-grid > button[data-section="chores"] {
-    left: var(--kzb-chores-x-ipad, 14.6%); top: var(--kzb-chores-y-ipad, 72.2%); width: var(--kzb-chores-w-ipad, 34.2%);
-  }
-  #home-screen.kz-art-home #section-grid > button[data-section="store"] {
-    left: var(--kzb-store-x-ipad, 50.2%); top: var(--kzb-store-y-ipad, 72.4%); width: var(--kzb-store-w-ipad, 35.4%);
-  }
-}
 
 /* Parent gear: now a standalone sprite (icons/home-buttons/settings.png, ~1402x1122,
    ~1.25:1), same CSS-var-driven left/top/width + fixed aspect-ratio pattern as the section-grid
@@ -175,6 +163,44 @@
 #home-screen.kz-art-home #home-parent-settings:hover,
 #home-screen.kz-art-home #home-parent-settings:focus-visible {
   outline: none; background-color: transparent;
+}
+
+/* iPad override for all nine buttons: the Home background is a completely different image on
+   touch devices (see the top of this file), with its own button row position and its own
+   wooden banner position -- so every button gets its own -ipad-suffixed variable set, read
+   only here, instead of sharing one value with the computer. pointer:coarse means touch (the
+   iPad), not the mouse-driven computer used to tune the plain values above -- the Button Layout
+   Tool (js/home-overlay.js) detects which one it's running on and writes to the matching set
+   of variables automatically. Defaults below are the last values tuned on an iPad (via Chrome's
+   device-emulation toolbar); nudge with the tool if they feel off on the real device. */
+@media (pointer: coarse) {
+  #home-screen.kz-art-home #section-grid > button[data-section="games"] {
+    left: var(--kzb-games-x-ipad, 3.6%); top: var(--kzb-games-y-ipad, 50.6%); width: var(--kzb-games-w-ipad, 16.5%);
+  }
+  #home-screen.kz-art-home #section-grid > button[data-section="coloring"] {
+    left: var(--kzb-coloring-x-ipad, 18.7071%); top: var(--kzb-coloring-y-ipad, 50.6%); width: var(--kzb-coloring-w-ipad, 16.5%);
+  }
+  #home-screen.kz-art-home #section-grid > button[data-section="reading"] {
+    left: var(--kzb-reading-x-ipad, 33.8143%); top: var(--kzb-reading-y-ipad, 50.6%); width: var(--kzb-reading-w-ipad, 16.5%);
+  }
+  #home-screen.kz-art-home #section-grid > button[data-section="math"] {
+    left: var(--kzb-math-x-ipad, 48.9214%); top: var(--kzb-math-y-ipad, 50.6%); width: var(--kzb-math-w-ipad, 16.5%);
+  }
+  #home-screen.kz-art-home #section-grid > button[data-section="puzzles"] {
+    left: var(--kzb-puzzles-x-ipad, 64.5286%); top: var(--kzb-puzzles-y-ipad, 50.6%); width: var(--kzb-puzzles-w-ipad, 16.5%);
+  }
+  #home-screen.kz-art-home #section-grid > button[data-section="music"] {
+    left: var(--kzb-music-x-ipad, 80.1357%); top: var(--kzb-music-y-ipad, 50.6%); width: var(--kzb-music-w-ipad, 16.5%);
+  }
+  #home-screen.kz-art-home #section-grid > button[data-section="chores"] {
+    left: var(--kzb-chores-x-ipad, 12.1%); top: var(--kzb-chores-y-ipad, 72.2%); width: var(--kzb-chores-w-ipad, 38%);
+  }
+  #home-screen.kz-art-home #section-grid > button[data-section="store"] {
+    left: var(--kzb-store-x-ipad, 49.7%); top: var(--kzb-store-y-ipad, 72.4%); width: var(--kzb-store-w-ipad, 38.2%);
+  }
+  #home-screen.kz-art-home #home-parent-settings {
+    left: var(--kzb-settings-x-ipad, 92%); top: var(--kzb-settings-y-ipad, 2%); width: var(--kzb-settings-w-ipad, 6.8%);
+  }
 }
 
 /* Coin/profile chips float over the artwork instead of pushing it down. Not part of the

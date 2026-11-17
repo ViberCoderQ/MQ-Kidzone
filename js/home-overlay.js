@@ -45,19 +45,23 @@
     return { x: clampField('x', s.x), y: clampField('y', s.y), w: clampField('w', s.w) };
   }
 
-  // My Chores / Rewards Store sit inside the wooden banner drawn in the background, and
-  // background-size:cover (home-overlay.css) crops that banner differently depending on the
-  // screen's aspect ratio -- a computer window (close to the background's own shape) crops
-  // very little, an iPad's squarer screen crops noticeably more off the sides, shifting where
-  // the banner ends up. So those two get a SEPARATE set of CSS vars for touch devices
-  // (--kzb-chores-x-ipad etc., read only inside home-overlay.css's `@media (pointer: coarse)`
-  // block) instead of sharing one value with the computer. pointer:coarse means touch (the
-  // iPad), pointer:fine means the mouse-driven computer this is likely being tuned from.
-  const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
-  const DEVICE_SPLIT_IDS = ['chores', 'store'];
+  // The Home background is a completely different image on touch devices (icons/
+  // home-background-ipad.png vs icons/home-background.png -- see home-overlay.css), with its
+  // own button-row position and its own wooden banner position. So every button gets its own
+  // -ipad-suffixed set of CSS vars, read only inside home-overlay.css's `@media (pointer:
+  // coarse)` block, instead of sharing one value with the computer. pointer:coarse means touch
+  // (the iPad), pointer:fine means the mouse-driven computer this is likely being tuned from.
+  //
+  // isTouch() re-checks matchMedia on every call instead of caching it once at script load --
+  // a one-time snapshot would go stale the moment you toggle a browser's device-emulation mode
+  // AFTER the page already loaded (the normal workflow: load the page, then turn on the device
+  // toolbar). CSS media queries re-evaluate live when that happens; a frozen JS boolean doesn't,
+  // so the tool kept writing to the plain variable while the CSS -- now matching pointer:coarse
+  // -- had switched to reading the -ipad one. Two different variables, only one of which
+  // anything was listening to, so every nudge silently updated a value nothing displayed.
+  function isTouch() { return window.matchMedia('(pointer: coarse)').matches; }
   function cssVarName(id, field) {
-    const suffix = IS_TOUCH && DEVICE_SPLIT_IDS.includes(id) ? '-ipad' : '';
-    return `--kzb-${id}-${field}${suffix}`;
+    return `--kzb-${id}-${field}${isTouch() ? '-ipad' : ''}`;
   }
 
   const home = document.getElementById('home-screen');
@@ -147,7 +151,7 @@
   panel.className = 'kz-layout-tool-panel hidden';
   panel.setAttribute('aria-label', 'Home button layout tool');
   panel.innerHTML =
-    `<div class="chores-layout-head"><strong>Home Buttons Layout Tool (${IS_TOUCH ? 'iPad' : 'Computer'})</strong>` +
+    `<div class="chores-layout-head"><strong>Home Buttons Layout Tool (${isTouch() ? 'iPad' : 'Computer'})</strong>` +
     `<button type="button" id="home-layout-done-btn" class="big-btn primary-btn">✅ Done</button></div>` +
     `<button type="button" id="home-layout-preview-btn" class="big-btn" style="margin-top:10px;width:100%">👀 Preview (hide this panel)</button>` +
     `<div class="chores-layout-section">Icon row -- Games through Music, all six together (nudges each one by the same amount from wherever it already is)</div>` +
@@ -159,8 +163,7 @@
       `</div>`
     ).join('') +
     BUTTONS.map(({ id, label }) => {
-      const note = DEVICE_SPLIT_IDS.includes(id) ? ` -- ${IS_TOUCH ? 'iPad-only' : 'computer-only'} values` : '';
-      const section = `<div class="chores-layout-section">${label}${note}</div>`;
+      const section = `<div class="chores-layout-section">${label} -- ${isTouch() ? 'iPad-only' : 'computer-only'} values</div>`;
       const rows = FIELDS.map(([field, fieldLabel, kind, min, max]) =>
         fieldHtml(id, field, fieldLabel, kind, min, max, state[id][field])
       ).join('');
@@ -258,12 +261,12 @@
   });
   document.getElementById('home-layout-copy-btn').addEventListener('click', async () => {
     const text = `:root {\n` +
-      `  /* ${IS_TOUCH ? 'iPad' : 'Computer'} values */\n` +
+      `  /* ${isTouch() ? 'iPad' : 'Computer'} values */\n` +
       BUTTONS.map(({ id }) =>
         `  ${cssVarName(id, 'x')}: ${state[id].x}%; ${cssVarName(id, 'y')}: ${state[id].y}%; ${cssVarName(id, 'w')}: ${state[id].w}%;`
       ).join('\n') +
       `\n}` +
-      (IS_TOUCH ? `\n/* paste the chores/store lines above inside home-overlay.css's existing\n   @media (pointer: coarse) { ... } block, not at the top level */` : '');
+      (isTouch() ? `\n/* paste the chores/store lines above inside home-overlay.css's existing\n   @media (pointer: coarse) { ... } block, not at the top level */` : '');
     const btn = document.getElementById('home-layout-copy-btn');
     try {
       await navigator.clipboard.writeText(text);
