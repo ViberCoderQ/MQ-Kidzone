@@ -203,17 +203,19 @@
 
 /* ---- Chores Layout Tool: floats over the real Chores screen (Grown-ups > Chores Screen
    Layout > Preview & Adjust). Not scoped to #chores-screen since it's a page-level overlay,
-   like home-photo-live-bar. ---- */
-#chores-layout-panel {
+   like home-photo-live-bar. Shell styling lives on the shared .kz-layout-tool-panel class
+   (also used by the Home Layout Tool, js/home-overlay.js) so both tuning panels look/behave
+   the same without duplicating this block. ---- */
+.kz-layout-tool-panel {
   position: fixed; right: 12px; top: 12px; bottom: 12px; z-index: 60; width: min(360px, calc(100vw - 24px));
   background: #fff; border: 3px solid #2a7dd9; border-radius: 20px; padding: 14px;
   box-shadow: 0 10px 40px rgba(18, 44, 102, .55); color: #122c66; font: 14px system-ui; overflow-y: auto;
 }
-#chores-layout-panel.hidden { display: none; }
+.kz-layout-tool-panel.hidden { display: none; }
 .chores-layout-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
 .chores-layout-head strong { font-size: 17px; }
 .chores-layout-section { font-size: 14px; font-weight: 900; border-bottom: 1px solid #d6e3f6; padding: 10px 0 4px; margin-top: 8px; }
-#chores-layout-panel label { display: flex; justify-content: space-between; gap: 10px; font-weight: 700; margin-top: 10px; font-size: 13px; }
-#chores-layout-panel input[type=range] { width: 100%; accent-color: #156bd9; margin-top: 2px; }
-#chores-layout-panel .chores-layout-actions { display: flex; gap: 8px; margin-top: 14px; }
-#chores-layout-panel .chores-layout-actions button { flex: 1; }
+.kz-layout-tool-panel label { display: flex; justify-content: space-between; gap: 10px; font-weight: 700; margin-top: 10px; font-size: 13px; }
+.kz-layout-tool-panel input[type=range] { width: 100%; accent-color: #156bd9; margin-top: 2px; }
+.kz-layout-tool-panel .chores-layout-actions { display: flex; gap: 8px; margin-top: 14px; }
+.kz-layout-tool-panel .chores-layout-actions button { flex: 1; }

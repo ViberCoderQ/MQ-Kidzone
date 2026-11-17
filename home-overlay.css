@@ -1,5 +1,5 @@
 /* Kid Zone home screen artwork overlay.
-   Source artwork: icons/home-background.png, 1670 x 941, unmodified.
+   Source artwork: icons/home-background.png, 1448 x 1086, unmodified.
    This file only repositions existing elements -- app.js/config.js still own every
    click handler and nav route. Loaded after style.css; only applies under #home-screen. */
 
@@ -9,14 +9,13 @@
 #home-screen.kz-art-home { overflow: hidden; }
 
 #home-screen.kz-art-home .home-inner {
-  /* Locked to the artwork's own 1670x941 ratio and centered/letterboxed in the viewport,
-     instead of stretching to fill it -- a standard iPad's screen (landscape ~4:3, much
-     squarer than this art's ~16:9-ish shape) was forcing background-size:100% 100% below to
-     distort the art to fit. Every child here is positioned as a % of THIS box, so locking its
+  /* Locked to the artwork's own 1448x1086 ratio (~4:3, already close to a standard iPad's own
+     screen shape -- little to no letterboxing there) and centered in the viewport instead of
+     stretching to fill it. Every child here is positioned as a % of THIS box, so locking its
      ratio keeps both the art undistorted and every button's alignment with it correct. */
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 100%; height: 100%; aspect-ratio: 1670 / 941;
-  max-width: calc(100vh * 1670 / 941); max-height: calc(100vw * 941 / 1670);
+  width: 100%; height: 100%; aspect-ratio: 1448 / 1086;
+  max-width: calc(100vh * 1448 / 1086); max-height: calc(100vw * 1086 / 1448);
   padding: 0; margin: 0;
 }
 #home-screen.kz-art-home .home-inner::before {
@@ -54,6 +53,10 @@
   border: 0; background: transparent; box-shadow: none; transform: none;
   opacity: 1; pointer-events: auto; cursor: pointer; border-radius: 17%;
   -webkit-tap-highlight-color: transparent;
+  /* left/top/width/height intentionally NOT set here -- js/home-overlay.js sets those as
+     inline styles (higher specificity than anything here) from its `rects` pixel map, and
+     also drives the Home Layout Tool's live overrides. Don't add them here; they'd just be
+     silently overridden and confusing to read. */
 }
 /* The artwork already shows the icon + label; hide only those two, not the pending-count
    badge or the voice "say it" button, so those stay functional and visible in the corner. */
@@ -69,12 +72,14 @@
 #home-screen.kz-art-home #section-grid > button[data-section="store"] { border-radius: 999px; }
 
 /* Parent gear: hit-region only -- the artwork already draws the gear icon. Positioned inside
-   .home-inner (not .home-header) so its percentages share the same 1670x941 coordinate space
-   as the button rects above. Click handler reuses the existing PIN-gated openParentEntry(). */
+   .home-inner (not .home-header) so its percentages share the same 1448x1086 coordinate space
+   as the button rects above. Click handler reuses the existing PIN-gated openParentEntry().
+   Eyeballed from the art's own drawn gear circle, not pixel-measured -- nudge if it feels off
+   (there's no slider for this one in the Home Layout Tool, just edit the numbers here). */
 #home-screen.kz-art-home #home-parent-settings {
   position: absolute; z-index: 6; background: transparent; border: 0; border-radius: 50%;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
-  left: 91.3174%; top: 2.1254%; width: 5.5689%; height: 9.7768%;
+  right: 1%; top: 2.6%; width: 6.2%; height: 8.3%;
 }
 
 /* Coin/profile chips float over the artwork instead of pushing it down. Not part of the
