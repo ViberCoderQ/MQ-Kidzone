@@ -23,6 +23,8 @@ const DEFAULT_COIN_SECTIONS = {
 let currentChores = [];
 let currentStore = [];
 let currentCoinRules = normalizeCoinRules(null);
+let currentHomePhotoSizePct = 36;
+let currentHomePhotoUrl = null;
 
 let settingsReadyResolve;
 const settingsReady = new Promise((r) => { settingsReadyResolve = r; });
@@ -61,7 +63,7 @@ async function refreshSharedData() {
   const [choresRes, storeRes, familyRes] = await Promise.all([
     supabaseClient.from('chores').select('*').eq('family_id', familyId).order('created_at'),
     supabaseClient.from('store_items').select('*').eq('family_id', familyId).order('created_at'),
-    supabaseClient.from('families').select('coin_rules').eq('id', familyId).single(),
+    supabaseClient.from('families').select('coin_rules, home_photo_size_pct, home_photo_url').eq('id', familyId).single(),
   ]);
   if (choresRes.error) console.error('[Settings] could not load chores:', choresRes.error);
   if (storeRes.error) console.error('[Settings] could not load store items:', storeRes.error);
@@ -69,6 +71,9 @@ async function refreshSharedData() {
   currentChores = (choresRes.data || []).map(rowToChore);
   currentStore = (storeRes.data || []).map(rowToStoreItem);
   currentCoinRules = normalizeCoinRules(familyRes.data ? familyRes.data.coin_rules : null);
+  const syncedSize = Number(familyRes.data && familyRes.data.home_photo_size_pct);
+  if (Number.isFinite(syncedSize) && syncedSize > 0) currentHomePhotoSizePct = syncedSize;
+  currentHomePhotoUrl = (familyRes.data && familyRes.data.home_photo_url) || null;
 }
 
 ParentAuth.onChange(async () => {
@@ -95,6 +100,32 @@ async function saveCoinRules(sections) {
   if (!familyId) throw new Error('Sign in to the Family Account first.');
   currentCoinRules = normalizeCoinRules({ sections });
   const { error } = await supabaseClient.from('families').update({ coin_rules: currentCoinRules }).eq('id', familyId);
+  if (error) throw error;
+}
+
+function getHomePhotoSizePct() { return currentHomePhotoSizePct; }
+function getHomePhotoUrl() { return currentHomePhotoUrl; }
+
+// Unlike saveCoinRules, this doesn't throw without a Family Account -- the photo-size slider
+// is a nice-to-have, not gated behind Setup, so it just stays device-local (via localStorage
+// in js/app.js) until a family account links it up for every iPad/computer.
+async function saveHomePhotoSizePct(pct) {
+  currentHomePhotoSizePct = pct;
+  const familyId = ParentAuth.getFamilyId();
+  if (!familyId) return;
+  const { error } = await supabaseClient.from('families').update({ home_photo_size_pct: pct }).eq('id', familyId);
+  if (error) console.error('[Settings] could not save home photo size:', error);
+}
+
+// Unlike the size, uploading an actual new photo (js/app.js) DOES require a Family Account --
+// there's nowhere device-local that makes sense to put a cross-device synced image, and Supabase
+// Storage uploads need a signed-in family to scope the file to (see supabase-storage.sql's RLS
+// policies, "<family_id>/..." folders). Pass null to go back to the built-in default photo.
+async function saveHomePhotoUrl(url) {
+  const familyId = ParentAuth.getFamilyId();
+  if (!familyId) throw new Error('Sign in to the Family Account first.');
+  currentHomePhotoUrl = url;
+  const { error } = await supabaseClient.from('families').update({ home_photo_url: url }).eq('id', familyId);
   if (error) throw error;
 }
 

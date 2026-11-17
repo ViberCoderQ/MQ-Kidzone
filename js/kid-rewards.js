@@ -21,10 +21,36 @@ const KidRewards = (() => {
   const choresVoiceSlot = $('chores-voice-slot');
   choresVoiceSlot.appendChild(Voice.button('My chores. Tap Done when you finish one.'));
   $('chores-back-btn').addEventListener('click', () => AppBridge.enterHome());
+  // New Home pill baked into the redesign's artwork -- same existing nav function, just a
+  // second trigger for it (same pattern as the Games/Reading screen redesigns).
+  $('kz-chores-home').addEventListener('click', () => AppBridge.enterHome());
+
+  // Child's name in curved text on the wooden sign, plus the coin-balance pill -- textLength
+  // keeps the curve looking proportional for both short and long names.
+  function renderChoresBanner(profile) {
+    const chores = todaysChoresFor(profile);
+    const approved = chores.filter((c) => {
+      const entry = choreEntryToday(profile.id, c.id);
+      return entry && entry.status === 'approved';
+    }).length;
+    $('kz-chores-count').textContent = `${approved} of ${chores.length} Chores Finished!`;
+    $('kz-chores-fill').style.width = (chores.length ? (100 * approved / chores.length) : 0) + '%';
+    // Real photo (set in Grown-ups > Photo Editor > Child Photos) replaces the colored
+    // initial-letter avatar entirely when one's set -- never shown together.
+    $('kz-chores-avatar').innerHTML = profile.photoUrl
+      ? `<img src="${esc(profile.photoUrl)}" alt="${esc(profile.name)}" />`
+      : `<span class="profile-avatar" style="--avatar-color:${profile.avatarColor}">${esc(profile.name.charAt(0).toUpperCase())}</span>`;
+    $('kz-chores-coins').textContent = `🪙 ${spendableCoins(profile.id)} Coins`;
+    const nameEl = $('kz-chores-sign-name');
+    nameEl.textContent = `${profile.name}’s Chores`;
+    nameEl.setAttribute('textLength', Math.min(680, Math.max(490, (profile.name.length + 9) * 39)));
+  }
 
   function renderChores() {
     const profile = me();
     if (!profile) return;
+    document.getElementById('chores-screen').classList.add('kz-chores-redesign');
+    renderChoresBanner(profile);
     const list = $('chore-list');
     list.innerHTML = '';
     const chores = todaysChoresFor(profile);
@@ -36,7 +62,7 @@ const KidRewards = (() => {
       card.innerHTML = `${pictureHtml(chore.picture, 'pic-xl')}
         <div class="chore-card-text">
           <span class="chore-card-name">${esc(chore.name)}</span>
-          <span class="chore-card-coins">🪙 ${chore.coins}</span>
+          <span class="chore-card-coins">${chore.coins} Coins</span>
         </div>`;
       card.appendChild(Voice.button(`${chore.name}. ${coins(chore.coins)}.`, 'corner'));
 
@@ -62,6 +88,131 @@ const KidRewards = (() => {
       list.appendChild(card);
     });
   }
+
+  // ---- Chores Layout Tool: a throwaway tuning aid, not a shipped feature. Adjust sliders
+  // while looking at the real screen, then "Copy CSS" and hand the numbers back -- whoever's
+  // doing the Cursor/Claude work pastes them into chores-redesign.css as the new fallback
+  // values and this tool (and its temporary localStorage-only state) can be deleted. One
+  // shared set of controls for the chore pills -- all six read the same CSS variables, so
+  // moving/resizing them always happens "at the same time" by construction, not by looping
+  // over each card. Extend-up/-down are independent: one grows the pill row from the top edge,
+  // the other from the bottom edge, without disturbing the opposite edge.
+  const CHORES_LAYOUT_LOCAL_KEY = 'family-app.chores-layout-DRAFT';
+  // Defaults match the approved, baked-in look (chores-redesign.css's own var() fallbacks and
+  // index.html's #kz-chores-sign-arc) -- not "no adjustment" zeroes -- so "Reset to Default"
+  // returns to the shipped design rather than the pre-tuning layout.
+  const CHORES_LAYOUT_DEFAULTS = {
+    headerX: 0, headerY: 1, headerScale: 61,
+    headerTextX: 0, headerTextY: -16, headerTextCurve: 80, headerTextSize: 128,
+    bannerX: 0, bannerY: -33, bannerScale: 75, bannerHeightScale: 196,
+    avatarX: 1, avatarY: -44, avatarSize: 104,
+    todayX: -7, todayY: -34, todaySize: 87,
+    countX: 0, countY: -53, countSize: 105,
+    pillsX: 0, pillsY: 0, pillsScale: 101, pillsExtendUp: 0, pillsExtendDown: 0,
+  };
+  const CHORES_LAYOUT_SPEC = [
+    ['headerX', 'cl-header-x', 'px'], ['headerY', 'cl-header-y', 'px'], ['headerScale', 'cl-header-scale', '%'],
+    ['headerTextX', 'cl-header-text-x', 'px'], ['headerTextY', 'cl-header-text-y', 'px'],
+    ['headerTextCurve', 'cl-header-text-curve', 'px'], ['headerTextSize', 'cl-header-text-size', '%'],
+    ['bannerX', 'cl-banner-x', 'px'], ['bannerY', 'cl-banner-y', 'px'], ['bannerScale', 'cl-banner-scale', '%'],
+    ['bannerHeightScale', 'cl-banner-height-scale', '%'],
+    ['avatarX', 'cl-avatar-x', 'px'], ['avatarY', 'cl-avatar-y', 'px'], ['avatarSize', 'cl-avatar-size', '%'],
+    ['todayX', 'cl-today-x', 'px'], ['todayY', 'cl-today-y', 'px'], ['todaySize', 'cl-today-size', '%'],
+    ['countX', 'cl-count-x', 'px'], ['countY', 'cl-count-y', 'px'], ['countSize', 'cl-count-size', '%'],
+    ['pillsX', 'cl-pills-x', 'px'], ['pillsY', 'cl-pills-y', 'px'], ['pillsScale', 'cl-pills-scale', '%'],
+    ['pillsExtendUp', 'cl-pills-extend-up', 'px'], ['pillsExtendDown', 'cl-pills-extend-down', 'px'],
+  ];
+
+  function applyChoresLayout(layout) {
+    const L = { ...CHORES_LAYOUT_DEFAULTS, ...(layout || {}) };
+    const root = document.documentElement.style;
+    root.setProperty('--kzc-header-x', L.headerX + 'px');
+    root.setProperty('--kzc-header-y', L.headerY + 'px');
+    root.setProperty('--kzc-header-scale', L.headerScale / 100);
+    root.setProperty('--kzc-header-text-x', L.headerTextX + 'px');
+    root.setProperty('--kzc-header-text-y', L.headerTextY + 'px');
+    root.setProperty('--kzc-header-text-size', L.headerTextSize / 100);
+    // The arc's curve ("slope") is the #kz-chores-sign-arc path's `d` attribute, not a CSS var --
+    // SVG path geometry can't be driven by custom properties, so it's set directly here instead.
+    const arc = document.getElementById('kz-chores-sign-arc');
+    if (arc) arc.setAttribute('d', `M 150 270 Q 500 ${270 - L.headerTextCurve} 850 270`);
+    root.setProperty('--kzc-banner-x', L.bannerX + 'px');
+    root.setProperty('--kzc-banner-y', L.bannerY + 'px');
+    root.setProperty('--kzc-banner-scale', L.bannerScale / 100);
+    root.setProperty('--kzc-banner-height-scale', L.bannerHeightScale / 100);
+    root.setProperty('--kzc-avatar-x', L.avatarX + 'px');
+    root.setProperty('--kzc-avatar-y', L.avatarY + 'px');
+    root.setProperty('--kzc-avatar-size', L.avatarSize / 100);
+    root.setProperty('--kzc-today-x', L.todayX + 'px');
+    root.setProperty('--kzc-today-y', L.todayY + 'px');
+    root.setProperty('--kzc-today-size', L.todaySize / 100);
+    root.setProperty('--kzc-count-x', L.countX + 'px');
+    root.setProperty('--kzc-count-y', L.countY + 'px');
+    root.setProperty('--kzc-count-size', L.countSize / 100);
+    root.setProperty('--kzc-pills-x', L.pillsX + 'px');
+    root.setProperty('--kzc-pills-y', L.pillsY + 'px');
+    root.setProperty('--kzc-pills-scale', L.pillsScale / 100);
+    root.setProperty('--kzc-pills-extend-up', L.pillsExtendUp + 'px');
+    root.setProperty('--kzc-pills-extend-down', L.pillsExtendDown + 'px');
+    CHORES_LAYOUT_SPEC.forEach(([key, id]) => {
+      const input = $(id);
+      if (input) input.value = L[key];
+      const out = $(id + '-val');
+      if (out) out.textContent = L[key] + (key.endsWith('Scale') ? '%' : 'px');
+    });
+    return L;
+  }
+
+  let choresLayoutState = { ...CHORES_LAYOUT_DEFAULTS, ...(getData(CHORES_LAYOUT_LOCAL_KEY, null) || {}) };
+  applyChoresLayout(choresLayoutState);
+
+  CHORES_LAYOUT_SPEC.forEach(([key, id]) => {
+    const input = $(id);
+    if (!input) return;
+    input.addEventListener('input', () => {
+      choresLayoutState = { ...choresLayoutState, [key]: Number(input.value) };
+      applyChoresLayout(choresLayoutState);
+      setData(CHORES_LAYOUT_LOCAL_KEY, choresLayoutState); // draft only, so re-opening keeps your in-progress numbers
+    });
+  });
+
+  $('chores-layout-open-btn').addEventListener('click', () => {
+    applyChoresLayout(choresLayoutState);
+    openChores();
+    $('chores-layout-panel').classList.remove('hidden');
+  });
+  $('chores-layout-done-btn').addEventListener('click', () => {
+    $('chores-layout-panel').classList.add('hidden');
+    AppBridge.enterParentArea();
+  });
+  $('chores-layout-reset-btn').addEventListener('click', () => {
+    choresLayoutState = { ...CHORES_LAYOUT_DEFAULTS };
+    applyChoresLayout(choresLayoutState);
+    setData(CHORES_LAYOUT_LOCAL_KEY, choresLayoutState);
+  });
+  $('chores-layout-copy-btn').addEventListener('click', async () => {
+    const L = choresLayoutState;
+    const text = `:root {\n` +
+      `  --kzc-header-x: ${L.headerX}px; --kzc-header-y: ${L.headerY}px; --kzc-header-scale: ${L.headerScale / 100};\n` +
+      `  --kzc-header-text-x: ${L.headerTextX}px; --kzc-header-text-y: ${L.headerTextY}px; --kzc-header-text-size: ${L.headerTextSize / 100};\n` +
+      `  /* also update index.html's <path id="kz-chores-sign-arc"> d attribute to: */\n` +
+      `  /* d="M 150 270 Q 500 ${270 - L.headerTextCurve} 850 270" */\n` +
+      `  --kzc-banner-x: ${L.bannerX}px; --kzc-banner-y: ${L.bannerY}px; --kzc-banner-scale: ${L.bannerScale / 100}; --kzc-banner-height-scale: ${L.bannerHeightScale / 100};\n` +
+      `  --kzc-avatar-x: ${L.avatarX}px; --kzc-avatar-y: ${L.avatarY}px; --kzc-avatar-size: ${L.avatarSize / 100};\n` +
+      `  --kzc-today-x: ${L.todayX}px; --kzc-today-y: ${L.todayY}px; --kzc-today-size: ${L.todaySize / 100};\n` +
+      `  --kzc-count-x: ${L.countX}px; --kzc-count-y: ${L.countY}px; --kzc-count-size: ${L.countSize / 100};\n` +
+      `  --kzc-pills-x: ${L.pillsX}px; --kzc-pills-y: ${L.pillsY}px; --kzc-pills-scale: ${L.pillsScale / 100};\n` +
+      `  --kzc-pills-extend-up: ${L.pillsExtendUp}px; --kzc-pills-extend-down: ${L.pillsExtendDown}px;\n` +
+      `}`;
+    const btn = $('chores-layout-copy-btn');
+    try {
+      await navigator.clipboard.writeText(text);
+      btn.textContent = 'Copied!';
+    } catch {
+      prompt('Copy these CSS values and send them over:', text);
+    }
+    setTimeout(() => { btn.textContent = '📋 Copy CSS'; }, 1800);
+  });
 
   // ================= Store =================
   let buying = null;

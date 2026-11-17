@@ -1,0 +1,210 @@
+/* Chores screen redesign (KidZone_Chores_v28 handoff). Scoped entirely under #chores-screen --
+   none of these class names (chore-card, chore-list, done-btn, chore-state, chore-card-*) are
+   reused on any other screen, confirmed before writing this. No game/approval/coin logic
+   changed here -- js/kid-rewards.js still owns all of it; this only restyles its existing
+   markup and adds a progress banner + wooden sign header around it. */
+
+/* No position override: .screen already sets position:fixed;inset:0 to size the whole screen
+   to the viewport -- same fix every other screen redesign in this app needed. */
+#chores-screen.kz-chores-redesign { background: #54c7f3 url('assets/chores/background.png') center / cover no-repeat; overflow: hidden; }
+#chores-screen.kz-chores-redesign > .screen-inner {
+  position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; padding: 0; margin: 0; overflow: visible;
+}
+
+/* Native back-button/title hidden (redundant with the new Home pill below); the voice button
+   that reads the screen's purpose aloud is existing functionality, kept visible, just moved. */
+#chores-screen.kz-chores-redesign > .sub-header {
+  position: absolute; top: 1%; right: 2%; left: auto; width: auto; height: auto;
+  background: transparent; box-shadow: none; border: 0; padding: 0; z-index: 9;
+}
+#chores-screen.kz-chores-redesign > .sub-header > .back-btn,
+#chores-screen.kz-chores-redesign > .sub-header > .sub-header-title { display: none !important; }
+
+/* Wooden "KidZone" sign with the signed-in kid's name in curved text, e.g. "Keaton's Chores" */
+#chores-screen.kz-chores-redesign .kz-chores-sign {
+  position: absolute; top: 0.5%; left: 50%;
+  /* --kzc-header-*: set by the Chores Layout Tool (Grown-ups settings); defaults below match
+     the approved design exactly, so nothing changes until a slider is touched. */
+  transform: translateX(-50%) translate(var(--kzc-header-x, 0px), var(--kzc-header-y, 1px)) scale(var(--kzc-header-scale, 0.61));
+  transform-origin: top center;
+  width: min(54%, 760px); aspect-ratio: 2048 / 682; pointer-events: none; z-index: 3;
+}
+#chores-screen.kz-chores-redesign .kz-chores-sign-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+#chores-screen.kz-chores-redesign .kz-chores-sign-text {
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
+  /* --kzc-header-text-x/-y: nudge tool controls, move the name independently of the sign
+     image/whole-sign scale above. The arc's curve ("slope") isn't a CSS var -- it's the
+     #kz-chores-sign-arc path's `d` attribute, recomputed by applyChoresLayout() in
+     js/kid-rewards.js since SVG path geometry can't be driven by custom properties. */
+  transform: translate(var(--kzc-header-text-x, 0px), var(--kzc-header-text-y, -16px));
+  transform-origin: center;
+}
+#chores-screen.kz-chores-redesign .kz-chores-sign-label {
+  font-family: system-ui, 'Trebuchet MS', sans-serif; font-weight: 1000;
+  /* --kzc-header-text-size: nudge tool font-size control, independent of the whole-sign scale. */
+  font-size: calc(60px * var(--kzc-header-text-size, 1.28));
+  fill: #07164e; stroke: #fff; stroke-width: 11px; stroke-linejoin: round; paint-order: stroke fill;
+  filter: drop-shadow(2px 4px 0px #8d4318);
+}
+
+/* Home + coin balance pills, floating top corners over the background art */
+#chores-screen.kz-chores-redesign .kz-chores-home,
+#chores-screen.kz-chores-redesign .kz-chores-coins { position: absolute; top: 1.2%; z-index: 10; font-weight: 900; }
+#chores-screen.kz-chores-redesign .kz-chores-home {
+  left: 1.5%; width: clamp(90px, 13%, 180px); height: clamp(40px, 7vh, 64px);
+  border: 4px solid #fff; outline: 2px solid #46bbff; border-radius: 44px; cursor: pointer;
+  background: linear-gradient(#168afc 0%, #06369d 48%, #06156b); color: #fff;
+  font-size: clamp(13px, 1.7vw, 24px); box-shadow: 0 6px 0 #043884, 0 8px 14px #1238;
+}
+#chores-screen.kz-chores-redesign .kz-chores-coins {
+  right: 1.5%; min-width: clamp(90px, 12%, 170px); padding: 0 1.2%; height: clamp(40px, 7vh, 64px);
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(#fff, #f3f8ff); border: 4px solid #ffc323; border-radius: 48px;
+  box-shadow: inset 0 0 0 3px #fff, 0 5px 0 #cb8300; color: #05164c; font-size: clamp(13px, 1.7vw, 24px);
+  white-space: nowrap;
+}
+
+/* Progress banner: avatar, "X of Y Chores Finished!", and the green progress track/fill --
+   all live HTML/text over the blank banner artwork, same approach as the chore pills below. */
+#chores-screen.kz-chores-redesign .kz-chores-banner {
+  position: absolute; left: 10%; top: 15.5%; width: 80%; aspect-ratio: 2048 / 385; z-index: 2;
+  /* --kzc-banner-scale resizes width+height together; --kzc-banner-height-scale stretches
+     height on top of that, independently, so the banner can grow taller without the squished
+     look a uniform-only scale gives (the art uses object-fit:fill, so it stretches cleanly). */
+  transform: translate(var(--kzc-banner-x, 0px), var(--kzc-banner-y, -33px))
+             scale(var(--kzc-banner-scale, 0.75)) scaleY(var(--kzc-banner-height-scale, 1.96));
+  transform-origin: center;
+}
+#chores-screen.kz-chores-redesign .kz-chores-banner-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
+#chores-screen.kz-chores-redesign .kz-chores-avatar {
+  position: absolute; left: 2.35%; top: 27.2%; width: 14.8%; aspect-ratio: 1 / 1; border-radius: 23%; overflow: hidden; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  /* Square (aspect-ratio: 1/1) so the live photo frame matches the round/square frame drawn
+     in the banner artwork instead of the wide-rectangle box this used to be, which made photos
+     look squished. --kzc-avatar-x/-y/-size: nudge tool controls (move + resize, Grown-ups >
+     Chores Layout Tool). The scaleY counter-transform is the same anti-squish trick as
+     .kz-chores-today/.kz-chores-count above -- the banner's height-scale slider stretches this
+     box along with everything else; countering it here keeps the photo square regardless of
+     that slider, while position (computed as a % of the already-stretched parent) is unaffected. */
+  transform: translate(var(--kzc-avatar-x, 1px), var(--kzc-avatar-y, -44px))
+             scale(var(--kzc-avatar-size, 1.04)) scaleY(calc(1 / var(--kzc-banner-height-scale, 1.96)));
+  transform-origin: center;
+}
+#chores-screen.kz-chores-redesign .kz-chores-avatar .profile-avatar { width: 100%; height: 100%; font-size: clamp(16px, 2.4vw, 36px); }
+#chores-screen.kz-chores-redesign .kz-chores-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#chores-screen.kz-chores-redesign .kz-chores-today {
+  position: absolute; left: 20.7%; top: 52%; width: 27.2%; font-weight: 1000; color: #050c4c;
+  /* --kzc-today-x/-y/-size: nudge tool controls for this row specifically (move + font size). */
+  font-size: calc(clamp(20px, 3.3vw, 52px) * var(--kzc-today-size, 0.87));
+  line-height: 1.05; letter-spacing: -0.035em; white-space: nowrap; z-index: 2;
+  /* Static label, never changes, so no JS needed -- but it's still a child of the scaled
+     banner, so it needs the same anti-squish counter-transform as .kz-chores-count below. */
+  transform: translate(var(--kzc-today-x, -7px), var(--kzc-today-y, -34px)) scaleY(calc(1 / var(--kzc-banner-height-scale, 1.96)));
+  transform-origin: center;
+}
+#chores-screen.kz-chores-redesign .kz-chores-count {
+  position: absolute; left: 20.7%; top: 75%; width: 27.2%; font-weight: 1000; color: #050c4c;
+  /* --kzc-count-x/-y/-size: nudge tool controls for this row specifically (move + font size). */
+  font-size: calc(clamp(10px, 1.65vw, 26px) * var(--kzc-count-size, 1.05));
+  line-height: 1.05; letter-spacing: -0.035em; white-space: nowrap; z-index: 2;
+  /* Same "X of Y Chores Finished!" text/math as always (js/kid-rewards.js's renderChoresBanner
+     is untouched) -- only the rendering is corrected here. The banner's height-scale slider
+     stretches .kz-chores-banner with scaleY(), which stretches every child's glyphs with it,
+     including this text. Countering with the inverse scaleY cancels that stretch so the font
+     renders at its normal proportions, while still sitting in the right spot since position is
+     computed as a % of the (already-stretched) parent box, unaffected by this element's own
+     transform. */
+  transform: translate(var(--kzc-count-x, 0px), var(--kzc-count-y, -53px)) scaleY(calc(1 / var(--kzc-banner-height-scale, 1.96)));
+  transform-origin: center;
+}
+#chores-screen.kz-chores-redesign .kz-chores-track {
+  position: absolute; left: 48.6%; top: 45.9%; width: 48.5%; height: 13.7%; z-index: 2; box-sizing: border-box;
+  border: 2px solid #858b90; border-radius: 999px; background: linear-gradient(180deg, #a9afb3, #838b90);
+  padding: 2px; overflow: hidden; box-shadow: inset 0 2px 3px rgba(42, 49, 54, .35), 0 1px 1px rgba(255, 255, 255, .65);
+}
+#chores-screen.kz-chores-redesign .kz-chores-fill {
+  box-sizing: border-box; height: 100%; width: 0; border-radius: 999px;
+  background: repeating-linear-gradient(125deg, #19bf00 0 35px, #53e927 35px 70px);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, .42); transition: width .55s ease;
+}
+
+/* Chore grid: fills the space below the banner, 3 columns x 2 rows on a landscape iPad, with
+   vertical scroll for families with more chores than that in one day. */
+#chores-screen.kz-chores-redesign .chore-list {
+  position: absolute; inset: 0; max-width: none; margin: 0; padding: 0 1.6% 1.4%;
+  /* --kzc-pills-extend-up/-down independently move the top edge up or the bottom edge down,
+     so the row of pills can grow taller from either side without touching the other. */
+  top: calc(35% - var(--kzc-pills-extend-up, 0px));
+  height: calc(65% + var(--kzc-pills-extend-up, 0px) + var(--kzc-pills-extend-down, 0px));
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: clamp(6px, 1vh, 14px); overflow-y: auto; overscroll-behavior: contain; align-content: start;
+  /* --kzc-pills-x/-y move every pill together (one shared value, not per-pill). */
+  transform: translate(var(--kzc-pills-x, 0px), var(--kzc-pills-y, 0px));
+}
+#chores-screen.kz-chores-redesign .chore-card {
+  position: relative; display: block; min-height: 0; height: 100%; padding: 0; margin: 0; border: 0; border-radius: 0;
+  overflow: visible; background: url('assets/chores/chore-pill.png') center / 100% 100% no-repeat; box-shadow: none;
+  /* --kzc-pills-scale resizes every pill at once, since it's one CSS variable read by every
+     .chore-card, not a per-card value. */
+  transform: scale(var(--kzc-pills-scale, 1.01));
+}
+#chores-screen.kz-chores-redesign .chore-card > .pic {
+  /* 20% smaller than the original slot (36% x 78%), recentered within the same footprint
+     so it shrinks toward the middle instead of toward a corner. */
+  position: absolute; left: 8.6%; top: 18.8%; width: 28.8%; height: 62.4%; margin: 0; border: 0; border-radius: 12%; overflow: hidden;
+  /* No white fill behind the picture on this screen -- overrides style.css's global
+     img.pic{background:#fff} default, scoped to just the Chores redesign so screens that
+     still rely on that default (Store, Setup, etc.) are unaffected. */
+  background: transparent;
+}
+#chores-screen.kz-chores-redesign .chore-card > .pic.pic-emoji { display: flex; align-items: center; justify-content: center; font-size: clamp(22px, 3.6vw, 51px); background: transparent; }
+#chores-screen.kz-chores-redesign .chore-card-text { display: contents; }
+#chores-screen.kz-chores-redesign .chore-card-name {
+  position: absolute; left: 46%; top: 9%; width: 49%; height: 31%; display: flex; align-items: center; justify-content: center;
+  text-align: center; overflow-wrap: anywhere; font-size: clamp(12px, min(2vw, 3vh), 29px); line-height: 1.05; color: #050d59;
+  font-weight: 800;
+}
+#chores-screen.kz-chores-redesign .chore-card-coins {
+  position: absolute; left: 63%; top: 41%; width: 31%; height: 25%; z-index: 2;
+  background: transparent url('assets/chores/coins-pill.png') center / 100% 100% no-repeat;
+  display: flex; align-items: center; justify-content: center; padding: 0 3% 0 11%;
+  color: #111; font-weight: 1000; font-size: clamp(10px, min(1.35vw, 2.4vh), 21px); text-shadow: 0 1px 0 #fff; white-space: nowrap;
+}
+#chores-screen.kz-chores-redesign .voice-btn.corner {
+  position: absolute; left: 47.2%; top: 39.8%; width: 17.6%; height: 26.4%; z-index: 2;
+  background: transparent url('assets/chores/audio-button.png') center / 100% 100% no-repeat;
+  border: 0; box-shadow: none; outline: 0; color: transparent; font-size: 0;
+}
+#chores-screen.kz-chores-redesign .chore-card-action { position: absolute; left: 47%; top: 66.85%; width: 48%; height: 24.3%; display: block; }
+#chores-screen.kz-chores-redesign .done-btn,
+#chores-screen.kz-chores-redesign .chore-state {
+  display: block; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0; box-shadow: none;
+  /* background-color explicitly cleared -- .done-btn's base style.css rule sets a solid green
+     fill (#2ecc71) that isn't overridden just by setting background-position/-size/-repeat
+     separately, since those don't touch the color sub-property. Without this it shows through
+     behind the status artwork's rounded/transparent edges -- a background the original art
+     never had. */
+  background-color: transparent; background-position: center; background-size: 100% 100%; background-repeat: no-repeat;
+  color: transparent; font-size: 0; cursor: pointer;
+}
+#chores-screen.kz-chores-redesign .done-btn { background-image: url('assets/chores/status-todo.png'); }
+#chores-screen.kz-chores-redesign .chore-state.waiting { background-image: url('assets/chores/status-pending.png'); cursor: default; }
+#chores-screen.kz-chores-redesign .chore-state.approved { background-image: url('assets/chores/status-completed.png'); cursor: default; }
+#chores-screen.kz-chores-redesign .done-btn:active { transform: translateY(2px); box-shadow: none; }
+
+/* ---- Chores Layout Tool: floats over the real Chores screen (Grown-ups > Chores Screen
+   Layout > Preview & Adjust). Not scoped to #chores-screen since it's a page-level overlay,
+   like home-photo-live-bar. ---- */
+#chores-layout-panel {
+  position: fixed; right: 12px; top: 12px; bottom: 12px; z-index: 60; width: min(360px, calc(100vw - 24px));
+  background: #fff; border: 3px solid #2a7dd9; border-radius: 20px; padding: 14px;
+  box-shadow: 0 10px 40px rgba(18, 44, 102, .55); color: #122c66; font: 14px system-ui; overflow-y: auto;
+}
+#chores-layout-panel.hidden { display: none; }
+.chores-layout-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.chores-layout-head strong { font-size: 17px; }
+.chores-layout-section { font-size: 14px; font-weight: 900; border-bottom: 1px solid #d6e3f6; padding: 10px 0 4px; margin-top: 8px; }
+#chores-layout-panel label { display: flex; justify-content: space-between; gap: 10px; font-weight: 700; margin-top: 10px; font-size: 13px; }
+#chores-layout-panel input[type=range] { width: 100%; accent-color: #156bd9; margin-top: 2px; }
+#chores-layout-panel .chores-layout-actions { display: flex; gap: 8px; margin-top: 14px; }
+#chores-layout-panel .chores-layout-actions button { flex: 1; }

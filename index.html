@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="spot-the-difference.css?v=1" />
   <link rel="stylesheet" href="games-carousel.css?v=1" />
   <link rel="stylesheet" href="reading-carousel.css?v=1" />
+  <link rel="stylesheet" href="chores-redesign.css?v=1" />
   <link rel="stylesheet" href="home-overlay.css?v=1" />
 </head>
 <body>
@@ -92,6 +93,22 @@
       <span class="header-spacer" id="chores-voice-slot"></span>
     </header>
     <div class="screen-inner">
+      <div class="kz-chores-sign">
+        <img class="kz-chores-sign-img" src="assets/chores/wooden-header.png" alt="" />
+        <svg class="kz-chores-sign-text" viewBox="0 0 1000 333" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <defs><path id="kz-chores-sign-arc" d="M 150 270 Q 500 190 850 270"/></defs>
+          <text class="kz-chores-sign-label" text-anchor="middle"><textPath id="kz-chores-sign-name" href="#kz-chores-sign-arc" startOffset="50%" textLength="630" lengthAdjust="spacingAndGlyphs"></textPath></text>
+        </svg>
+      </div>
+      <button type="button" class="kz-chores-home" id="kz-chores-home" aria-label="Back to home">⌂ Home</button>
+      <div class="kz-chores-coins" id="kz-chores-coins"></div>
+      <div class="kz-chores-banner" id="kz-chores-banner">
+        <img class="kz-chores-banner-art" src="assets/chores/progress-banner.png" alt="" />
+        <div class="kz-chores-avatar" id="kz-chores-avatar"></div>
+        <div class="kz-chores-today">Today's Progress</div>
+        <div class="kz-chores-count" id="kz-chores-count"></div>
+        <div class="kz-chores-track"><div class="kz-chores-fill" id="kz-chores-fill"></div></div>
+      </div>
       <div class="chore-list" id="chore-list"></div>
       <p class="empty-hint hidden" id="chore-empty">No chores today! 🎉</p>
     </div>
@@ -753,6 +770,12 @@
         <input type="file" accept="image/*" id="home-photo-file" class="hidden" />
       </div>
 
+      <div class="parent-card" id="chores-layout-card">
+        <h3 class="parent-card-title">Chores Screen Layout (tuning tool)</h3>
+        <p class="parent-card-note">Temporary tool for dialing in the header sign, progress bar, and chore pills (all six move/resize together). This doesn't save permanently -- adjust, tap Copy CSS, and send those numbers over to bake in for good.</p>
+        <button type="button" class="big-btn" id="chores-layout-open-btn">📐 Preview &amp; Adjust on Chores Screen</button>
+      </div>
+
       <div class="parent-card" id="parent-setup-card">
         <h3 class="parent-card-title">Setup for all iPads</h3>
         <p class="parent-card-note">Chores, store items and coin rules. Changes save instantly and sync to every iPad. Adding a brand-new photo still needs a desktop computer; emoji pictures work anywhere.</p>
@@ -931,6 +954,84 @@
     <button type="button" class="big-btn primary-btn" id="home-photo-live-done-btn">✅ Done</button>
   </div>
 
+  <!-- ================= Chores Layout Tool: floats over the real Chores screen so Grown-ups
+       can see the header/banner/pills while adjusting ================= -->
+  <aside id="chores-layout-panel" class="hidden" aria-label="Chores layout tool">
+    <div class="chores-layout-head">
+      <strong>Chores Layout Tool</strong>
+      <button type="button" id="chores-layout-done-btn" class="big-btn primary-btn">✅ Done</button>
+    </div>
+
+    <div class="chores-layout-section">Header sign</div>
+    <label for="cl-header-x">Left / right <output id="cl-header-x-val"></output></label>
+    <input type="range" id="cl-header-x" min="-200" max="200" step="1" value="0">
+    <label for="cl-header-y">Up / down <output id="cl-header-y-val"></output></label>
+    <input type="range" id="cl-header-y" min="-200" max="200" step="1" value="1">
+    <label for="cl-header-scale">Size <output id="cl-header-scale-val"></output></label>
+    <input type="range" id="cl-header-scale" min="50" max="150" step="1" value="61">
+
+    <div class="chores-layout-section">Header text (child's name)</div>
+    <label for="cl-header-text-x">Left / right <output id="cl-header-text-x-val"></output></label>
+    <input type="range" id="cl-header-text-x" min="-200" max="200" step="1" value="0">
+    <label for="cl-header-text-y">Up / down <output id="cl-header-text-y-val"></output></label>
+    <input type="range" id="cl-header-text-y" min="-200" max="200" step="1" value="-16">
+    <label for="cl-header-text-curve">Slope <output id="cl-header-text-curve-val"></output></label>
+    <input type="range" id="cl-header-text-curve" min="-100" max="250" step="1" value="80">
+    <label for="cl-header-text-size">Font size <output id="cl-header-text-size-val"></output></label>
+    <input type="range" id="cl-header-text-size" min="40" max="220" step="1" value="128">
+
+    <div class="chores-layout-section">Progress bar</div>
+    <label for="cl-banner-x">Left / right <output id="cl-banner-x-val"></output></label>
+    <input type="range" id="cl-banner-x" min="-200" max="200" step="1" value="0">
+    <label for="cl-banner-y">Up / down <output id="cl-banner-y-val"></output></label>
+    <input type="range" id="cl-banner-y" min="-200" max="200" step="1" value="-33">
+    <label for="cl-banner-scale">Size <output id="cl-banner-scale-val"></output></label>
+    <input type="range" id="cl-banner-scale" min="50" max="150" step="1" value="75">
+    <label for="cl-banner-height-scale">Height (independent of Size) <output id="cl-banner-height-scale-val"></output></label>
+    <input type="range" id="cl-banner-height-scale" min="50" max="220" step="1" value="196">
+
+    <div class="chores-layout-section">Child's photo</div>
+    <label for="cl-avatar-x">Left / right <output id="cl-avatar-x-val"></output></label>
+    <input type="range" id="cl-avatar-x" min="-200" max="200" step="1" value="1">
+    <label for="cl-avatar-y">Up / down <output id="cl-avatar-y-val"></output></label>
+    <input type="range" id="cl-avatar-y" min="-200" max="200" step="1" value="-44">
+    <label for="cl-avatar-size">Size <output id="cl-avatar-size-val"></output></label>
+    <input type="range" id="cl-avatar-size" min="50" max="200" step="1" value="104">
+
+    <div class="chores-layout-section">"Today's Progress" text</div>
+    <label for="cl-today-x">Left / right <output id="cl-today-x-val"></output></label>
+    <input type="range" id="cl-today-x" min="-200" max="200" step="1" value="-7">
+    <label for="cl-today-y">Up / down <output id="cl-today-y-val"></output></label>
+    <input type="range" id="cl-today-y" min="-200" max="200" step="1" value="-34">
+    <label for="cl-today-size">Font size <output id="cl-today-size-val"></output></label>
+    <input type="range" id="cl-today-size" min="40" max="220" step="1" value="87">
+
+    <div class="chores-layout-section">"X of Y Chores Finished!" text</div>
+    <label for="cl-count-x">Left / right <output id="cl-count-x-val"></output></label>
+    <input type="range" id="cl-count-x" min="-200" max="200" step="1" value="0">
+    <label for="cl-count-y">Up / down <output id="cl-count-y-val"></output></label>
+    <input type="range" id="cl-count-y" min="-200" max="200" step="1" value="-53">
+    <label for="cl-count-size">Font size <output id="cl-count-size-val"></output></label>
+    <input type="range" id="cl-count-size" min="40" max="220" step="1" value="105">
+
+    <div class="chores-layout-section">Chore pills (all six at once)</div>
+    <label for="cl-pills-x">Left / right <output id="cl-pills-x-val"></output></label>
+    <input type="range" id="cl-pills-x" min="-200" max="200" step="1" value="0">
+    <label for="cl-pills-y">Up / down <output id="cl-pills-y-val"></output></label>
+    <input type="range" id="cl-pills-y" min="-200" max="200" step="1" value="0">
+    <label for="cl-pills-scale">Size <output id="cl-pills-scale-val"></output></label>
+    <input type="range" id="cl-pills-scale" min="50" max="150" step="1" value="101">
+    <label for="cl-pills-extend-up">Extend upward <output id="cl-pills-extend-up-val"></output></label>
+    <input type="range" id="cl-pills-extend-up" min="0" max="300" step="2" value="0">
+    <label for="cl-pills-extend-down">Extend downward <output id="cl-pills-extend-down-val"></output></label>
+    <input type="range" id="cl-pills-extend-down" min="0" max="300" step="2" value="0">
+
+    <div class="chores-layout-actions">
+      <button type="button" id="chores-layout-reset-btn" class="big-btn">Reset to Default</button>
+      <button type="button" id="chores-layout-copy-btn" class="big-btn primary-btn">📋 Copy CSS</button>
+    </div>
+  </aside>
+
   <div class="overlay hidden" id="pin-overlay">
     <div class="overlay-card pin-card">
       <button type="button" class="icon-btn overlay-close-btn" id="pin-close-btn" aria-label="Cancel">✕</button>
@@ -984,9 +1085,45 @@
         <button type="button" class="photo-hub-choice" id="photo-hub-memory-btn">
           <span class="photo-hub-emoji">🃏</span><span class="photo-hub-label">Memory Match Words</span>
         </button>
+        <button type="button" class="photo-hub-choice" id="photo-hub-kidphotos-btn">
+          <span class="photo-hub-emoji">👤</span><span class="photo-hub-label">Child Photos</span>
+        </button>
       </div>
     </div>
   </section>
+
+  <!-- ================= Child Photos: a real photo per kid, shown in the Chores progress
+       banner instead of the colored initial-letter avatar ================= -->
+  <section id="kid-photos-admin-screen" class="screen">
+    <header class="sub-header">
+      <button type="button" class="icon-btn back-btn" id="kid-photos-back-btn" aria-label="Back">←</button>
+      <h2 class="sub-header-title">Child Photos</h2>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="screen-inner">
+      <p class="screen-subtitle">Shown in the Chores screen's progress banner instead of the colored initial.</p>
+      <div class="setup-list" id="kid-photos-list"></div>
+    </div>
+  </section>
+
+  <!-- Crop dialog for Child Photos: the box matches the exact proportions/rounding of the real
+       avatar slot in the Chores banner (measured live: ~1.983:1, 23% border-radius), so only
+       what's visible inside it gets saved -- drag to pan, slider or pinch to zoom. -->
+  <div class="hidden" id="kid-photo-crop-dialog" role="dialog" aria-modal="true" aria-labelledby="kid-photo-crop-title">
+    <div class="kid-photo-crop-card">
+      <h3 id="kid-photo-crop-title">Position the Photo</h3>
+      <p class="kid-photo-crop-hint">Drag to move, pinch or use the slider to zoom. Only what's inside the box will be saved.</p>
+      <div class="kid-photo-crop-viewport" id="kid-photo-crop-viewport">
+        <img id="kid-photo-crop-img" alt="" draggable="false" />
+        <div class="kid-photo-crop-box" id="kid-photo-crop-box"></div>
+      </div>
+      <input type="range" id="kid-photo-crop-zoom" class="kid-photo-crop-zoom-slider" min="0" max="100" value="0" step="1" aria-label="Zoom" />
+      <div class="kid-photo-crop-actions">
+        <button type="button" class="big-btn" id="kid-photo-crop-cancel-btn">Cancel</button>
+        <button type="button" class="big-btn" id="kid-photo-crop-save-btn">Use Photo</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ================= Admin: Reading Pictures (real photos for Memory Match / Letter Snap /
        Mystery Animal, keyed by word -- not part of the kid-facing flow, reached only via the

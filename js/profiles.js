@@ -23,6 +23,7 @@ function rowToProfile(row) {
     id: row.id,
     name: row.name,
     avatarColor: row.avatar_color,
+    photoUrl: row.photo_url,
     spellingHelper: row.spelling_helper,
     autoRead: row.auto_read,
     levels: { math: row.level_math, reading: row.level_reading },
@@ -35,6 +36,7 @@ function patchToRow(patch) {
   const row = {};
   if ('name' in patch) row.name = patch.name;
   if ('avatarColor' in patch) row.avatar_color = patch.avatarColor;
+  if ('photoUrl' in patch) row.photo_url = patch.photoUrl;
   if ('spellingHelper' in patch) row.spelling_helper = patch.spellingHelper;
   if ('autoRead' in patch) row.auto_read = patch.autoRead;
   if (patch.levels) {

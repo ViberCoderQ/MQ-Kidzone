@@ -3755,11 +3755,255 @@
   document.getElementById('photo-hub-store-btn').addEventListener('click', () => Setup.open('store'));
   document.getElementById('photo-hub-reading-btn').addEventListener('click', openReadingPicsEditorScreen);
   document.getElementById('photo-hub-memory-btn').addEventListener('click', openMemoryMatchEditorScreen);
+  document.getElementById('photo-hub-kidphotos-btn').addEventListener('click', openKidPhotosScreen);
+  document.getElementById('kid-photos-back-btn').addEventListener('click', () => showScreen('photo-hub-screen'));
+
+  // ---- Child photos (shown in the Chores screen's progress banner instead of the colored
+  // initial-letter avatar). Same Supabase Storage bucket/pattern as the home screen photo,
+  // just one file per kid (<family_id>/kid-<kid_id>-photo.jpg) instead of one per family. A
+  // kid profile can't exist without a Family Account already, so unlike the home photo there's
+  // no device-local fallback to worry about here.
+  function openKidPhotosScreen() {
+    renderKidPhotosList();
+    showScreen('kid-photos-admin-screen');
+  }
+
+  function renderKidPhotosList() {
+    const list = document.getElementById('kid-photos-list');
+    list.innerHTML = '';
+    const profiles = loadProfiles();
+    if (!profiles.length) { list.innerHTML = '<p class="parent-card-note">No kids yet. Add one in Grown-ups first.</p>'; return; }
+    profiles.forEach((p) => {
+      const row = document.createElement('div');
+      row.className = 'setup-row';
+      row.innerHTML = `${p.photoUrl
+        ? `<img class="pic pic-md" src="${escapeHtml(p.photoUrl)}" alt="${escapeHtml(p.name)}" />`
+        : `<span class="profile-avatar small" style="--avatar-color:${p.avatarColor}">${escapeHtml(p.name.charAt(0).toUpperCase())}</span>`
+      }<span class="setup-row-text"><span class="setup-row-name">${escapeHtml(p.name)}</span></span>`;
+      const chooseBtn = document.createElement('button');
+      chooseBtn.type = 'button';
+      chooseBtn.className = 'big-btn';
+      chooseBtn.textContent = '🖼️ Choose Photo';
+      chooseBtn.addEventListener('click', (e) => { e.stopPropagation(); pickKidPhoto(p.id); });
+      row.appendChild(chooseBtn);
+      if (p.photoUrl) {
+        const resetBtn = document.createElement('button');
+        resetBtn.type = 'button';
+        resetBtn.className = 'big-btn';
+        resetBtn.textContent = 'Reset';
+        resetBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          updateProfile(p.id, { photoUrl: null });
+          renderKidPhotosList();
+          showToast('Reset to the colored initial', 2000);
+        });
+        row.appendChild(resetBtn);
+      }
+      list.appendChild(row);
+    });
+  }
+
+  const kidPhotoFileInput = document.createElement('input');
+  kidPhotoFileInput.type = 'file';
+  kidPhotoFileInput.accept = 'image/*';
+  let kidPhotoTargetId = null;
+  function pickKidPhoto(kidId) {
+    const familyId = ParentAuth.getFamilyId();
+    if (!familyId) { showToast('Sign in to the Family Account first.', 2600); return; }
+    kidPhotoTargetId = kidId;
+    kidPhotoFileInput.click();
+  }
+  kidPhotoFileInput.addEventListener('change', () => {
+    const file = kidPhotoFileInput.files[0];
+    const kidId = kidPhotoTargetId;
+    kidPhotoFileInput.value = '';
+    if (!file || !kidId) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => openKidPhotoCropper(img, kidId);
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ---- Child photo crop dialog: lets a grown-up pan/zoom the chosen photo inside a box that
+  // matches the real avatar slot's exact shape, then saves only what's visible in that box
+  // (not the whole photo) -- see chores-redesign.css's #kz-chores-avatar for the source shape.
+  let kidPhotoCropState = null;
+  const kidPhotoCropPointers = new Map(); // pointerId -> last {x,y} in viewport-local px
+  let kidPhotoCropPinchStartDist = 0;
+  let kidPhotoCropPinchStartScale = 1;
+  const kidPhotoCropDialog = document.getElementById('kid-photo-crop-dialog');
+  const kidPhotoCropViewport = document.getElementById('kid-photo-crop-viewport');
+  const kidPhotoCropImg = document.getElementById('kid-photo-crop-img');
+  const kidPhotoCropBox = document.getElementById('kid-photo-crop-box');
+  const kidPhotoCropZoomInput = document.getElementById('kid-photo-crop-zoom');
+
+  function openKidPhotoCropper(img, kidId) {
+    kidPhotoCropImg.src = img.src;
+    kidPhotoCropDialog.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      const vpRect = kidPhotoCropViewport.getBoundingClientRect();
+      const boxRect = kidPhotoCropBox.getBoundingClientRect();
+      const boxLeft = boxRect.left - vpRect.left;
+      const boxTop = boxRect.top - vpRect.top;
+      // coverScale fills the box edge-to-edge with no gaps (the old minimum); containScale fits
+      // the whole photo inside the box. The zoom-out floor goes well past containScale so a
+      // group photo (or anyone who wants visible margin) can shrink further, with any gap
+      // inside the box filled white rather than cropped off -- see the Save handler below.
+      const coverScale = Math.max(boxRect.width / img.naturalWidth, boxRect.height / img.naturalHeight);
+      const containScale = Math.min(boxRect.width / img.naturalWidth, boxRect.height / img.naturalHeight);
+      const minScale = containScale * 0.5;
+      kidPhotoCropState = {
+        kidId, naturalW: img.naturalWidth, naturalH: img.naturalHeight,
+        boxLeft, boxTop, boxW: boxRect.width, boxH: boxRect.height,
+        minScale, maxScale: coverScale * 4, scale: coverScale,
+      };
+      kidPhotoCropState.offsetX = boxLeft + boxRect.width / 2 - (img.naturalWidth * coverScale) / 2;
+      kidPhotoCropState.offsetY = boxTop + boxRect.height / 2 - (img.naturalHeight * coverScale) / 2;
+      kidPhotoClampCropOffset();
+      kidPhotoCropZoomInput.value = Math.round(((coverScale - minScale) / (kidPhotoCropState.maxScale - minScale)) * 100);
+      kidPhotoRenderCropImage();
+    });
+  }
+
+  function kidPhotoClampCropOffset() {
+    const s = kidPhotoCropState;
+    const dispW = s.naturalW * s.scale;
+    const dispH = s.naturalH * s.scale;
+    // Once zoomed out past "fits the box" on an axis, there's nothing to pan on that axis --
+    // center it instead of pinning to an edge (the edge-pin math below only holds when the
+    // image is at least as big as the box).
+    s.offsetX = dispW >= s.boxW
+      ? Math.min(s.boxLeft, Math.max(s.boxLeft + s.boxW - dispW, s.offsetX))
+      : s.boxLeft + (s.boxW - dispW) / 2;
+    s.offsetY = dispH >= s.boxH
+      ? Math.min(s.boxTop, Math.max(s.boxTop + s.boxH - dispH, s.offsetY))
+      : s.boxTop + (s.boxH - dispH) / 2;
+  }
+
+  function kidPhotoRenderCropImage() {
+    const s = kidPhotoCropState;
+    kidPhotoCropImg.style.width = `${s.naturalW * s.scale}px`;
+    kidPhotoCropImg.style.height = `${s.naturalH * s.scale}px`;
+    kidPhotoCropImg.style.transform = `translate(${s.offsetX}px, ${s.offsetY}px)`;
+  }
+
+  // Rescales around (anchorX, anchorY) in viewport-local px so that point stays visually fixed
+  // (box-center for the slider, pinch-midpoint for touch), then keeps the slider in sync.
+  function kidPhotoApplyCropZoom(newScaleRaw, anchorX, anchorY) {
+    const s = kidPhotoCropState;
+    const newScale = Math.min(s.maxScale, Math.max(s.minScale, newScaleRaw));
+    const imgX = (anchorX - s.offsetX) / s.scale;
+    const imgY = (anchorY - s.offsetY) / s.scale;
+    s.scale = newScale;
+    s.offsetX = anchorX - imgX * newScale;
+    s.offsetY = anchorY - imgY * newScale;
+    kidPhotoClampCropOffset();
+    kidPhotoRenderCropImage();
+    kidPhotoCropZoomInput.value = Math.round(((s.scale - s.minScale) / (s.maxScale - s.minScale || 1)) * 100);
+  }
+
+  kidPhotoCropZoomInput.addEventListener('input', (e) => {
+    if (!kidPhotoCropState) return;
+    const s = kidPhotoCropState;
+    const t = Number(e.target.value) / 100;
+    kidPhotoApplyCropZoom(s.minScale + t * (s.maxScale - s.minScale), s.boxLeft + s.boxW / 2, s.boxTop + s.boxH / 2);
+  });
+
+  function kidPhotoCropPoint(e) {
+    const r = kidPhotoCropViewport.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  kidPhotoCropViewport.addEventListener('pointerdown', (e) => {
+    if (!kidPhotoCropState) return;
+    try { kidPhotoCropViewport.setPointerCapture(e.pointerId); } catch { /* pointer already gone -- harmless */ }
+    kidPhotoCropPointers.set(e.pointerId, kidPhotoCropPoint(e));
+    if (kidPhotoCropPointers.size === 2) {
+      const pts = [...kidPhotoCropPointers.values()];
+      kidPhotoCropPinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      kidPhotoCropPinchStartScale = kidPhotoCropState.scale;
+    }
+  });
+  kidPhotoCropViewport.addEventListener('pointermove', (e) => {
+    if (!kidPhotoCropState || !kidPhotoCropPointers.has(e.pointerId)) return;
+    const prev = kidPhotoCropPointers.get(e.pointerId);
+    const curr = kidPhotoCropPoint(e);
+    kidPhotoCropPointers.set(e.pointerId, curr);
+    if (kidPhotoCropPointers.size === 1) {
+      kidPhotoCropState.offsetX += curr.x - prev.x;
+      kidPhotoCropState.offsetY += curr.y - prev.y;
+      kidPhotoClampCropOffset();
+      kidPhotoRenderCropImage();
+    } else if (kidPhotoCropPointers.size === 2 && kidPhotoCropPinchStartDist > 0) {
+      const pts = [...kidPhotoCropPointers.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const midX = (pts[0].x + pts[1].x) / 2;
+      const midY = (pts[0].y + pts[1].y) / 2;
+      kidPhotoApplyCropZoom(kidPhotoCropPinchStartScale * (dist / kidPhotoCropPinchStartDist), midX, midY);
+    }
+  });
+  function kidPhotoCropPointerEnd(e) {
+    kidPhotoCropPointers.delete(e.pointerId);
+    if (kidPhotoCropPointers.size < 2) kidPhotoCropPinchStartDist = 0;
+  }
+  kidPhotoCropViewport.addEventListener('pointerup', kidPhotoCropPointerEnd);
+  kidPhotoCropViewport.addEventListener('pointercancel', kidPhotoCropPointerEnd);
+
+  function closeKidPhotoCropper() {
+    kidPhotoCropDialog.classList.add('hidden');
+    kidPhotoCropState = null;
+    kidPhotoCropPointers.clear();
+    kidPhotoCropPinchStartDist = 0;
+  }
+  document.getElementById('kid-photo-crop-cancel-btn').addEventListener('click', closeKidPhotoCropper);
+  document.getElementById('kid-photo-crop-save-btn').addEventListener('click', () => {
+    if (!kidPhotoCropState) return;
+    const s = kidPhotoCropState;
+    const kidId = s.kidId;
+    const srcX = (s.boxLeft - s.offsetX) / s.scale;
+    const srcY = (s.boxTop - s.offsetY) / s.scale;
+    const srcW = s.boxW / s.scale;
+    const srcH = s.boxH / s.scale;
+    const outW = 480;
+    const outH = Math.round(outW / (s.boxW / s.boxH));
+    const canvas = document.createElement('canvas');
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    // Zoomed out past "fits the box" leaves a gap on one or both axes -- fill it white first so
+    // JPEG export (no alpha channel) doesn't turn that gap black.
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, outW, outH);
+    ctx.drawImage(kidPhotoCropImg, srcX, srcY, srcW, srcH, 0, 0, outW, outH);
+    closeKidPhotoCropper();
+    canvas.toBlob(async (blob) => {
+      try {
+        const familyId = ParentAuth.getFamilyId();
+        const path = `${familyId}/kid-${kidId}-photo.jpg`;
+        const { error: uploadError } = await supabaseClient.storage.from('pictures').upload(path, blob, { contentType: 'image/jpeg', upsert: true });
+        if (uploadError) throw uploadError;
+        const { data } = supabaseClient.storage.from('pictures').getPublicUrl(path);
+        const url = `${data.publicUrl}?v=${Date.now()}`; // cache-bust: upsert keeps the same URL
+        updateProfile(kidId, { photoUrl: url });
+        renderKidPhotosList();
+        showToast('📸 Photo updated', 2200);
+      } catch (err) {
+        console.error('[KidPhoto] upload failed:', err);
+        showToast('Could not upload that photo. ' + (err && err.message ? err.message : 'Try again.'), 3200);
+      }
+    }, 'image/jpeg', 0.85);
+  });
 
   // ---- Home screen photo (Grown-ups can swap + size the family photo themselves) ----
-  // Reuses idbGet/idbSet -- same IndexedDB store the project-folder handle lives in, just a
-  // different key -- since a photo-sized string is too big to trust to localStorage.
-  const HOME_PHOTO_DB_KEY = 'homePhotoDataUrl';
+  // The photo lives in Supabase Storage's existing "pictures" bucket (same bucket and RLS
+  // policies chore/store photos already use -- see supabase-storage.sql), at a fixed path per
+  // family (<family_id>/home-photo.jpg) so re-uploading just replaces it, no orphaned files.
+  // That requires a signed-in Family Account; HOME_PHOTO_URL_KEY only caches the resulting
+  // public URL locally for an instant, offline-safe first paint -- it is never the source of
+  // truth once a family account is linked (js/settings.js's synced value always wins then).
+  const HOME_PHOTO_URL_KEY = 'family-app.home-photo-url';
   const HOME_PHOTO_SIZE_KEY = 'family-app.home-photo-size-pct';
   const homeLogoImg = document.querySelector('#home-screen .home-logo');
   const homePhotoPreview = document.getElementById('home-photo-preview');
@@ -3781,16 +4025,22 @@
     homePhotoLivePct.textContent = pct + '%';
   }
 
-  async function refreshHomePhoto() {
-    const customUrl = await idbGet(HOME_PHOTO_DB_KEY).catch(() => null);
-    const src = customUrl || 'icons/home-logo.png?v=159';
+  function applyHomePhotoUrl(url) {
+    const src = url || 'icons/home-logo.png?v=159';
     homeLogoImg.src = src;
     homePhotoPreview.src = src;
+  }
+
+  function refreshHomePhoto() {
+    applyHomePhotoUrl(getData(HOME_PHOTO_URL_KEY, null));
     applyHomePhotoSize(getData(HOME_PHOTO_SIZE_KEY, 36));
   }
   refreshHomePhoto();
 
-  document.getElementById('home-photo-choose-btn').addEventListener('click', () => homePhotoFileInput.click());
+  document.getElementById('home-photo-choose-btn').addEventListener('click', () => {
+    if (!ParentAuth.getFamilyId()) { showToast('Sign in to the Family Account first (above), so the photo can sync to every iPad.', 3200); return; }
+    homePhotoFileInput.click();
+  });
 
   homePhotoFileInput.addEventListener('change', () => {
     const file = homePhotoFileInput.files[0];
@@ -3800,7 +4050,7 @@
     reader.onload = () => {
       const img = new Image();
       img.onload = async () => {
-        // Downscale before storing -- phone/camera photos are overkill at full resolution
+        // Downscale before uploading -- phone/camera photos are overkill at full resolution
         // for a logo that tops out around half the screen width.
         const maxEdge = 900;
         const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
@@ -3808,9 +4058,25 @@
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        await idbSet(HOME_PHOTO_DB_KEY, canvas.toDataURL('image/jpeg', 0.85));
-        await refreshHomePhoto();
-        showToast('📸 Home screen photo updated', 2200);
+        canvas.toBlob(async (blob) => {
+          try {
+            const familyId = ParentAuth.getFamilyId();
+            const path = `${familyId}/home-photo.jpg`;
+            const { error: uploadError } = await supabaseClient.storage.from('pictures').upload(path, blob, { contentType: 'image/jpeg', upsert: true });
+            if (uploadError) throw uploadError;
+            const { data } = supabaseClient.storage.from('pictures').getPublicUrl(path);
+            // Cache-bust: upsert keeps the same URL, so without this every other device (and
+            // this one's own cache) would keep showing the old image at that same URL.
+            const url = `${data.publicUrl}?v=${Date.now()}`;
+            await saveHomePhotoUrl(url);
+            setData(HOME_PHOTO_URL_KEY, url);
+            applyHomePhotoUrl(url);
+            showToast('📸 Home screen photo updated for every iPad', 2600);
+          } catch (err) {
+            console.error('[HomePhoto] upload failed:', err);
+            showToast('Could not upload that photo. ' + (err && err.message ? err.message : 'Try again.'), 3200);
+          }
+        }, 'image/jpeg', 0.85);
       };
       img.src = reader.result;
     };
@@ -3818,21 +4084,45 @@
   });
 
   document.getElementById('home-photo-reset-btn').addEventListener('click', async () => {
-    await idbSet(HOME_PHOTO_DB_KEY, null);
-    await refreshHomePhoto();
-    showToast('Reset to the default photo', 2000);
+    try {
+      await saveHomePhotoUrl(null);
+      setData(HOME_PHOTO_URL_KEY, null);
+      applyHomePhotoUrl(null);
+      showToast('Reset to the default photo', 2000);
+    } catch (err) {
+      console.error('[HomePhoto] reset failed:', err);
+      showToast('Sign in to the Family Account first (above).', 2600);
+    }
   });
 
+  // setData keeps this device responsive instantly; saveHomePhotoSizePct (js/settings.js)
+  // pushes the same value to the family's Supabase row, if a Family Account is linked, so
+  // every other iPad/computer picks it up the next time it loads.
   homePhotoSizeInput.addEventListener('input', () => {
     const pct = Number(homePhotoSizeInput.value);
     applyHomePhotoSize(pct);
     setData(HOME_PHOTO_SIZE_KEY, pct);
+    saveHomePhotoSizePct(pct);
   });
   homePhotoSizeLiveInput.addEventListener('input', () => {
     const pct = Number(homePhotoSizeLiveInput.value);
     applyHomePhotoSize(pct);
     setData(HOME_PHOTO_SIZE_KEY, pct);
+    saveHomePhotoSizePct(pct);
   });
+  // Adopts the family's synced photo + size, only once a Family Account is actually linked, so
+  // a device that's never linked one doesn't get its local-only choices overwritten by the
+  // unrelated defaults sitting in js/settings.js.
+  function adoptSyncedHomePhoto() {
+    if (!ParentAuth.getFamilyId()) return;
+    applyHomePhotoSize(getHomePhotoSizePct());
+    const url = getHomePhotoUrl();
+    applyHomePhotoUrl(url);
+    setData(HOME_PHOTO_URL_KEY, url);
+  }
+  // Covers signing into a Family Account mid-session (not just at boot) -- refreshSharedData()
+  // re-runs on every sign-in/out, so pick up whatever this family has on record.
+  onSettingsChanged(adoptSyncedHomePhoto);
 
   // "Preview & Resize on Home Screen": shows the real home screen (with the actual artwork
   // and buttons) underneath a floating slider bar, instead of judging size from the small
@@ -4061,6 +4351,8 @@
     Promise.race([kidsReady, new Promise((r) => setTimeout(r, 2500))]),
   ]);
   Promise.all([pageLoaded, dataReady]).then(() => {
+    // Adopt the family's synced home photo + size now that settings have loaded.
+    adoptSyncedHomePhoto();
     renderSignin();
     // If the parent already tapped into the Grown-ups area (or anywhere else) while this was
     // still loading, don't yank them back to the sign-in screen once it resolves.

@@ -3157,4 +3157,33 @@ select.name-input { text-align: left; background: #fff; }
 .mystery-tiles i.open { opacity: 0; transform: scale(0.6); }
 .mystery-keyboard { width: 100%; }
 
+/* Child Photo crop dialog: box ratio (1 / 1, square) and border-radius (23%) match
+   #kz-chores-avatar in chores-redesign.css, so the crop preview matches the real avatar slot's
+   shape precisely, not an approximation. */
+#kid-photo-crop-dialog {
+  position: fixed; inset: 0; z-index: 500; display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 14, 20, 0.55); padding: 16px;
+}
+.kid-photo-crop-card {
+  background: #fff; border-radius: 20px; padding: 20px; width: min(94vw, 460px); max-height: 92vh;
+  overflow-y: auto; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35); text-align: center;
+}
+.kid-photo-crop-card h3 { margin: 0 0 6px; font-size: 1.3rem; }
+.kid-photo-crop-hint { margin: 0 0 14px; font-size: 0.95rem; color: #5a6472; }
+.kid-photo-crop-viewport {
+  position: relative; width: 100%; aspect-ratio: 4 / 3; margin: 0 auto 14px; overflow: hidden;
+  border-radius: 14px; background: #1b1f26; touch-action: none; cursor: grab;
+}
+.kid-photo-crop-viewport img {
+  position: absolute; left: 0; top: 0; transform-origin: 0 0; user-select: none;
+  -webkit-user-drag: none; pointer-events: none;
+}
+.kid-photo-crop-box {
+  position: absolute; left: 50%; top: 50%; width: 85%; aspect-ratio: 1;
+  transform: translate(-50%, -50%); border-radius: 23%; border: 3px solid #fff;
+  box-shadow: 0 0 0 2000px rgba(10, 14, 20, 0.62); pointer-events: none;
+}
+.kid-photo-crop-zoom-slider { width: 100%; margin-bottom: 16px; }
+.kid-photo-crop-actions { display: flex; gap: 10px; justify-content: center; }
+
 .warn-text { color: #b06a00; }
