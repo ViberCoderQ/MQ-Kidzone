@@ -14,19 +14,21 @@
    Same "adjust while looking at the real screen, then Copy and bake the numbers in for good"
    pattern as the Chores Layout Tool (js/kid-rewards.js). */
 (() => {
+  // Computer and iPad each have their own default x/y/w per button now (two different
+  // background images -- see home-overlay.css -- put the row/banner in different spots).
+  // ipad: mirrors the CSS's own --kzb-<id>-*-ipad fallbacks, kept in sync by hand whenever
+  // those are re-baked.
   const BUTTONS = [
-    { id: 'games', label: 'Games', x: 3.6, y: 45.6, w: 16 },
-    { id: 'coloring', label: 'Coloring', x: 18.7071, y: 45.6, w: 16 },
-    { id: 'reading', label: 'Reading', x: 33.8143, y: 45.6, w: 16 },
-    { id: 'math', label: 'Math', x: 48.9214, y: 45.6, w: 16 },
-    { id: 'puzzles', label: 'Puzzles', x: 64.5286, y: 45.6, w: 16 },
-    { id: 'music', label: 'Music', x: 80.1357, y: 45.6, w: 16 },
-    { id: 'chores', label: 'My Chores', x: 14.6, y: 72.2, w: 34.2 },
-    { id: 'store', label: 'Rewards Store', x: 50.2, y: 72.4, w: 35.4 },
-    { id: 'settings', label: 'Grown-ups gear', x: 92, y: 2, w: 6.8 },
+    { id: 'games', label: 'Games', computer: { x: 3.6, y: 45.6, w: 16 }, ipad: { x: 3.6, y: 50.6, w: 16.5 } },
+    { id: 'coloring', label: 'Coloring', computer: { x: 18.7071, y: 45.6, w: 16 }, ipad: { x: 18.7071, y: 50.6, w: 16.5 } },
+    { id: 'reading', label: 'Reading', computer: { x: 33.8143, y: 45.6, w: 16 }, ipad: { x: 33.8143, y: 50.6, w: 16.5 } },
+    { id: 'math', label: 'Math', computer: { x: 48.9214, y: 45.6, w: 16 }, ipad: { x: 48.9214, y: 50.6, w: 16.5 } },
+    { id: 'puzzles', label: 'Puzzles', computer: { x: 64.5286, y: 45.6, w: 16 }, ipad: { x: 64.5286, y: 50.6, w: 16.5 } },
+    { id: 'music', label: 'Music', computer: { x: 80.1357, y: 45.6, w: 16 }, ipad: { x: 80.1357, y: 50.6, w: 16.5 } },
+    { id: 'chores', label: 'My Chores', computer: { x: 14.6, y: 72.2, w: 34.2 }, ipad: { x: 12.1, y: 72.2, w: 38 } },
+    { id: 'store', label: 'Rewards Store', computer: { x: 50.2, y: 72.4, w: 35.4 }, ipad: { x: 49.7, y: 72.4, w: 38.2 } },
+    { id: 'settings', label: 'Grown-ups gear', computer: { x: 92, y: 2, w: 6.8 }, ipad: { x: 92, y: 2, w: 6.8 } },
   ];
-  const DEFAULTS = {};
-  BUTTONS.forEach((b) => { DEFAULTS[b.id] = { x: b.x, y: b.y, w: b.w }; });
   const ICON_IDS = ['games', 'coloring', 'reading', 'math', 'puzzles', 'music'];
 
   // Left/right had no bounds at all -- repeatedly tapping it could push a button to an extreme
@@ -63,6 +65,19 @@
   function cssVarName(id, field) {
     return `--kzb-${id}-${field}${isTouch() ? '-ipad' : ''}`;
   }
+  // Picks each button's computer or ipad defaults based on the CURRENT device -- called fresh
+  // (not cached) for the same reason as isTouch() above, and critically, used everywhere a
+  // "no draft yet" baseline is needed. Using a single shared default object here was the actual
+  // bug behind "my iPad changes aren't showing up": applyLayout() runs unconditionally on every
+  // page load, so with no per-device defaults, it was always pushing the computer's numbers
+  // into the iPad's CSS variables (even on a device with zero saved draft), overwriting the
+  // carefully-baked iPad fallback in home-overlay.css every single time -- not a caching issue
+  // at all, so reloading/reopening/signing out could never have fixed it.
+  function currentDefaults() {
+    const d = {};
+    BUTTONS.forEach((b) => { d[b.id] = { ...(isTouch() ? b.ipad : b.computer) }; });
+    return d;
+  }
 
   const home = document.getElementById('home-screen');
   const grid = document.getElementById('section-grid');
@@ -88,7 +103,7 @@
   // as js/kid-rewards.js's Chores Layout Tool) -- draft-only in localStorage, under its own
   // key (not reused from the old pixel-rect tool, whose draft shape is incompatible). ----
   const DRAFT_KEY = 'family-app.home-buttons-DRAFT';
-  let state = { ...DEFAULTS, ...(getData(DRAFT_KEY, null) || {}) };
+  let state = { ...currentDefaults(), ...(getData(DRAFT_KEY, null) || {}) };
   BUTTONS.forEach(({ id }) => { state[id] = clampButtonState(state[id]); });
 
   const root = document.documentElement.style;
@@ -254,7 +269,7 @@
     panel.classList.remove('hidden');
   });
   document.getElementById('home-layout-reset-btn').addEventListener('click', () => {
-    state = JSON.parse(JSON.stringify(DEFAULTS));
+    state = currentDefaults();
     applyLayout();
     syncControls();
     setData(DRAFT_KEY, state);
