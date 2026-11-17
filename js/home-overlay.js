@@ -25,8 +25,8 @@
     { id: 'math', label: 'Math', computer: { x: 48.9214, y: 45.6, w: 16 }, ipad: { x: 48.9214, y: 50.6, w: 16.5 } },
     { id: 'puzzles', label: 'Puzzles', computer: { x: 64.5286, y: 45.6, w: 16 }, ipad: { x: 64.5286, y: 50.6, w: 16.5 } },
     { id: 'music', label: 'Music', computer: { x: 80.1357, y: 45.6, w: 16 }, ipad: { x: 80.1357, y: 50.6, w: 16.5 } },
-    { id: 'chores', label: 'My Chores', computer: { x: 14.6, y: 72.2, w: 34.2 }, ipad: { x: 12.1, y: 72.2, w: 38 } },
-    { id: 'store', label: 'Rewards Store', computer: { x: 50.2, y: 72.4, w: 35.4 }, ipad: { x: 49.7, y: 72.4, w: 38.2 } },
+    { id: 'chores', label: 'My Chores', computer: { x: 14.6, y: 72.2, w: 34.2 }, ipad: { x: 12.1, y: 72.3, w: 38 } },
+    { id: 'store', label: 'Rewards Store', computer: { x: 50.2, y: 72.4, w: 35.4 }, ipad: { x: 49.7, y: 72.6, w: 38.2 } },
     { id: 'settings', label: 'Grown-ups gear', computer: { x: 92, y: 2, w: 6.8 }, ipad: { x: 92, y: 2, w: 6.8 } },
   ];
   const ICON_IDS = ['games', 'coloring', 'reading', 'math', 'puzzles', 'music'];
@@ -117,8 +117,11 @@
   applyLayout();
 
   // Shared "nudge amount" for every step button -- individual AND the icon-row group -- so
-  // one tap always means the same thing everywhere.
+  // one tap always means the same thing everywhere. Up/down on My Chores/Rewards Store gets
+  // its own, smaller step (Y_STEP) -- those two are fine-tuning against a drawn banner, where
+  // the regular step was too coarse to land precisely.
   const STEP = 0.5;
+  const Y_STEP = 0.1;
 
   // Nudges every icon-row button's `field` by the same delta, relative to wherever each one
   // currently is -- NOT recomputed from some separately-tracked "group" baseline. An earlier
@@ -140,21 +143,31 @@
   // and for the group specifically, a slider would need its own absolute "current value" that
   // can only describe one number even when the six buttons it affects have since drifted apart
   // (exactly the bug above). Up/down and Size stay sliders for the individual per-button rows,
-  // where that problem doesn't apply.
+  // where that problem doesn't apply -- except My Chores/Rewards Store's Up/down, which are
+  // also step buttons (Y_STEP_IDS below): those two need fine, precise nudges while lining up
+  // with the wooden banner, and a slider makes that guesswork instead of a known-size tap.
   const FIELDS = [['x', 'Left / right', 'step'], ['y', 'Up / down', 'slider', 0, 100], ['w', 'Size', 'slider', 3, 70]];
+  const Y_STEP_IDS = ['chores', 'store'];
+  function fieldsFor(id) {
+    return FIELDS.map(([field, fieldLabel, kind, min, max]) =>
+      field === 'y' && Y_STEP_IDS.includes(id) ? [field, fieldLabel, 'step'] : [field, fieldLabel, kind, min, max]
+    );
+  }
   const GROUP_FIELDS = [
     ['x', 'Left / right', '◀ Left', 'Right ▶'],
     ['y', 'Up / down', '▲ Up', '▼ Down'],
     ['w', 'Size', '− Smaller', '+ Bigger'],
   ];
+  const STEP_LABELS = { x: ['◀ Left', 'Right ▶'], y: ['▲ Up', '▼ Down'], w: ['− Smaller', '+ Bigger'] };
 
   function fieldHtml(scope, field, fieldLabel, kind, min, max, value) {
     const idBase = `hb-${scope}-${field}`;
     if (kind === 'step') {
+      const [decLabel, incLabel] = STEP_LABELS[field];
       return `<label>${fieldLabel} <output id="${idBase}-val"></output></label>` +
         `<div class="chores-layout-actions">` +
-        `<button type="button" class="big-btn" id="${idBase}-dec">◀ Left</button>` +
-        `<button type="button" class="big-btn" id="${idBase}-inc">Right ▶</button>` +
+        `<button type="button" class="big-btn" id="${idBase}-dec">${decLabel}</button>` +
+        `<button type="button" class="big-btn" id="${idBase}-inc">${incLabel}</button>` +
         `</div>`;
     }
     return `<label for="${idBase}">${fieldLabel} <output id="${idBase}-val"></output></label>` +
@@ -179,7 +192,7 @@
     ).join('') +
     BUTTONS.map(({ id, label }) => {
       const section = `<div class="chores-layout-section">${label} -- ${isTouch() ? 'iPad-only' : 'computer-only'} values</div>`;
-      const rows = FIELDS.map(([field, fieldLabel, kind, min, max]) =>
+      const rows = fieldsFor(id).map(([field, fieldLabel, kind, min, max]) =>
         fieldHtml(id, field, fieldLabel, kind, min, max, state[id][field])
       ).join('');
       return section + rows;
@@ -206,7 +219,7 @@
 
   function syncControls() {
     BUTTONS.forEach(({ id }) => {
-      FIELDS.forEach(([field, , kind]) => {
+      fieldsFor(id).forEach(([field, , kind]) => {
         const idBase = `hb-${id}-${field}`;
         const value = state[id][field];
         if (kind === 'slider') {
@@ -226,7 +239,7 @@
   });
 
   BUTTONS.forEach(({ id }) => {
-    FIELDS.forEach(([field, , kind]) => {
+    fieldsFor(id).forEach(([field, , kind]) => {
       const idBase = `hb-${id}-${field}`;
       const commit = () => {
         applyLayout();
@@ -234,12 +247,13 @@
         setData(DRAFT_KEY, state); // draft only, so re-opening keeps your in-progress numbers
       };
       if (kind === 'step') {
+        const step = field === 'y' ? Y_STEP : STEP;
         document.getElementById(`${idBase}-dec`).addEventListener('click', () => {
-          state = { ...state, [id]: { ...state[id], [field]: clampField(field, state[id][field] - STEP) } };
+          state = { ...state, [id]: { ...state[id], [field]: clampField(field, state[id][field] - step) } };
           commit();
         });
         document.getElementById(`${idBase}-inc`).addEventListener('click', () => {
-          state = { ...state, [id]: { ...state[id], [field]: clampField(field, state[id][field] + STEP) } };
+          state = { ...state, [id]: { ...state[id], [field]: clampField(field, state[id][field] + step) } };
           commit();
         });
       } else {
