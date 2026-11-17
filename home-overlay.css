@@ -51,6 +51,12 @@
   opacity: 1; pointer-events: auto; cursor: pointer; border-radius: 0;
   -webkit-tap-highlight-color: transparent;
   background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
+  /* min-height:0 overrides .section-tile's base 170px floor (style.css) -- without this,
+     shrinking a button's width below the point where its aspect-ratio-computed height hits
+     170px just clamps height at that floor instead of shrinking further (width still visually
+     shrinks a little, height doesn't, so it looks "stuck" -- it can still grow since there's no
+     matching max-height, which is why only "bigger" ever seemed to work). */
+  min-height: 0;
   /* left/top/width driven by CSS vars (--kzb-<id>-x/-y/-w, set by js/home-overlay.js's Button
      Layout Tool) so every button can be nudged/resized live -- see the per-button rules below
      for each one's fallback default and aspect-ratio. All in %, so "bigger/smaller" (width)
