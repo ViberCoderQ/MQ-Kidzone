@@ -29,6 +29,22 @@
   BUTTONS.forEach((b) => { DEFAULTS[b.id] = { x: b.x, y: b.y, w: b.w }; });
   const ICON_IDS = ['games', 'coloring', 'reading', 'math', 'puzzles', 'music'];
 
+  // Left/right had no bounds at all -- repeatedly tapping it could push a button to an extreme
+  // value (e.g. -300%). On an iPad, that's triggered a real WebKit bug where aspect-ratio +
+  // an extreme percentage offset on an absolutely-positioned element gets miscomputed and the
+  // box (and sometimes the whole page's layout, which is why the tool itself went unresponsive
+  // too) snaps toward the top-left. clampField keeps every value in a sane range so that can't
+  // happen -- applied on every nudge AND when loading a saved draft, so a draft already pushed
+  // out of range before this fix self-heals the next time the tool opens.
+  const BOUNDS = { x: [-15, 105], y: [0, 100], w: [3, 70] };
+  function clampField(field, value) {
+    const [min, max] = BOUNDS[field];
+    return Math.min(max, Math.max(min, value));
+  }
+  function clampButtonState(s) {
+    return { x: clampField('x', s.x), y: clampField('y', s.y), w: clampField('w', s.w) };
+  }
+
   // My Chores / Rewards Store sit inside the wooden banner drawn in the background, and
   // background-size:cover (home-overlay.css) crops that banner differently depending on the
   // screen's aspect ratio -- a computer window (close to the background's own shape) crops
@@ -69,6 +85,7 @@
   // key (not reused from the old pixel-rect tool, whose draft shape is incompatible). ----
   const DRAFT_KEY = 'family-app.home-buttons-DRAFT';
   let state = { ...DEFAULTS, ...(getData(DRAFT_KEY, null) || {}) };
+  BUTTONS.forEach(({ id }) => { state[id] = clampButtonState(state[id]); });
 
   const root = document.documentElement.style;
   function applyLayout() {
@@ -92,7 +109,7 @@
   // using the group controls can never reset anything -- it only ever moves whatever's there.
   function nudgeIconRow(field, delta) {
     ICON_IDS.forEach((id) => {
-      state[id] = { ...state[id], [field]: state[id][field] + delta };
+      state[id] = { ...state[id], [field]: clampField(field, state[id][field] + delta) };
     });
     applyLayout();
     syncControls();
@@ -200,16 +217,16 @@
       };
       if (kind === 'step') {
         document.getElementById(`${idBase}-dec`).addEventListener('click', () => {
-          state = { ...state, [id]: { ...state[id], [field]: state[id][field] - STEP } };
+          state = { ...state, [id]: { ...state[id], [field]: clampField(field, state[id][field] - STEP) } };
           commit();
         });
         document.getElementById(`${idBase}-inc`).addEventListener('click', () => {
-          state = { ...state, [id]: { ...state[id], [field]: state[id][field] + STEP } };
+          state = { ...state, [id]: { ...state[id], [field]: clampField(field, state[id][field] + STEP) } };
           commit();
         });
       } else {
         document.getElementById(idBase).addEventListener('input', (e) => {
-          state = { ...state, [id]: { ...state[id], [field]: Number(e.target.value) } };
+          state = { ...state, [id]: { ...state[id], [field]: clampField(field, Number(e.target.value)) } };
           commit();
         });
       }
