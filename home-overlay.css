@@ -193,10 +193,10 @@
     left: var(--kzb-music-x-ipad, 80.1357%); top: var(--kzb-music-y-ipad, 50.6%); width: var(--kzb-music-w-ipad, 16.5%);
   }
   #home-screen.kz-art-home #section-grid > button[data-section="chores"] {
-    left: var(--kzb-chores-x-ipad, 12.1%); top: var(--kzb-chores-y-ipad, 72.3%); width: var(--kzb-chores-w-ipad, 38%);
+    left: var(--kzb-chores-x-ipad, 12.1%); top: var(--kzb-chores-y-ipad, 72.8%); width: var(--kzb-chores-w-ipad, 38%);
   }
   #home-screen.kz-art-home #section-grid > button[data-section="store"] {
-    left: var(--kzb-store-x-ipad, 49.7%); top: var(--kzb-store-y-ipad, 72.6%); width: var(--kzb-store-w-ipad, 38.2%);
+    left: var(--kzb-store-x-ipad, 49.7%); top: var(--kzb-store-y-ipad, 73%); width: var(--kzb-store-w-ipad, 38.2%);
   }
   #home-screen.kz-art-home #home-parent-settings {
     left: var(--kzb-settings-x-ipad, 92%); top: var(--kzb-settings-y-ipad, 2%); width: var(--kzb-settings-w-ipad, 6.8%);

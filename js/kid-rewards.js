@@ -98,23 +98,42 @@ const KidRewards = (() => {
   // over each card. Extend-up/-down are independent: one grows the pill row from the top edge,
   // the other from the bottom edge, without disturbing the opposite edge.
   const CHORES_LAYOUT_LOCAL_KEY = 'family-app.chores-layout-DRAFT';
+  // isTouch() re-checks matchMedia on every call rather than caching it once -- a one-time
+  // snapshot goes stale the moment a browser's device-emulation mode is toggled after the page
+  // already loaded, since CSS media queries re-evaluate live but a frozen JS boolean doesn't
+  // (same bug class home-overlay.js's Home Button Layout Tool hit first).
+  function isTouch() { return window.matchMedia('(pointer: coarse)').matches; }
   // Position nudges (X/Y) are in %, not px -- CSS translate() percentages are relative to the
   // element's OWN box size (not the viewport), and every box here is already sized as a % of
-  // the screen, so a % nudge lands in the same relative spot on any device/window width instead
-  // of drifting the way a fixed px offset did (tuned on a Windows browser, wrong on an iPad's
-  // different viewport width). Scale/size sliders were already unitless multipliers, so those
-  // keep their baked-in defaults below unchanged; only positions reset to 0 since px and %
-  // values aren't interchangeable -- re-nudge positions once with this tool and the result holds
-  // on both.
+  // the screen, so a % nudge lands in the same relative spot on any device/window width. But the
+  // Chores screen's background art is a different shape on an iPad than on a computer window
+  // (same reason the Home screen's background differs per device), so each value below has its
+  // own computer/ipad pair -- picked by isTouch() -- instead of one shared number. headerTextCurve
+  // is the #kz-chores-sign-arc path's curve, not a CSS var (see applyChoresLayout below), but
+  // still gets its own per-device value for the same reason.
   const CHORES_LAYOUT_DEFAULTS = {
-    headerX: 0, headerY: 0, headerScale: 61,
-    headerTextX: 0, headerTextY: -5, headerTextCurve: 82, headerTextSize: 128,
-    bannerX: 0, bannerY: -15, bannerScale: 78, bannerHeightScale: 196,
-    avatarX: 1.5, avatarY: -25, avatarSize: 104,
-    todayX: 0, todayY: -15.5, todaySize: 87,
-    countX: 0.5, countY: -23, countSize: 105,
-    pillsX: 0, pillsY: 0, pillsScale: 101, pillsExtendUp: 0, pillsExtendDown: 0,
+    computer: {
+      headerX: 0, headerY: 0, headerScale: 61,
+      headerTextX: 0, headerTextY: -5, headerTextCurve: 82, headerTextSize: 128,
+      bannerX: 0, bannerY: -15, bannerScale: 78, bannerHeightScale: 196,
+      avatarX: 1.5, avatarY: -25, avatarSize: 104,
+      todayX: 0, todayY: -15.5, todaySize: 87,
+      countX: 0.5, countY: -23, countSize: 105,
+      pillsX: 0, pillsY: 0, pillsScale: 101, pillsExtendUp: 0, pillsExtendDown: 0,
+    },
+    ipad: {
+      headerX: 0, headerY: 1, headerScale: 76,
+      headerTextX: 0, headerTextY: -6, headerTextCurve: 80, headerTextSize: 133,
+      bannerX: 0, bannerY: -2.5, bannerScale: 97, bannerHeightScale: 196,
+      avatarX: 1, avatarY: -25, avatarSize: 104,
+      todayX: -0.5, todayY: -14.5, todaySize: 87,
+      countX: 0, countY: -23.5, countSize: 105,
+      pillsX: 0, pillsY: 0, pillsScale: 99, pillsExtendUp: 0, pillsExtendDown: 0,
+    },
   };
+  function currentChoresDefaults() {
+    return { ...(isTouch() ? CHORES_LAYOUT_DEFAULTS.ipad : CHORES_LAYOUT_DEFAULTS.computer) };
+  }
   const CHORES_LAYOUT_SPEC = [
     ['headerX', 'cl-header-x', '%'], ['headerY', 'cl-header-y', '%'], ['headerScale', 'cl-header-scale', '%'],
     ['headerTextX', 'cl-header-text-x', '%'], ['headerTextY', 'cl-header-text-y', '%'],
@@ -127,40 +146,48 @@ const KidRewards = (() => {
     ['pillsX', 'cl-pills-x', '%'], ['pillsY', 'cl-pills-y', '%'], ['pillsScale', 'cl-pills-scale', '%'],
     ['pillsExtendUp', 'cl-pills-extend-up', '%'], ['pillsExtendDown', 'cl-pills-extend-down', '%'],
   ];
+  // Maps a CHORES_LAYOUT_SPEC key (e.g. "headerX") to its CSS var base name (e.g. "header-x").
+  function kzcBase(key) {
+    return key.replace(/([A-Z])/g, '-$1').toLowerCase();
+  }
+  // -ipad-suffixed variable name on touch devices, read only inside chores-redesign.css's
+  // `@media (pointer: coarse)` block -- plain name otherwise. Same reasoning as home-overlay.js.
+  function kzcVar(key) {
+    return `--kzc-${kzcBase(key)}${isTouch() ? '-ipad' : ''}`;
+  }
 
   function applyChoresLayout(layout) {
-    const L = { ...CHORES_LAYOUT_DEFAULTS, ...(layout || {}) };
+    const L = { ...currentChoresDefaults(), ...(layout || {}) };
     const root = document.documentElement.style;
-    root.setProperty('--kzc-header-x', L.headerX + '%');
-    root.setProperty('--kzc-header-y', L.headerY + '%');
-    root.setProperty('--kzc-header-scale', L.headerScale / 100);
-    root.setProperty('--kzc-header-text-x', L.headerTextX + '%');
-    root.setProperty('--kzc-header-text-y', L.headerTextY + '%');
-    root.setProperty('--kzc-header-text-size', L.headerTextSize / 100);
+    root.setProperty(kzcVar('headerX'), L.headerX + '%');
+    root.setProperty(kzcVar('headerY'), L.headerY + '%');
+    root.setProperty(kzcVar('headerScale'), L.headerScale / 100);
+    root.setProperty(kzcVar('headerTextX'), L.headerTextX + '%');
+    root.setProperty(kzcVar('headerTextY'), L.headerTextY + '%');
+    root.setProperty(kzcVar('headerTextSize'), L.headerTextSize / 100);
     // The arc's curve ("slope") is the #kz-chores-sign-arc path's `d` attribute, not a CSS var --
-    // SVG path geometry can't be driven by custom properties, so it's set directly here instead.
-    // It's already resolution-independent (the sign's viewBox scales with the box via
-    // preserveAspectRatio), so unlike the px nudges above, this one didn't need a unit change.
+    // SVG path geometry can't be driven by custom properties, so it's set directly here instead,
+    // using the current device's own curve value (L.headerTextCurve already picked the right one).
     const arc = document.getElementById('kz-chores-sign-arc');
     if (arc) arc.setAttribute('d', `M 150 270 Q 500 ${270 - L.headerTextCurve} 850 270`);
-    root.setProperty('--kzc-banner-x', L.bannerX + '%');
-    root.setProperty('--kzc-banner-y', L.bannerY + '%');
-    root.setProperty('--kzc-banner-scale', L.bannerScale / 100);
-    root.setProperty('--kzc-banner-height-scale', L.bannerHeightScale / 100);
-    root.setProperty('--kzc-avatar-x', L.avatarX + '%');
-    root.setProperty('--kzc-avatar-y', L.avatarY + '%');
-    root.setProperty('--kzc-avatar-size', L.avatarSize / 100);
-    root.setProperty('--kzc-today-x', L.todayX + '%');
-    root.setProperty('--kzc-today-y', L.todayY + '%');
-    root.setProperty('--kzc-today-size', L.todaySize / 100);
-    root.setProperty('--kzc-count-x', L.countX + '%');
-    root.setProperty('--kzc-count-y', L.countY + '%');
-    root.setProperty('--kzc-count-size', L.countSize / 100);
-    root.setProperty('--kzc-pills-x', L.pillsX + '%');
-    root.setProperty('--kzc-pills-y', L.pillsY + '%');
-    root.setProperty('--kzc-pills-scale', L.pillsScale / 100);
-    root.setProperty('--kzc-pills-extend-up', L.pillsExtendUp + '%');
-    root.setProperty('--kzc-pills-extend-down', L.pillsExtendDown + '%');
+    root.setProperty(kzcVar('bannerX'), L.bannerX + '%');
+    root.setProperty(kzcVar('bannerY'), L.bannerY + '%');
+    root.setProperty(kzcVar('bannerScale'), L.bannerScale / 100);
+    root.setProperty(kzcVar('bannerHeightScale'), L.bannerHeightScale / 100);
+    root.setProperty(kzcVar('avatarX'), L.avatarX + '%');
+    root.setProperty(kzcVar('avatarY'), L.avatarY + '%');
+    root.setProperty(kzcVar('avatarSize'), L.avatarSize / 100);
+    root.setProperty(kzcVar('todayX'), L.todayX + '%');
+    root.setProperty(kzcVar('todayY'), L.todayY + '%');
+    root.setProperty(kzcVar('todaySize'), L.todaySize / 100);
+    root.setProperty(kzcVar('countX'), L.countX + '%');
+    root.setProperty(kzcVar('countY'), L.countY + '%');
+    root.setProperty(kzcVar('countSize'), L.countSize / 100);
+    root.setProperty(kzcVar('pillsX'), L.pillsX + '%');
+    root.setProperty(kzcVar('pillsY'), L.pillsY + '%');
+    root.setProperty(kzcVar('pillsScale'), L.pillsScale / 100);
+    root.setProperty(kzcVar('pillsExtendUp'), L.pillsExtendUp + '%');
+    root.setProperty(kzcVar('pillsExtendDown'), L.pillsExtendDown + '%');
     CHORES_LAYOUT_SPEC.forEach(([key, id, unit]) => {
       const input = $(id);
       if (input) input.value = L[key];
@@ -170,7 +197,7 @@ const KidRewards = (() => {
     return L;
   }
 
-  let choresLayoutState = { ...CHORES_LAYOUT_DEFAULTS, ...(getData(CHORES_LAYOUT_LOCAL_KEY, null) || {}) };
+  let choresLayoutState = { ...currentChoresDefaults(), ...(getData(CHORES_LAYOUT_LOCAL_KEY, null) || {}) };
   applyChoresLayout(choresLayoutState);
 
   CHORES_LAYOUT_SPEC.forEach(([key, id]) => {
@@ -193,24 +220,26 @@ const KidRewards = (() => {
     AppBridge.enterParentArea();
   });
   $('chores-layout-reset-btn').addEventListener('click', () => {
-    choresLayoutState = { ...CHORES_LAYOUT_DEFAULTS };
+    choresLayoutState = currentChoresDefaults();
     applyChoresLayout(choresLayoutState);
     setData(CHORES_LAYOUT_LOCAL_KEY, choresLayoutState);
   });
   $('chores-layout-copy-btn').addEventListener('click', async () => {
     const L = choresLayoutState;
     const text = `:root {\n` +
-      `  --kzc-header-x: ${L.headerX}%; --kzc-header-y: ${L.headerY}%; --kzc-header-scale: ${L.headerScale / 100};\n` +
-      `  --kzc-header-text-x: ${L.headerTextX}%; --kzc-header-text-y: ${L.headerTextY}%; --kzc-header-text-size: ${L.headerTextSize / 100};\n` +
+      `  /* ${isTouch() ? 'iPad' : 'Computer'} values */\n` +
+      `  ${kzcVar('headerX')}: ${L.headerX}%; ${kzcVar('headerY')}: ${L.headerY}%; ${kzcVar('headerScale')}: ${L.headerScale / 100};\n` +
+      `  ${kzcVar('headerTextX')}: ${L.headerTextX}%; ${kzcVar('headerTextY')}: ${L.headerTextY}%; ${kzcVar('headerTextSize')}: ${L.headerTextSize / 100};\n` +
       `  /* also update index.html's <path id="kz-chores-sign-arc"> d attribute to: */\n` +
       `  /* d="M 150 270 Q 500 ${270 - L.headerTextCurve} 850 270" */\n` +
-      `  --kzc-banner-x: ${L.bannerX}%; --kzc-banner-y: ${L.bannerY}%; --kzc-banner-scale: ${L.bannerScale / 100}; --kzc-banner-height-scale: ${L.bannerHeightScale / 100};\n` +
-      `  --kzc-avatar-x: ${L.avatarX}%; --kzc-avatar-y: ${L.avatarY}%; --kzc-avatar-size: ${L.avatarSize / 100};\n` +
-      `  --kzc-today-x: ${L.todayX}%; --kzc-today-y: ${L.todayY}%; --kzc-today-size: ${L.todaySize / 100};\n` +
-      `  --kzc-count-x: ${L.countX}%; --kzc-count-y: ${L.countY}%; --kzc-count-size: ${L.countSize / 100};\n` +
-      `  --kzc-pills-x: ${L.pillsX}%; --kzc-pills-y: ${L.pillsY}%; --kzc-pills-scale: ${L.pillsScale / 100};\n` +
-      `  --kzc-pills-extend-up: ${L.pillsExtendUp}%; --kzc-pills-extend-down: ${L.pillsExtendDown}%;\n` +
-      `}`;
+      `  ${kzcVar('bannerX')}: ${L.bannerX}%; ${kzcVar('bannerY')}: ${L.bannerY}%; ${kzcVar('bannerScale')}: ${L.bannerScale / 100}; ${kzcVar('bannerHeightScale')}: ${L.bannerHeightScale / 100};\n` +
+      `  ${kzcVar('avatarX')}: ${L.avatarX}%; ${kzcVar('avatarY')}: ${L.avatarY}%; ${kzcVar('avatarSize')}: ${L.avatarSize / 100};\n` +
+      `  ${kzcVar('todayX')}: ${L.todayX}%; ${kzcVar('todayY')}: ${L.todayY}%; ${kzcVar('todaySize')}: ${L.todaySize / 100};\n` +
+      `  ${kzcVar('countX')}: ${L.countX}%; ${kzcVar('countY')}: ${L.countY}%; ${kzcVar('countSize')}: ${L.countSize / 100};\n` +
+      `  ${kzcVar('pillsX')}: ${L.pillsX}%; ${kzcVar('pillsY')}: ${L.pillsY}%; ${kzcVar('pillsScale')}: ${L.pillsScale / 100};\n` +
+      `  ${kzcVar('pillsExtendUp')}: ${L.pillsExtendUp}%; ${kzcVar('pillsExtendDown')}: ${L.pillsExtendDown}%;\n` +
+      `}` +
+      (isTouch() ? `\n/* paste the lines above inside chores-redesign.css's existing\n   @media (pointer: coarse) { ... } block, not at the top level */` : '');
     const btn = $('chores-layout-copy-btn');
     try {
       await navigator.clipboard.writeText(text);

@@ -25,8 +25,8 @@
     { id: 'math', label: 'Math', computer: { x: 48.9214, y: 45.6, w: 16 }, ipad: { x: 48.9214, y: 50.6, w: 16.5 } },
     { id: 'puzzles', label: 'Puzzles', computer: { x: 64.5286, y: 45.6, w: 16 }, ipad: { x: 64.5286, y: 50.6, w: 16.5 } },
     { id: 'music', label: 'Music', computer: { x: 80.1357, y: 45.6, w: 16 }, ipad: { x: 80.1357, y: 50.6, w: 16.5 } },
-    { id: 'chores', label: 'My Chores', computer: { x: 14.6, y: 72.2, w: 34.2 }, ipad: { x: 12.1, y: 72.3, w: 38 } },
-    { id: 'store', label: 'Rewards Store', computer: { x: 50.2, y: 72.4, w: 35.4 }, ipad: { x: 49.7, y: 72.6, w: 38.2 } },
+    { id: 'chores', label: 'My Chores', computer: { x: 14.6, y: 72.2, w: 34.2 }, ipad: { x: 12.1, y: 72.8, w: 38 } },
+    { id: 'store', label: 'Rewards Store', computer: { x: 50.2, y: 72.4, w: 35.4 }, ipad: { x: 49.7, y: 73, w: 38.2 } },
     { id: 'settings', label: 'Grown-ups gear', computer: { x: 92, y: 2, w: 6.8 }, ipad: { x: 92, y: 2, w: 6.8 } },
   ];
   const ICON_IDS = ['games', 'coloring', 'reading', 'math', 'puzzles', 'music'];
@@ -41,7 +41,10 @@
   const BOUNDS = { x: [-15, 105], y: [0, 100], w: [3, 70] };
   function clampField(field, value) {
     const [min, max] = BOUNDS[field];
-    return Math.min(max, Math.max(min, value));
+    const clamped = Math.min(max, Math.max(min, value));
+    // Rounded to 4dp -- repeatedly adding a 0.1 step with plain float math drifts into
+    // junk like 72.79999999999997% (still fine visually, just ugly in a Copy CSS output).
+    return Math.round(clamped * 10000) / 10000;
   }
   function clampButtonState(s) {
     return { x: clampField('x', s.x), y: clampField('y', s.y), w: clampField('w', s.w) };
