@@ -5,7 +5,14 @@
 
 /* No position override: .screen already sets position:fixed;inset:0 to size the whole screen
    to the viewport -- same fix as games-carousel.css/home-overlay.css needed. */
-#subject-screen.kz-reading-redesign{background:#3ba8ed url('assets/reading-carousel/meadow.png') center/100% 100% no-repeat!important;overflow:hidden}
+/* Locked to the artwork's own 1672x941 ratio and centered/letterboxed in the viewport instead
+   of stretching to fill it (same fix as games-carousel.css/home-overlay.css) -- a standard
+   iPad's screen (landscape ~4:3) is much squarer than this art's ~16:9-ish shape, which was
+   forcing background-size:100% 100% to distort it. Applied to THIS element (not just
+   .screen-inner below) because .sub-header, below, is a sibling of .screen-inner, not a
+   child -- its own % position needs to share the exact same box as everything in .screen-inner
+   to stay aligned with the art's "patched label" it's deliberately positioned under. */
+#subject-screen.kz-reading-redesign{position:fixed;top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:100%;height:100%;aspect-ratio:1672/941;max-width:calc(100vh*1672/941);max-height:calc(100vw*941/1672);background:#3ba8ed url('assets/reading-carousel/meadow.png') center/100% 100% no-repeat!important;overflow:hidden}
 #subject-screen.kz-reading-redesign>.screen-inner>.section-grid{display:none!important}
 #subject-screen.kz-reading-redesign>.screen-inner{position:absolute;inset:0;max-width:none!important;width:100%;height:100%;padding:0!important;margin:0!important;overflow:visible!important}
 

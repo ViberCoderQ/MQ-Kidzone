@@ -1,9 +1,14 @@
 /* No position override here: .screen already sets position:fixed;inset:0 to size the whole
    screen to the viewport. Overriding it to "relative" collapses this element to zero height
    once .screen-inner (and everything in it) goes position:absolute below. */
-#games-screen.kz-games-redesign{background:#3ba8ed url('assets/games-carousel/games-meadow.png') center/100% 100% no-repeat!important;overflow:hidden}
+#games-screen.kz-games-redesign{background:#3ba8ed!important;overflow:hidden}
 #games-screen.kz-games-redesign>.sub-header,#games-screen.kz-games-redesign>.screen-inner>.section-grid{display:none!important}
-#games-screen.kz-games-redesign>.screen-inner{position:absolute;inset:0;max-width:none!important;width:100%;height:100%;padding:0!important;margin:0!important;overflow:visible!important}
+/* Locked to the artwork's own 1672x941 ratio and centered/letterboxed in the viewport instead
+   of stretching to fill it -- a standard iPad's screen (landscape ~4:3, much squarer than this
+   art's ~16:9-ish shape) was forcing background-size:100% 100% to distort the art. Every child
+   here (.kz-carousel, the home/settings buttons, etc.) is positioned as a % of THIS box, so
+   locking its ratio keeps both the art undistorted and every button aligned with it. */
+#games-screen.kz-games-redesign>.screen-inner{position:absolute;top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:100%;height:100%;aspect-ratio:1672/941;max-width:calc(100vh*1672/941)!important;max-height:calc(100vw*941/1672)!important;padding:0!important;margin:0!important;overflow:visible!important;background:url('assets/games-carousel/games-meadow.png') center/100% 100% no-repeat!important}
 .kz-games-home,.kz-games-settings{position:absolute;z-index:10;border:0;background:transparent;cursor:pointer;touch-action:manipulation}.kz-games-home{left:2%;top:1%;width:7.5%;height:13%;border-radius:50%}.kz-games-settings{right:1.5%;top:1%;width:7%;height:12%;border-radius:50%}
 .kz-carousel{position:absolute;inset:17% 0 3%;font-family:system-ui,sans-serif;user-select:none;overflow:hidden}
 .kz-carousel-stage{position:absolute;left:10%;right:10%;top:2%;height:76%;perspective:1100px;touch-action:pan-y;cursor:grab}.kz-carousel-stage:active{cursor:grabbing}

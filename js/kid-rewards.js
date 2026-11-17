@@ -108,11 +108,11 @@ const KidRewards = (() => {
   // on both.
   const CHORES_LAYOUT_DEFAULTS = {
     headerX: 0, headerY: 0, headerScale: 61,
-    headerTextX: 0, headerTextY: 0, headerTextCurve: 80, headerTextSize: 128,
-    bannerX: 0, bannerY: 0, bannerScale: 75, bannerHeightScale: 196,
-    avatarX: 0, avatarY: 0, avatarSize: 104,
-    todayX: 0, todayY: 0, todaySize: 87,
-    countX: 0, countY: 0, countSize: 105,
+    headerTextX: 0, headerTextY: -5, headerTextCurve: 82, headerTextSize: 128,
+    bannerX: 0, bannerY: -15, bannerScale: 78, bannerHeightScale: 196,
+    avatarX: 1.5, avatarY: -25, avatarSize: 104,
+    todayX: 0, todayY: -15.5, todaySize: 87,
+    countX: 0.5, countY: -23, countSize: 105,
     pillsX: 0, pillsY: 0, pillsScale: 101, pillsExtendUp: 0, pillsExtendDown: 0,
   };
   const CHORES_LAYOUT_SPEC = [
