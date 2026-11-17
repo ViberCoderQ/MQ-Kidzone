@@ -98,67 +98,74 @@ const KidRewards = (() => {
   // over each card. Extend-up/-down are independent: one grows the pill row from the top edge,
   // the other from the bottom edge, without disturbing the opposite edge.
   const CHORES_LAYOUT_LOCAL_KEY = 'family-app.chores-layout-DRAFT';
-  // Defaults match the approved, baked-in look (chores-redesign.css's own var() fallbacks and
-  // index.html's #kz-chores-sign-arc) -- not "no adjustment" zeroes -- so "Reset to Default"
-  // returns to the shipped design rather than the pre-tuning layout.
+  // Position nudges (X/Y) are in %, not px -- CSS translate() percentages are relative to the
+  // element's OWN box size (not the viewport), and every box here is already sized as a % of
+  // the screen, so a % nudge lands in the same relative spot on any device/window width instead
+  // of drifting the way a fixed px offset did (tuned on a Windows browser, wrong on an iPad's
+  // different viewport width). Scale/size sliders were already unitless multipliers, so those
+  // keep their baked-in defaults below unchanged; only positions reset to 0 since px and %
+  // values aren't interchangeable -- re-nudge positions once with this tool and the result holds
+  // on both.
   const CHORES_LAYOUT_DEFAULTS = {
-    headerX: 0, headerY: 1, headerScale: 61,
-    headerTextX: 0, headerTextY: -16, headerTextCurve: 80, headerTextSize: 128,
-    bannerX: 0, bannerY: -33, bannerScale: 75, bannerHeightScale: 196,
-    avatarX: 1, avatarY: -44, avatarSize: 104,
-    todayX: -7, todayY: -34, todaySize: 87,
-    countX: 0, countY: -53, countSize: 105,
+    headerX: 0, headerY: 0, headerScale: 61,
+    headerTextX: 0, headerTextY: 0, headerTextCurve: 80, headerTextSize: 128,
+    bannerX: 0, bannerY: 0, bannerScale: 75, bannerHeightScale: 196,
+    avatarX: 0, avatarY: 0, avatarSize: 104,
+    todayX: 0, todayY: 0, todaySize: 87,
+    countX: 0, countY: 0, countSize: 105,
     pillsX: 0, pillsY: 0, pillsScale: 101, pillsExtendUp: 0, pillsExtendDown: 0,
   };
   const CHORES_LAYOUT_SPEC = [
-    ['headerX', 'cl-header-x', 'px'], ['headerY', 'cl-header-y', 'px'], ['headerScale', 'cl-header-scale', '%'],
-    ['headerTextX', 'cl-header-text-x', 'px'], ['headerTextY', 'cl-header-text-y', 'px'],
-    ['headerTextCurve', 'cl-header-text-curve', 'px'], ['headerTextSize', 'cl-header-text-size', '%'],
-    ['bannerX', 'cl-banner-x', 'px'], ['bannerY', 'cl-banner-y', 'px'], ['bannerScale', 'cl-banner-scale', '%'],
+    ['headerX', 'cl-header-x', '%'], ['headerY', 'cl-header-y', '%'], ['headerScale', 'cl-header-scale', '%'],
+    ['headerTextX', 'cl-header-text-x', '%'], ['headerTextY', 'cl-header-text-y', '%'],
+    ['headerTextCurve', 'cl-header-text-curve', ''], ['headerTextSize', 'cl-header-text-size', '%'],
+    ['bannerX', 'cl-banner-x', '%'], ['bannerY', 'cl-banner-y', '%'], ['bannerScale', 'cl-banner-scale', '%'],
     ['bannerHeightScale', 'cl-banner-height-scale', '%'],
-    ['avatarX', 'cl-avatar-x', 'px'], ['avatarY', 'cl-avatar-y', 'px'], ['avatarSize', 'cl-avatar-size', '%'],
-    ['todayX', 'cl-today-x', 'px'], ['todayY', 'cl-today-y', 'px'], ['todaySize', 'cl-today-size', '%'],
-    ['countX', 'cl-count-x', 'px'], ['countY', 'cl-count-y', 'px'], ['countSize', 'cl-count-size', '%'],
-    ['pillsX', 'cl-pills-x', 'px'], ['pillsY', 'cl-pills-y', 'px'], ['pillsScale', 'cl-pills-scale', '%'],
-    ['pillsExtendUp', 'cl-pills-extend-up', 'px'], ['pillsExtendDown', 'cl-pills-extend-down', 'px'],
+    ['avatarX', 'cl-avatar-x', '%'], ['avatarY', 'cl-avatar-y', '%'], ['avatarSize', 'cl-avatar-size', '%'],
+    ['todayX', 'cl-today-x', '%'], ['todayY', 'cl-today-y', '%'], ['todaySize', 'cl-today-size', '%'],
+    ['countX', 'cl-count-x', '%'], ['countY', 'cl-count-y', '%'], ['countSize', 'cl-count-size', '%'],
+    ['pillsX', 'cl-pills-x', '%'], ['pillsY', 'cl-pills-y', '%'], ['pillsScale', 'cl-pills-scale', '%'],
+    ['pillsExtendUp', 'cl-pills-extend-up', '%'], ['pillsExtendDown', 'cl-pills-extend-down', '%'],
   ];
 
   function applyChoresLayout(layout) {
     const L = { ...CHORES_LAYOUT_DEFAULTS, ...(layout || {}) };
     const root = document.documentElement.style;
-    root.setProperty('--kzc-header-x', L.headerX + 'px');
-    root.setProperty('--kzc-header-y', L.headerY + 'px');
+    root.setProperty('--kzc-header-x', L.headerX + '%');
+    root.setProperty('--kzc-header-y', L.headerY + '%');
     root.setProperty('--kzc-header-scale', L.headerScale / 100);
-    root.setProperty('--kzc-header-text-x', L.headerTextX + 'px');
-    root.setProperty('--kzc-header-text-y', L.headerTextY + 'px');
+    root.setProperty('--kzc-header-text-x', L.headerTextX + '%');
+    root.setProperty('--kzc-header-text-y', L.headerTextY + '%');
     root.setProperty('--kzc-header-text-size', L.headerTextSize / 100);
     // The arc's curve ("slope") is the #kz-chores-sign-arc path's `d` attribute, not a CSS var --
     // SVG path geometry can't be driven by custom properties, so it's set directly here instead.
+    // It's already resolution-independent (the sign's viewBox scales with the box via
+    // preserveAspectRatio), so unlike the px nudges above, this one didn't need a unit change.
     const arc = document.getElementById('kz-chores-sign-arc');
     if (arc) arc.setAttribute('d', `M 150 270 Q 500 ${270 - L.headerTextCurve} 850 270`);
-    root.setProperty('--kzc-banner-x', L.bannerX + 'px');
-    root.setProperty('--kzc-banner-y', L.bannerY + 'px');
+    root.setProperty('--kzc-banner-x', L.bannerX + '%');
+    root.setProperty('--kzc-banner-y', L.bannerY + '%');
     root.setProperty('--kzc-banner-scale', L.bannerScale / 100);
     root.setProperty('--kzc-banner-height-scale', L.bannerHeightScale / 100);
-    root.setProperty('--kzc-avatar-x', L.avatarX + 'px');
-    root.setProperty('--kzc-avatar-y', L.avatarY + 'px');
+    root.setProperty('--kzc-avatar-x', L.avatarX + '%');
+    root.setProperty('--kzc-avatar-y', L.avatarY + '%');
     root.setProperty('--kzc-avatar-size', L.avatarSize / 100);
-    root.setProperty('--kzc-today-x', L.todayX + 'px');
-    root.setProperty('--kzc-today-y', L.todayY + 'px');
+    root.setProperty('--kzc-today-x', L.todayX + '%');
+    root.setProperty('--kzc-today-y', L.todayY + '%');
     root.setProperty('--kzc-today-size', L.todaySize / 100);
-    root.setProperty('--kzc-count-x', L.countX + 'px');
-    root.setProperty('--kzc-count-y', L.countY + 'px');
+    root.setProperty('--kzc-count-x', L.countX + '%');
+    root.setProperty('--kzc-count-y', L.countY + '%');
     root.setProperty('--kzc-count-size', L.countSize / 100);
-    root.setProperty('--kzc-pills-x', L.pillsX + 'px');
-    root.setProperty('--kzc-pills-y', L.pillsY + 'px');
+    root.setProperty('--kzc-pills-x', L.pillsX + '%');
+    root.setProperty('--kzc-pills-y', L.pillsY + '%');
     root.setProperty('--kzc-pills-scale', L.pillsScale / 100);
-    root.setProperty('--kzc-pills-extend-up', L.pillsExtendUp + 'px');
-    root.setProperty('--kzc-pills-extend-down', L.pillsExtendDown + 'px');
-    CHORES_LAYOUT_SPEC.forEach(([key, id]) => {
+    root.setProperty('--kzc-pills-extend-up', L.pillsExtendUp + '%');
+    root.setProperty('--kzc-pills-extend-down', L.pillsExtendDown + '%');
+    CHORES_LAYOUT_SPEC.forEach(([key, id, unit]) => {
       const input = $(id);
       if (input) input.value = L[key];
       const out = $(id + '-val');
-      if (out) out.textContent = L[key] + (key.endsWith('Scale') ? '%' : 'px');
+      if (out) out.textContent = L[key] + unit;
     });
     return L;
   }
@@ -193,16 +200,16 @@ const KidRewards = (() => {
   $('chores-layout-copy-btn').addEventListener('click', async () => {
     const L = choresLayoutState;
     const text = `:root {\n` +
-      `  --kzc-header-x: ${L.headerX}px; --kzc-header-y: ${L.headerY}px; --kzc-header-scale: ${L.headerScale / 100};\n` +
-      `  --kzc-header-text-x: ${L.headerTextX}px; --kzc-header-text-y: ${L.headerTextY}px; --kzc-header-text-size: ${L.headerTextSize / 100};\n` +
+      `  --kzc-header-x: ${L.headerX}%; --kzc-header-y: ${L.headerY}%; --kzc-header-scale: ${L.headerScale / 100};\n` +
+      `  --kzc-header-text-x: ${L.headerTextX}%; --kzc-header-text-y: ${L.headerTextY}%; --kzc-header-text-size: ${L.headerTextSize / 100};\n` +
       `  /* also update index.html's <path id="kz-chores-sign-arc"> d attribute to: */\n` +
       `  /* d="M 150 270 Q 500 ${270 - L.headerTextCurve} 850 270" */\n` +
-      `  --kzc-banner-x: ${L.bannerX}px; --kzc-banner-y: ${L.bannerY}px; --kzc-banner-scale: ${L.bannerScale / 100}; --kzc-banner-height-scale: ${L.bannerHeightScale / 100};\n` +
-      `  --kzc-avatar-x: ${L.avatarX}px; --kzc-avatar-y: ${L.avatarY}px; --kzc-avatar-size: ${L.avatarSize / 100};\n` +
-      `  --kzc-today-x: ${L.todayX}px; --kzc-today-y: ${L.todayY}px; --kzc-today-size: ${L.todaySize / 100};\n` +
-      `  --kzc-count-x: ${L.countX}px; --kzc-count-y: ${L.countY}px; --kzc-count-size: ${L.countSize / 100};\n` +
-      `  --kzc-pills-x: ${L.pillsX}px; --kzc-pills-y: ${L.pillsY}px; --kzc-pills-scale: ${L.pillsScale / 100};\n` +
-      `  --kzc-pills-extend-up: ${L.pillsExtendUp}px; --kzc-pills-extend-down: ${L.pillsExtendDown}px;\n` +
+      `  --kzc-banner-x: ${L.bannerX}%; --kzc-banner-y: ${L.bannerY}%; --kzc-banner-scale: ${L.bannerScale / 100}; --kzc-banner-height-scale: ${L.bannerHeightScale / 100};\n` +
+      `  --kzc-avatar-x: ${L.avatarX}%; --kzc-avatar-y: ${L.avatarY}%; --kzc-avatar-size: ${L.avatarSize / 100};\n` +
+      `  --kzc-today-x: ${L.todayX}%; --kzc-today-y: ${L.todayY}%; --kzc-today-size: ${L.todaySize / 100};\n` +
+      `  --kzc-count-x: ${L.countX}%; --kzc-count-y: ${L.countY}%; --kzc-count-size: ${L.countSize / 100};\n` +
+      `  --kzc-pills-x: ${L.pillsX}%; --kzc-pills-y: ${L.pillsY}%; --kzc-pills-scale: ${L.pillsScale / 100};\n` +
+      `  --kzc-pills-extend-up: ${L.pillsExtendUp}%; --kzc-pills-extend-down: ${L.pillsExtendDown}%;\n` +
       `}`;
     const btn = $('chores-layout-copy-btn');
     try {

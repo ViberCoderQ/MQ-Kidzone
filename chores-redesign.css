@@ -24,8 +24,10 @@
 #chores-screen.kz-chores-redesign .kz-chores-sign {
   position: absolute; top: 0.5%; left: 50%;
   /* --kzc-header-*: set by the Chores Layout Tool (Grown-ups settings); defaults below match
-     the approved design exactly, so nothing changes until a slider is touched. */
-  transform: translateX(-50%) translate(var(--kzc-header-x, 0px), var(--kzc-header-y, 1px)) scale(var(--kzc-header-scale, 0.61));
+     the approved design exactly, so nothing changes until a slider is touched. The x/y nudges
+     are % (of this element's own box), not px -- translate() percentages are self-relative, so
+     the same value lands in the same relative spot regardless of viewport width/device. */
+  transform: translateX(-50%) translate(var(--kzc-header-x, 0%), var(--kzc-header-y, 0%)) scale(var(--kzc-header-scale, 0.61));
   transform-origin: top center;
   width: min(54%, 760px); aspect-ratio: 2048 / 682; pointer-events: none; z-index: 3;
 }
@@ -36,7 +38,7 @@
      image/whole-sign scale above. The arc's curve ("slope") isn't a CSS var -- it's the
      #kz-chores-sign-arc path's `d` attribute, recomputed by applyChoresLayout() in
      js/kid-rewards.js since SVG path geometry can't be driven by custom properties. */
-  transform: translate(var(--kzc-header-text-x, 0px), var(--kzc-header-text-y, -16px));
+  transform: translate(var(--kzc-header-text-x, 0%), var(--kzc-header-text-y, 0%));
   transform-origin: center;
 }
 #chores-screen.kz-chores-redesign .kz-chores-sign-label {
@@ -71,7 +73,7 @@
   /* --kzc-banner-scale resizes width+height together; --kzc-banner-height-scale stretches
      height on top of that, independently, so the banner can grow taller without the squished
      look a uniform-only scale gives (the art uses object-fit:fill, so it stretches cleanly). */
-  transform: translate(var(--kzc-banner-x, 0px), var(--kzc-banner-y, -33px))
+  transform: translate(var(--kzc-banner-x, 0%), var(--kzc-banner-y, 0%))
              scale(var(--kzc-banner-scale, 0.75)) scaleY(var(--kzc-banner-height-scale, 1.96));
   transform-origin: center;
 }
@@ -86,25 +88,32 @@
      .kz-chores-today/.kz-chores-count above -- the banner's height-scale slider stretches this
      box along with everything else; countering it here keeps the photo square regardless of
      that slider, while position (computed as a % of the already-stretched parent) is unaffected. */
-  transform: translate(var(--kzc-avatar-x, 1px), var(--kzc-avatar-y, -44px))
+  transform: translate(var(--kzc-avatar-x, 0%), var(--kzc-avatar-y, 0%))
              scale(var(--kzc-avatar-size, 1.04)) scaleY(calc(1 / var(--kzc-banner-height-scale, 1.96)));
   transform-origin: center;
 }
 #chores-screen.kz-chores-redesign .kz-chores-avatar .profile-avatar { width: 100%; height: 100%; font-size: clamp(16px, 2.4vw, 36px); }
 #chores-screen.kz-chores-redesign .kz-chores-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 #chores-screen.kz-chores-redesign .kz-chores-today {
-  position: absolute; left: 20.7%; top: 52%; width: 27.2%; font-weight: 1000; color: #050c4c;
-  /* --kzc-today-x/-y/-size: nudge tool controls for this row specifically (move + font size). */
+  position: absolute; width: 27.2%; font-weight: 1000; color: #050c4c;
+  /* --kzc-today-x/-y/-size: nudge tool controls for this row specifically (move + font size).
+     The x/y nudge is folded into left/top (a % of the banner, this element's containing block)
+     rather than a self-relative transform: translate() -- this row's own box is just one line
+     of text, maybe 30-50px tall, so a % of ITS height barely moves it at all. A % of the much
+     taller banner gives real travel room, e.g. enough to move it to the top of the banner. */
+  left: calc(20.7% + var(--kzc-today-x, 0%)); top: calc(52% + var(--kzc-today-y, 0%));
   font-size: calc(clamp(20px, 3.3vw, 52px) * var(--kzc-today-size, 0.87));
   line-height: 1.05; letter-spacing: -0.035em; white-space: nowrap; z-index: 2;
   /* Static label, never changes, so no JS needed -- but it's still a child of the scaled
      banner, so it needs the same anti-squish counter-transform as .kz-chores-count below. */
-  transform: translate(var(--kzc-today-x, -7px), var(--kzc-today-y, -34px)) scaleY(calc(1 / var(--kzc-banner-height-scale, 1.96)));
+  transform: scaleY(calc(1 / var(--kzc-banner-height-scale, 1.96)));
   transform-origin: center;
 }
 #chores-screen.kz-chores-redesign .kz-chores-count {
-  position: absolute; left: 20.7%; top: 75%; width: 27.2%; font-weight: 1000; color: #050c4c;
-  /* --kzc-count-x/-y/-size: nudge tool controls for this row specifically (move + font size). */
+  position: absolute; width: 27.2%; font-weight: 1000; color: #050c4c;
+  /* --kzc-count-x/-y/-size: nudge tool controls for this row specifically (move + font size).
+     Same left/top (not transform translate) reasoning as .kz-chores-today above. */
+  left: calc(20.7% + var(--kzc-count-x, 0%)); top: calc(75% + var(--kzc-count-y, 0%));
   font-size: calc(clamp(10px, 1.65vw, 26px) * var(--kzc-count-size, 1.05));
   line-height: 1.05; letter-spacing: -0.035em; white-space: nowrap; z-index: 2;
   /* Same "X of Y Chores Finished!" text/math as always (js/kid-rewards.js's renderChoresBanner
@@ -114,7 +123,7 @@
      renders at its normal proportions, while still sitting in the right spot since position is
      computed as a % of the (already-stretched) parent box, unaffected by this element's own
      transform. */
-  transform: translate(var(--kzc-count-x, 0px), var(--kzc-count-y, -53px)) scaleY(calc(1 / var(--kzc-banner-height-scale, 1.96)));
+  transform: scaleY(calc(1 / var(--kzc-banner-height-scale, 1.96)));
   transform-origin: center;
 }
 #chores-screen.kz-chores-redesign .kz-chores-track {
@@ -134,12 +143,12 @@
   position: absolute; inset: 0; max-width: none; margin: 0; padding: 0 1.6% 1.4%;
   /* --kzc-pills-extend-up/-down independently move the top edge up or the bottom edge down,
      so the row of pills can grow taller from either side without touching the other. */
-  top: calc(35% - var(--kzc-pills-extend-up, 0px));
-  height: calc(65% + var(--kzc-pills-extend-up, 0px) + var(--kzc-pills-extend-down, 0px));
+  top: calc(35% - var(--kzc-pills-extend-up, 0%));
+  height: calc(65% + var(--kzc-pills-extend-up, 0%) + var(--kzc-pills-extend-down, 0%));
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: clamp(6px, 1vh, 14px); overflow-y: auto; overscroll-behavior: contain; align-content: start;
   /* --kzc-pills-x/-y move every pill together (one shared value, not per-pill). */
-  transform: translate(var(--kzc-pills-x, 0px), var(--kzc-pills-y, 0px));
+  transform: translate(var(--kzc-pills-x, 0%), var(--kzc-pills-y, 0%));
 }
 #chores-screen.kz-chores-redesign .chore-card {
   position: relative; display: block; min-height: 0; height: 100%; padding: 0; margin: 0; border: 0; border-radius: 0;

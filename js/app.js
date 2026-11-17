@@ -4336,10 +4336,20 @@
   renderPalette();
   // Re-render anything that lists kids whenever the Supabase-backed kids cache changes (first
   // load, a kid added/removed on another iPad and picked back up, or a sign-in/out).
-  onKidsChanged(() => {
+  function renderKidLists() {
     renderSignin();
     renderParentKidList();
-  });
+  }
+  onKidsChanged(renderKidLists);
+  // Belt-and-suspenders for the very first load: js/profiles.js calls onKidsChanged's callback
+  // exactly once, synchronously, the moment its Supabase fetch resolves -- if that happens to
+  // land before this script has reached the line above (plausible on a slow/cold connection,
+  // e.g. an iPad's first request after opening the app), the notification is silently missed
+  // and the kid list stays empty forever, even though kidsCache itself loaded fine (visible
+  // workaround: anything that calls renderParentKidList() later, like adding a kid, suddenly
+  // "finds" everyone). Unlike that one-shot callback, a promise still fires `.then()` handlers
+  // added after it has already resolved, so this always catches up once kidsReady settles.
+  kidsReady.then(renderKidLists);
   // Wait (briefly) for the newest settings and the family's kids so coin rules and the kid list
   // are current from the first tap. Also waits for every script on the page to finish loading
   // (DOMContentLoaded), since the home screen uses code from files loaded after this one.

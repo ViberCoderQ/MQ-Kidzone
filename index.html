@@ -962,19 +962,23 @@
       <button type="button" id="chores-layout-done-btn" class="big-btn primary-btn">✅ Done</button>
     </div>
 
+    <!-- Left/right and Up/down sliders below are % (of each element's own box), not px --
+         translate() percentages are self-relative, so the same number lands in the same
+         relative spot on a computer browser window and an iPad, instead of drifting the way a
+         fixed px offset did. Re-nudge positions once after this change and it holds on both. -->
     <div class="chores-layout-section">Header sign</div>
     <label for="cl-header-x">Left / right <output id="cl-header-x-val"></output></label>
-    <input type="range" id="cl-header-x" min="-200" max="200" step="1" value="0">
+    <input type="range" id="cl-header-x" min="-40" max="40" step="0.5" value="0">
     <label for="cl-header-y">Up / down <output id="cl-header-y-val"></output></label>
-    <input type="range" id="cl-header-y" min="-200" max="200" step="1" value="1">
+    <input type="range" id="cl-header-y" min="-40" max="40" step="0.5" value="0">
     <label for="cl-header-scale">Size <output id="cl-header-scale-val"></output></label>
     <input type="range" id="cl-header-scale" min="50" max="150" step="1" value="61">
 
     <div class="chores-layout-section">Header text (child's name)</div>
     <label for="cl-header-text-x">Left / right <output id="cl-header-text-x-val"></output></label>
-    <input type="range" id="cl-header-text-x" min="-200" max="200" step="1" value="0">
+    <input type="range" id="cl-header-text-x" min="-40" max="40" step="0.5" value="0">
     <label for="cl-header-text-y">Up / down <output id="cl-header-text-y-val"></output></label>
-    <input type="range" id="cl-header-text-y" min="-200" max="200" step="1" value="-16">
+    <input type="range" id="cl-header-text-y" min="-40" max="40" step="0.5" value="0">
     <label for="cl-header-text-curve">Slope <output id="cl-header-text-curve-val"></output></label>
     <input type="range" id="cl-header-text-curve" min="-100" max="250" step="1" value="80">
     <label for="cl-header-text-size">Font size <output id="cl-header-text-size-val"></output></label>
@@ -982,9 +986,9 @@
 
     <div class="chores-layout-section">Progress bar</div>
     <label for="cl-banner-x">Left / right <output id="cl-banner-x-val"></output></label>
-    <input type="range" id="cl-banner-x" min="-200" max="200" step="1" value="0">
+    <input type="range" id="cl-banner-x" min="-40" max="40" step="0.5" value="0">
     <label for="cl-banner-y">Up / down <output id="cl-banner-y-val"></output></label>
-    <input type="range" id="cl-banner-y" min="-200" max="200" step="1" value="-33">
+    <input type="range" id="cl-banner-y" min="-40" max="40" step="0.5" value="0">
     <label for="cl-banner-scale">Size <output id="cl-banner-scale-val"></output></label>
     <input type="range" id="cl-banner-scale" min="50" max="150" step="1" value="75">
     <label for="cl-banner-height-scale">Height (independent of Size) <output id="cl-banner-height-scale-val"></output></label>
@@ -992,39 +996,42 @@
 
     <div class="chores-layout-section">Child's photo</div>
     <label for="cl-avatar-x">Left / right <output id="cl-avatar-x-val"></output></label>
-    <input type="range" id="cl-avatar-x" min="-200" max="200" step="1" value="1">
+    <input type="range" id="cl-avatar-x" min="-40" max="40" step="0.5" value="0">
     <label for="cl-avatar-y">Up / down <output id="cl-avatar-y-val"></output></label>
-    <input type="range" id="cl-avatar-y" min="-200" max="200" step="1" value="-44">
+    <input type="range" id="cl-avatar-y" min="-40" max="40" step="0.5" value="0">
     <label for="cl-avatar-size">Size <output id="cl-avatar-size-val"></output></label>
     <input type="range" id="cl-avatar-size" min="50" max="200" step="1" value="104">
 
+    <!-- Wider range than the other sections' Up/down -- these two are now a % of the banner
+         (their containing block), not of their own tiny text-line box, so the same number
+         means a smaller fraction of a bigger thing. Negative = up. -->
     <div class="chores-layout-section">"Today's Progress" text</div>
     <label for="cl-today-x">Left / right <output id="cl-today-x-val"></output></label>
-    <input type="range" id="cl-today-x" min="-200" max="200" step="1" value="-7">
+    <input type="range" id="cl-today-x" min="-60" max="60" step="0.5" value="0">
     <label for="cl-today-y">Up / down <output id="cl-today-y-val"></output></label>
-    <input type="range" id="cl-today-y" min="-200" max="200" step="1" value="-34">
+    <input type="range" id="cl-today-y" min="-100" max="100" step="0.5" value="0">
     <label for="cl-today-size">Font size <output id="cl-today-size-val"></output></label>
     <input type="range" id="cl-today-size" min="40" max="220" step="1" value="87">
 
     <div class="chores-layout-section">"X of Y Chores Finished!" text</div>
     <label for="cl-count-x">Left / right <output id="cl-count-x-val"></output></label>
-    <input type="range" id="cl-count-x" min="-200" max="200" step="1" value="0">
+    <input type="range" id="cl-count-x" min="-60" max="60" step="0.5" value="0">
     <label for="cl-count-y">Up / down <output id="cl-count-y-val"></output></label>
-    <input type="range" id="cl-count-y" min="-200" max="200" step="1" value="-53">
+    <input type="range" id="cl-count-y" min="-100" max="100" step="0.5" value="0">
     <label for="cl-count-size">Font size <output id="cl-count-size-val"></output></label>
     <input type="range" id="cl-count-size" min="40" max="220" step="1" value="105">
 
     <div class="chores-layout-section">Chore pills (all six at once)</div>
     <label for="cl-pills-x">Left / right <output id="cl-pills-x-val"></output></label>
-    <input type="range" id="cl-pills-x" min="-200" max="200" step="1" value="0">
+    <input type="range" id="cl-pills-x" min="-40" max="40" step="0.5" value="0">
     <label for="cl-pills-y">Up / down <output id="cl-pills-y-val"></output></label>
-    <input type="range" id="cl-pills-y" min="-200" max="200" step="1" value="0">
+    <input type="range" id="cl-pills-y" min="-40" max="40" step="0.5" value="0">
     <label for="cl-pills-scale">Size <output id="cl-pills-scale-val"></output></label>
     <input type="range" id="cl-pills-scale" min="50" max="150" step="1" value="101">
     <label for="cl-pills-extend-up">Extend upward <output id="cl-pills-extend-up-val"></output></label>
-    <input type="range" id="cl-pills-extend-up" min="0" max="300" step="2" value="0">
+    <input type="range" id="cl-pills-extend-up" min="0" max="40" step="0.5" value="0">
     <label for="cl-pills-extend-down">Extend downward <output id="cl-pills-extend-down-val"></output></label>
-    <input type="range" id="cl-pills-extend-down" min="0" max="300" step="2" value="0">
+    <input type="range" id="cl-pills-extend-down" min="0" max="40" step="0.5" value="0">
 
     <div class="chores-layout-actions">
       <button type="button" id="chores-layout-reset-btn" class="big-btn">Reset to Default</button>
