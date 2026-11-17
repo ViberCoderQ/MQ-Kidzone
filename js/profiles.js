@@ -49,19 +49,40 @@ function patchToRow(patch) {
 
 async function refreshKidsCache() {
   const familyId = ParentAuth.getFamilyId();
-  if (!familyId) { kidsCache = []; return; }
+  if (!familyId) { kidsCache = []; return true; }
   const { data, error } = await supabaseClient
     .from('kids').select('*').eq('family_id', familyId).order('created_at');
-  if (error) { console.error('[Profiles] could not load kids from Supabase:', error); return; }
+  if (error) { console.error('[Profiles] could not load kids from Supabase:', error); return false; }
   kidsCache = (data || []).map(rowToProfile);
+  return true;
 }
 
 // Reload whenever the signed-in family changes (initial check, sign-in, sign-out) and tell
 // whoever's listening (app.js) to re-render anything showing the kid list.
+//
+// If that fetch fails (a real Supabase/network error, not just "this family has zero kids"),
+// nothing used to retry it -- a transient blip (bad wifi on the iPad, a slow cold start) left
+// the kid list permanently empty until the app was fully reloaded. Now it retries on a backoff
+// (2s, 4s, 6s... capped at 30s) up to 8 times, self-healing without needing a reload.
+let kidsRetryTimer = null;
+let kidsRetryCount = 0;
+function scheduleKidsRetry() {
+  clearTimeout(kidsRetryTimer);
+  if (kidsRetryCount >= 8) return;
+  kidsRetryCount += 1;
+  kidsRetryTimer = setTimeout(async () => {
+    const ok = await refreshKidsCache();
+    if (kidsChangedCallback) kidsChangedCallback();
+    if (ok) kidsRetryCount = 0; else scheduleKidsRetry();
+  }, Math.min(30000, 2000 * kidsRetryCount));
+}
 ParentAuth.onChange(async () => {
-  await refreshKidsCache();
+  clearTimeout(kidsRetryTimer);
+  kidsRetryCount = 0;
+  const ok = await refreshKidsCache();
   kidsReadyResolve();
   if (kidsChangedCallback) kidsChangedCallback();
+  if (!ok) scheduleKidsRetry();
 });
 
 function loadProfiles() {
