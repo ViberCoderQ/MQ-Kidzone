@@ -1,42 +1,46 @@
 /* Kid Zone home screen artwork overlay.
-   Background art: icons/home-background.png (computer) / icons/home-background-ipad.png
-   (iPad, below) -- purely decorative scenery (no buttons baked into either), same pattern as
-   chores-redesign.css's #chores-screen background: cover directly on the full screen element,
-   cropping as needed to fill edge-to-edge with no letterbox bars and no stretching/distortion.
-   Buttons are positioned independently below (not tied to either image's pixel grid), same as
-   Chores' sign/banner/pills each having their own position -- so the background is free to crop
-   without needing to match any particular ratio. This file only repositions existing elements
-   -- app.js/config.js still own every click handler and nav route. Loaded after style.css;
-   only applies under #home-screen. */
+   Background art: icons/home-background.png (computer, 1670x942) / icons/home-background-ipad.png
+   (iPad, below, 4:3) -- purely decorative scenery (no buttons baked into either). Every child
+   below is positioned as a % of .home-inner, not the viewport, and .home-inner is locked to
+   the background image's own native aspect ratio and grown (never shrunk) to fully COVER
+   #home-screen -- the mirror image of a letterbox: instead of empty bars on a ratio mismatch,
+   the whole locked box (art + buttons together, as one rigid unit) overflows #home-screen's
+   overflow:hidden edge and gets cropped there, the same way background-size:cover crops a
+   plain image. Because the crop always happens on the OUTSIDE of this locked box and buttons
+   are positioned relative to the box itself, a button's position relative to the art behind it
+   (e.g. the wooden chores sign) never changes on any screen size/ratio/monitor -- only how much
+   of the edges is cropped away changes. This file only repositions existing elements --
+   app.js/config.js still own every click handler and nav route. Loaded after style.css; only
+   applies under #home-screen. */
 #home-screen.kz-art-home {
   overflow: hidden;
-  background: #54c7f3 url('icons/home-background.png?v=5') center / cover no-repeat;
+  background: #54c7f3; /* fallback strip; .home-inner below always fully covers this box, so it
+                           should never actually be visible except for a flash before layout */
 }
-/* iPad only: a separate background image (already 4:3, same shape as the locked box below, so
-   it shows in full with no internal crop at all -- only the OUTER letterbox, if the real
-   device isn't exactly 4:3, e.g. iPad Air/Pro 11, adds bars) instead of the computer's image,
-   plus locking the screen itself to a 4:3 box instead of covering whatever the real device's
-   exact aspect ratio happens to be. Every child positioned as a % of #home-screen (the icon
-   row, My Chores/Rewards Store, the gear) is a % of THIS locked box, so the banner sits at the
-   same predictable spot on every iPad model. Because this is a different image with the
-   banner in a different spot than the computer's, My Chores/Rewards Store likely need
-   re-tuning on an actual iPad with the Button Layout Tool -- the pointer:coarse values further
-   down were tuned against the old shared image, not this one. */
-@media (pointer: coarse) {
-  #home-screen.kz-art-home {
-    position: fixed; top: 50%; left: 50%; right: auto; bottom: auto;
-    transform: translate(-50%, -50%);
-    width: 100%; height: 100%; aspect-ratio: 4 / 3;
-    max-width: calc(100vh * 4 / 3); max-height: calc(100vw * 3 / 4);
-    background: #54c7f3 url('icons/home-background-ipad.png?v=1') center / cover no-repeat;
-  }
-}
-
-/* Do not touch position here: .screen already sets position:fixed;inset:0 to size the
-   whole screen to the viewport. Overriding it to "relative" collapses this element to
-   zero height once its children go position:absolute (no sized box left to fill). */
+/* The "swap max-width/max-height for min-width/min-height" trick: the contain/letterbox version
+   of this box (still used for other screens) clamps width/height DOWN to whichever is smaller,
+   shrinking the box to fit entirely inside the viewport. This does the opposite -- clamps them
+   UP to whichever is bigger, growing the box until it fully covers the viewport, with the
+   overflow clipped by #home-screen's overflow:hidden above. */
 #home-screen.kz-art-home .home-inner {
-  position: relative; width: 100%; height: 100%; max-width: none; padding: 0; margin: 0;
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 100%; height: 100%; aspect-ratio: 1670 / 942;
+  min-width: calc(100vh * 1670 / 942); min-height: calc(100vw * 942 / 1670);
+  max-width: none; padding: 0; margin: 0;
+  background: url('icons/home-background.png?v=5') center / 100% 100% no-repeat;
+}
+/* iPad only: a separate background image (already 4:3, so no internal crop at all -- only the
+   OUTER crop, if the real device isn't exactly 4:3, e.g. iPad Air/Pro 11) instead of the
+   computer's image, plus a 4:3 lock instead of the computer's 1670:942 one. Because this is a
+   different image with the banner in a different spot than the computer's, My Chores/Rewards
+   Store likely need re-tuning on an actual iPad with the Button Layout Tool -- the
+   pointer:coarse values further down were tuned against the old shared image, not this one. */
+@media (pointer: coarse) {
+  #home-screen.kz-art-home .home-inner {
+    aspect-ratio: 4 / 3;
+    min-width: calc(100vh * 4 / 3); min-height: calc(100vw * 3 / 4);
+    background: url('icons/home-background-ipad.png?v=1') center / 100% 100% no-repeat;
+  }
 }
 
 /* Family photo stays visible in the open sky area above the buttons, instead of being
