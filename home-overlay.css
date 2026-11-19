@@ -49,10 +49,12 @@
    from the iPad itself, without editing this file. No ceiling on the size: z-index puts it
    behind #section-grid (below) and pointer-events:none means it can never intercept a tap,
    so if it's sized big enough to reach the buttons, it just passes behind them instead of
-   covering/blocking them. */
+   covering/blocking them. Lives inside .home-inner (the locked/cropped art box, unlike the
+   settings gear below), since it's meant to sit in a specific part of the scene -- top is 5%
+   instead of a razor-thin 2% so it has real margin before a ratio mismatch's crop can reach it. */
 #home-screen.kz-art-home .home-logo {
   display: block; position: absolute; z-index: 1; pointer-events: none;
-  left: 50%; top: 2%; transform: translateX(-50%);
+  left: 50%; top: 5%; transform: translateX(-50%);
   width: var(--home-photo-width, 36%); height: auto; max-height: var(--home-photo-max-height, 28%);
   object-fit: contain; margin: 0; border-radius: 14px;
 }
@@ -144,19 +146,23 @@
   background-image: url('icons/home-buttons/music.png');
 }
 #home-screen.kz-art-home #section-grid > button[data-section="chores"] {
-  left: var(--kzb-chores-x, 14.6%); top: var(--kzb-chores-y, 72.2%); width: var(--kzb-chores-w, 34.2%);
+  left: var(--kzb-chores-x, 14.6%); top: var(--kzb-chores-y, 71.8%); width: var(--kzb-chores-w, 34.7%);
   background-image: url('icons/home-buttons/chores.png');
 }
 #home-screen.kz-art-home #section-grid > button[data-section="store"] {
-  left: var(--kzb-store-x, 50.2%); top: var(--kzb-store-y, 72.4%); width: var(--kzb-store-w, 35.4%);
+  left: var(--kzb-store-x, 50.2%); top: var(--kzb-store-y, 72.1%); width: var(--kzb-store-w, 35.4%);
   background-image: url('icons/home-buttons/store.png');
 }
 
-/* Parent gear: now a standalone sprite (icons/home-buttons/settings.png, ~1402x1122,
-   ~1.25:1), same CSS-var-driven left/top/width + fixed aspect-ratio pattern as the section-grid
-   buttons above, and included in the Button Layout Tool (Grown-ups > Home Screen Buttons) --
-   positioned inside .home-inner (not .home-header) so it's a % of the full screen like those.
-   Click handler reuses the existing PIN-gated openParentEntry(). */
+/* Parent gear: a standalone sprite (icons/home-buttons/settings.png, ~1402x1122, ~1.25:1),
+   same CSS-var-driven left/top/width + fixed aspect-ratio pattern as the section-grid buttons
+   above, and included in the Button Layout Tool (Grown-ups > Home Screen Buttons). Moved to be
+   a sibling of .home-inner in the markup (not a child of it) -- same as .home-header right
+   above -- so it's pinned to the true, always-fully-visible #home-screen instead of the
+   locked/cropped art box. Generic chrome, not tied to any specific part of the scene, so unlike
+   the family photo above it doesn't need to track the art at all, and this way it can never be
+   cropped off on a ratio mismatch no matter how severe. Click handler reuses the existing
+   PIN-gated openParentEntry(). */
 #home-screen.kz-art-home #home-parent-settings {
   position: absolute; z-index: 6; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
   background-image: url('icons/home-buttons/settings.png'); background-size: 100% 100%;

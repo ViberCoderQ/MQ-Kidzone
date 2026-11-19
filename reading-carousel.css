@@ -5,13 +5,21 @@
 
 /* No position override: .screen already sets position:fixed;inset:0 to size the whole screen
    to the viewport -- same fix as games-carousel.css/home-overlay.css needed. */
-/* Background art is purely decorative scenery (no home/gear icons or labels baked into it) --
-   same pattern as chores-redesign.css's #chores-screen / games-carousel.css's #games-screen
-   background: cover directly on the full screen element, cropping as needed to fill
-   edge-to-edge on ANY device shape (iPad or computer), no letterbox bars, no stretching. */
-#subject-screen.kz-reading-redesign{background:#3ba8ed url('assets/reading-carousel/meadow.png?v=3') center/cover no-repeat!important;overflow:hidden}
+/* .screen-inner (background art, home/settings buttons, carousel -- everything) is locked to
+   the background art's own aspect ratio and grown (never shrunk) to always fully cover
+   #subject-screen, via min-width/min-height instead of max-width/max-height -- the cover-crop
+   trick used on the Home screen. The art and every button live inside this same locked,
+   growing box, so a button's position relative to the art behind it never shifts on any
+   monitor/window shape -- only how much of the edges gets cropped away changes. */
+#subject-screen.kz-reading-redesign{background:#3ba8ed!important;overflow:hidden}
 #subject-screen.kz-reading-redesign>.screen-inner>.section-grid{display:none!important}
-#subject-screen.kz-reading-redesign>.screen-inner{position:absolute;inset:0;max-width:none!important;width:100%;height:100%;padding:0!important;margin:0!important;overflow:visible!important}
+#subject-screen.kz-reading-redesign>.screen-inner{
+  position:absolute!important;top:50%!important;left:50%!important;transform:translate(-50%,-50%)!important;
+  width:100%!important;height:100%!important;aspect-ratio:1672/941!important;
+  min-width:calc(100vh * 1672 / 941)!important;min-height:calc(100vw * 941 / 1672)!important;
+  max-width:none!important;padding:0!important;margin:0!important;overflow:visible!important;
+  background:url('assets/reading-carousel/meadow.png?v=3') center/100% 100% no-repeat!important;
+}
 
 /* #kz-reading-carousel picks up games-carousel.css's unscoped .kz-carousel positioning
    (position:absolute;inset:...) regardless of this screen's current mode. Since #subject-screen
@@ -40,7 +48,12 @@
 #subject-screen.kz-reading-redesign .kz-reading-settings{right:1.2%;top:1.5%;width:7%;aspect-ratio:1402/1122;border-radius:0;background-image:url('assets/reading-carousel/reading-settings-btn.png');background-size:100% 100%;background-repeat:no-repeat;background-position:center}
 
 .kz-reading-card{position:absolute;left:50%;top:49%;width:36%;height:82%;padding:0;border:0;background:transparent;cursor:pointer;will-change:transform,opacity;filter:drop-shadow(0 12px 12px #00305b77);transform-style:preserve-3d;backface-visibility:hidden}
-.kz-reading-card img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+/* Reading's icon PNGs bake in ~25% transparent margin vs. Games' ~15% (measured against each
+   set's own canvas), so at the same object-fit:contain box size the actual art reads visibly
+   smaller here than in Games -- scale just the image up to compensate, not the card itself
+   (the card's own box size/position feeds the carousel JS's 3D transform math in
+   reading-carousel.js, untouched here). */
+.kz-reading-card img{width:100%;height:100%;object-fit:contain;pointer-events:none;transform:scale(1.13)}
 .kz-reading-card:focus-visible{outline:5px solid #ffed54;border-radius:18%}
 /* The icon PNGs bake in their own ~13% transparent margin (drop-shadow/glow room), and the
    square image only fills the card's width (object-fit:contain on a taller-than-wide box) --

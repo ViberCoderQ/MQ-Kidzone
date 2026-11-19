@@ -157,7 +157,7 @@ const KidRewards = (() => {
       todayX: 0, todayY: -15.5, todaySize: 87,
       countX: 0.5, countY: -23, countSize: 105,
       pillsX: 0, pillsY: 0, pillsScale: 101, pillsExtendUp: 0, pillsExtendDown: 0,
-      chorePicX: 0, chorePicWidthScale: 100, chorePicHeightScale: 100,
+      chorePicX: 1, chorePicWidthScale: 128, chorePicHeightScale: 100,
     },
     ipad: {
       headerX: 0, headerY: 1, headerScale: 76,
