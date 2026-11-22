@@ -335,17 +335,17 @@ const KidRewards = (() => {
   // "Arts &" is deliberate, not a mid-word CSS break of "Art and Crafts").
   const DEFAULT_LABEL_FONT_SIZE = 28;
   const CATEGORY_LABEL_STYLE = {
-    'Toys': { fontSize: 34.0 },
-    'Games': { fontSize: 34.0 },
-    'Books': { fontSize: 34.0 },
-    'Adventures': { fontSize: 21.0 },
-    'Music': { fontSize: 34.0 },
-    'Art and Crafts': { fontSize: 33.0, lines: ['Arts &', 'Crafts'] },
-    'Sports': { fontSize: 34.0 },
-    'Sweets': { fontSize: 34.0 },
-    'Special Rewards': { fontSize: 34.0, lines: ['Special', 'Rewards'] },
-    'Clothes': { fontSize: 34.0 },
-    'Science': { fontSize: 34.0 },
+    'Toys': { fontSize: 40.0 },
+    'Games': { fontSize: 40.0 },
+    'Books': { fontSize: 40.0 },
+    'Adventures': { fontSize: 27.0 },
+    'Music': { fontSize: 40.0 },
+    'Art and Crafts': { fontSize: 40.0, lines: ['Arts &', 'Crafts'] },
+    'Sports': { fontSize: 40.0 },
+    'Sweets': { fontSize: 40.0 },
+    'Special Rewards': { fontSize: 40.0, lines: ['Special', 'Rewards'] },
+    'Clothes': { fontSize: 40.0 },
+    'Science': { fontSize: 40.0 },
   };
   // Mirrors store-intro.css's own clamp() shape (min = half of fontSize, same vw ratio) so a
   // per-category override still scales with viewport width the same way the CSS default does.
