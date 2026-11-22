@@ -15,6 +15,38 @@ const Setup = (() => {
   ];
   const MAX_PHOTO = 512;
 
+  // The 8 Reward Shop category pills (store-intro.css's .store-pill-<color>), in on-screen order
+  // (left cabinet top-to-bottom, then right cabinet top-to-bottom) -- swatches match the pill art.
+  const PILL_SLOTS = [
+    { color: 'blue', label: 'Blue — left shelf 1', swatch: '#1455e0' },
+    { color: 'cyan', label: 'Cyan — left shelf 2', swatch: '#36b7ef' },
+    { color: 'gold', label: 'Gold — left shelf 3', swatch: '#f3b61d' },
+    { color: 'green', label: 'Green — left shelf 4', swatch: '#36b24a' },
+    { color: 'pink', label: 'Pink — right shelf 1', swatch: '#e8187f' },
+    { color: 'orange', label: 'Orange — right shelf 2', swatch: '#f3821d' },
+    { color: 'purple', label: 'Purple — right shelf 3', swatch: '#8a2fd6' },
+    { color: 'red', label: 'Red — right shelf 4', swatch: '#e21f2b' },
+  ];
+  // Fixed list for now -- no free text, no admin-added images (that's future work, once the
+  // admin has real category icon art to go with each name).
+  const CATEGORY_OPTIONS = ['Toys', 'Games', 'Books', 'Adventures', 'Music', 'Art and Crafts', 'Sports', 'Sweets', 'Special Rewards', 'Clothes', 'Science'];
+  // Mirrors js/kid-rewards.js's CATEGORY_ICONS -- shown here as a small preview next to each
+  // row's dropdown so the grown-up can see what the kid will see, since a native <select> can't
+  // show images inside its own <option>s.
+  const CATEGORY_ICONS = {
+    'Toys': 'assets/store-intro/category-icons/toys.png',
+    'Games': 'assets/store-intro/category-icons/games.png',
+    'Books': 'assets/store-intro/category-icons/books.png',
+    'Adventures': 'assets/store-intro/category-icons/adventures.png',
+    'Music': 'assets/store-intro/category-icons/music.png',
+    'Art and Crafts': 'assets/store-intro/category-icons/art-and-crafts.png',
+    'Sports': 'assets/store-intro/category-icons/sports.png',
+    'Sweets': 'assets/store-intro/category-icons/sweets.png',
+    'Special Rewards': 'assets/store-intro/category-icons/special-rewards.png',
+    'Clothes': 'assets/store-intro/category-icons/clothes.png',
+    'Science': 'assets/store-intro/category-icons/science.png',
+  };
+
   const pendingPhotos = new Map(); // preview object URL -> { blob, fileName }
   let editing = null; // { kind: 'chores'|'store', item, isNew, original }
   let editPicture = null;
@@ -53,7 +85,53 @@ const Setup = (() => {
   function renderAll() {
     renderChores();
     renderStore();
+    renderCategories();
     renderCoins();
+  }
+
+  // ---------- reward shop categories ----------
+  // Each category can only be assigned to one pill at a time -- picking it in one <select>
+  // disables that <option> in the other 7 until it's freed up again (changed back to "Not set"
+  // or reassigned). Saves immediately on change, no separate Done button (there's only one
+  // control per row, unlike the chore/store item editor).
+  function renderCategories() {
+    const box = $('setup-categories-list');
+    box.innerHTML = '';
+    const assigned = getSettings().storePillCategories || {};
+    PILL_SLOTS.forEach(({ color, label, swatch }) => {
+      const row = document.createElement('div');
+      row.className = 'setup-row';
+      const current = assigned[color] || '';
+      const usedElsewhere = new Set(
+        PILL_SLOTS.filter((s) => s.color !== color).map((s) => assigned[s.color]).filter(Boolean)
+      );
+      const options = ['<option value="">— Not set —</option>']
+        .concat(CATEGORY_OPTIONS.map((name) => {
+          const disabled = usedElsewhere.has(name) && name !== current;
+          return `<option value="${esc(name)}"${name === current ? ' selected' : ''}${disabled ? ' disabled' : ''}>${esc(name)}</option>`;
+        }));
+      const iconUrl = CATEGORY_ICONS[current] || '';
+      row.innerHTML = `<span class="setup-category-swatch" style="background:${swatch}"></span>
+        <span class="setup-category-icon-preview" style="${iconUrl ? `background-image:url('${iconUrl}')` : ''}"></span>
+        <span class="setup-row-text"><span class="setup-row-name">${esc(label)}</span></span>
+        <select class="name-input small-input setup-category-select">${options.join('')}</select>`;
+      row.querySelector('select').addEventListener('change', async (e) => {
+        const next = { ...getSettings().storePillCategories, [color]: e.target.value || undefined };
+        if (!e.target.value) delete next[color];
+        const preview = row.querySelector('.setup-category-icon-preview');
+        preview.style.backgroundImage = CATEGORY_ICONS[e.target.value] ? `url('${CATEGORY_ICONS[e.target.value]}')` : '';
+        setStatus('Saving...');
+        try {
+          await saveStorePillCategories(next);
+          setStatus('✅ Saved', 'ok');
+        } catch (err) {
+          console.error('[Setup] could not save reward shop categories:', err);
+          setStatus('Could not save -- check your connection', 'error');
+        }
+        renderCategories();
+      });
+      box.appendChild(row);
+    });
   }
 
   // ---------- chores + store lists ----------

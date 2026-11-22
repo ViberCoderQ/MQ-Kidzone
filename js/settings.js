@@ -25,6 +25,7 @@ let currentStore = [];
 let currentCoinRules = normalizeCoinRules(null);
 let currentHomePhotoSizePct = 36;
 let currentHomePhotoUrl = null;
+let currentStorePillCategories = {};
 
 let settingsReadyResolve;
 const settingsReady = new Promise((r) => { settingsReadyResolve = r; });
@@ -45,6 +46,12 @@ function normalizeCoinRules(raw) {
   return { sections };
 }
 
+// Keyed by pill color (blue/cyan/gold/green/pink/orange/purple/red) -> category name string.
+// Unknown shape (null, not-an-object) just becomes "nothing assigned yet" rather than throwing.
+function normalizeStorePillCategories(raw) {
+  return (raw && typeof raw === 'object' && !Array.isArray(raw)) ? { ...raw } : {};
+}
+
 function rowToChore(row) {
   return { id: row.id, name: row.name, picture: row.picture, coins: row.coins, kids: row.kid_ids || [], days: row.days || [] };
 }
@@ -58,22 +65,32 @@ async function refreshSharedData() {
     currentChores = [];
     currentStore = [];
     currentCoinRules = normalizeCoinRules(null);
+    currentStorePillCategories = {};
     return;
   }
-  const [choresRes, storeRes, familyRes] = await Promise.all([
+  // store_pill_categories is queried separately from the rest of the family row on purpose --
+  // it's a newer column that needs supabase-store-pill-categories.sql run against Supabase
+  // before it exists there. Selecting an unknown column fails the WHOLE query in Postgrest, so
+  // bundling it with coin_rules/home_photo_* would take those down too on any family that
+  // hasn't been migrated yet. Keeping it a separate request means a missing column only ever
+  // costs this one feature, never the established ones.
+  const [choresRes, storeRes, familyRes, pillCategoriesRes] = await Promise.all([
     supabaseClient.from('chores').select('*').eq('family_id', familyId).order('created_at'),
     supabaseClient.from('store_items').select('*').eq('family_id', familyId).order('created_at'),
     supabaseClient.from('families').select('coin_rules, home_photo_size_pct, home_photo_url').eq('id', familyId).single(),
+    supabaseClient.from('families').select('store_pill_categories').eq('id', familyId).single(),
   ]);
   if (choresRes.error) console.error('[Settings] could not load chores:', choresRes.error);
   if (storeRes.error) console.error('[Settings] could not load store items:', storeRes.error);
   if (familyRes.error) console.error('[Settings] could not load coin rules:', familyRes.error);
+  if (pillCategoriesRes.error) console.error('[Settings] could not load reward shop categories -- has supabase-store-pill-categories.sql been run yet?', pillCategoriesRes.error);
   currentChores = (choresRes.data || []).map(rowToChore);
   currentStore = (storeRes.data || []).map(rowToStoreItem);
   currentCoinRules = normalizeCoinRules(familyRes.data ? familyRes.data.coin_rules : null);
   const syncedSize = Number(familyRes.data && familyRes.data.home_photo_size_pct);
   if (Number.isFinite(syncedSize) && syncedSize > 0) currentHomePhotoSizePct = syncedSize;
   currentHomePhotoUrl = (familyRes.data && familyRes.data.home_photo_url) || null;
+  currentStorePillCategories = normalizeStorePillCategories(pillCategoriesRes.data ? pillCategoriesRes.data.store_pill_categories : null);
 }
 
 ParentAuth.onChange(async () => {
@@ -83,7 +100,7 @@ ParentAuth.onChange(async () => {
 });
 
 function getSettings() {
-  return { chores: currentChores, store: currentStore, coinRules: currentCoinRules };
+  return { chores: currentChores, store: currentStore, coinRules: currentCoinRules, storePillCategories: currentStorePillCategories };
 }
 
 // Coin rules with labels attached, e.g. getCoinRules().sections.coloring.perItem
@@ -100,6 +117,16 @@ async function saveCoinRules(sections) {
   if (!familyId) throw new Error('Sign in to the Family Account first.');
   currentCoinRules = normalizeCoinRules({ sections });
   const { error } = await supabaseClient.from('families').update({ coin_rules: currentCoinRules }).eq('id', familyId);
+  if (error) throw error;
+}
+
+// Admin-curated shared config like coin rules (not a device-local nice-to-have like the photo
+// size), so this throws without a Family Account rather than silently no-op'ing.
+async function saveStorePillCategories(categories) {
+  const familyId = ParentAuth.getFamilyId();
+  if (!familyId) throw new Error('Sign in to the Family Account first.');
+  currentStorePillCategories = normalizeStorePillCategories(categories);
+  const { error } = await supabaseClient.from('families').update({ store_pill_categories: currentStorePillCategories }).eq('id', familyId);
   if (error) throw error;
 }
 

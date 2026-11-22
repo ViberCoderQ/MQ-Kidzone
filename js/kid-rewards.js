@@ -299,12 +299,116 @@ const KidRewards = (() => {
   // ================= Store =================
   let buying = null;
 
-  function openStore() {
+  // The item grid itself -- not called directly from Home anymore (see openStore below).
+  // Every category pill on #store-intro-screen calls this; none of them filter by category yet
+  // (see the pill click wiring below), so it's still the same full, unfiltered grid regardless
+  // of which pill was tapped.
+  function openStoreItems() {
     renderStore();
     AppBridge.showScreen('store-screen');
   }
 
+  const PILL_COLORS = ['blue', 'cyan', 'gold', 'green', 'pink', 'orange', 'purple', 'red'];
+
+  // One icon per fixed category (js/setup.js's CATEGORY_OPTIONS) -- assets/store-intro/
+  // category-icons/*.png. Keys must match those option strings exactly.
+  const CATEGORY_ICONS = {
+    'Toys': 'assets/store-intro/category-icons/toys.png',
+    'Games': 'assets/store-intro/category-icons/games.png',
+    'Books': 'assets/store-intro/category-icons/books.png',
+    'Adventures': 'assets/store-intro/category-icons/adventures.png',
+    'Music': 'assets/store-intro/category-icons/music.png',
+    'Art and Crafts': 'assets/store-intro/category-icons/art-and-crafts.png',
+    'Sports': 'assets/store-intro/category-icons/sports.png',
+    'Sweets': 'assets/store-intro/category-icons/sweets.png',
+    'Special Rewards': 'assets/store-intro/category-icons/special-rewards.png',
+    'Clothes': 'assets/store-intro/category-icons/clothes.png',
+    'Science': 'assets/store-intro/category-icons/science.png',
+  };
+
+  // Per-CATEGORY label styling (not per-pill) -- the text that overflows is "Art and Crafts"/
+  // "Special Rewards" themselves, independent of which colored pill they end up assigned to, so
+  // this travels with the category name, not a pill color. fontSize is the clamp() max/preferred
+  // baseline (same shape as store-intro.css's default); a category not listed here just uses
+  // DEFAULT_LABEL_FONT_SIZE on one line. `lines`, when present, renders centered on N lines
+  // instead of the single left-aligned line -- exact wording per line, not an automatic wrap (so
+  // "Arts &" is deliberate, not a mid-word CSS break of "Art and Crafts").
+  const DEFAULT_LABEL_FONT_SIZE = 28;
+  const CATEGORY_LABEL_STYLE = {
+    'Toys': { fontSize: 34.0 },
+    'Games': { fontSize: 34.0 },
+    'Books': { fontSize: 34.0 },
+    'Adventures': { fontSize: 21.0 },
+    'Music': { fontSize: 34.0 },
+    'Art and Crafts': { fontSize: 33.0, lines: ['Arts &', 'Crafts'] },
+    'Sports': { fontSize: 34.0 },
+    'Sweets': { fontSize: 34.0 },
+    'Special Rewards': { fontSize: 34.0, lines: ['Special', 'Rewards'] },
+    'Clothes': { fontSize: 34.0 },
+    'Science': { fontSize: 34.0 },
+  };
+  // Mirrors store-intro.css's own clamp() shape (min = half of fontSize, same vw ratio) so a
+  // per-category override still scales with viewport width the same way the CSS default does.
+  function labelFontSizeCss(size) { return `clamp(${(size * 0.5).toFixed(1)}px, ${(size * 0.0729).toFixed(3)}vw, ${size.toFixed(1)}px)`; }
+
+  // Paints each pill's admin-assigned category (Setup > Reward Shop tab) into its
+  // .store-pill-icon/.store-pill-label spans. A pill with no category assigned yet just stays
+  // blank, same as before either zone had anything to show.
+  function renderStorePillCategories() {
+    const categories = getSettings().storePillCategories || {};
+    PILL_COLORS.forEach((color) => {
+      const pill = document.querySelector(`#store-intro-screen .store-pill-${color}`);
+      if (!pill) return;
+      const category = categories[color] || '';
+      const icon = pill.querySelector('.store-pill-icon');
+      const label = pill.querySelector('.store-pill-label');
+      if (icon) icon.style.backgroundImage = CATEGORY_ICONS[category] ? `url('${CATEGORY_ICONS[category]}')` : '';
+      if (label) {
+        const style = CATEGORY_LABEL_STYLE[category];
+        label.style.fontSize = labelFontSizeCss(style ? style.fontSize : DEFAULT_LABEL_FONT_SIZE);
+        label.replaceChildren();
+        if (style && style.lines) {
+          label.style.whiteSpace = 'normal';
+          label.style.textAlign = 'center';
+          style.lines.forEach((line, i) => {
+            if (i > 0) label.appendChild(document.createElement('br'));
+            label.appendChild(document.createTextNode(line));
+          });
+        } else {
+          label.style.whiteSpace = '';
+          label.style.textAlign = '';
+          label.appendChild(document.createTextNode(category));
+        }
+      }
+    });
+  }
+
+  // Public entry point from Home (the "Rewards Store" section button and the savings-goal
+  // pill both call this) -- opens the category screen first instead of jumping straight to the
+  // item grid.
+  function openStore() {
+    AppBridge.showScreen('store-intro-screen');
+    renderStorePillCategories();
+    // reward-shop.js's <reward-shop-sign> measures its own letter widths via
+    // getComputedTextLength() when it connects, which returns 0 (garbling the layout) if the
+    // element exists while #store-intro-screen is still display:none. Creating it fresh here,
+    // after the screen is already showing, guarantees it connects while visible.
+    const inner = document.querySelector('#store-intro-screen .store-intro-inner');
+    if (inner && !inner.querySelector('reward-shop-sign')) {
+      const sign = document.createElement('reward-shop-sign');
+      sign.className = 'store-intro-sign';
+      inner.appendChild(sign);
+    }
+  }
+
+  // The 8 category pills on #store-intro-screen -- no per-category filtering yet, so every pill
+  // just opens the full item grid until categories exist to route them differently.
+  document.querySelectorAll('#store-intro-screen .store-pill').forEach((btn) => {
+    btn.addEventListener('click', () => openStoreItems());
+  });
+
   $('store-back-btn').addEventListener('click', () => AppBridge.enterHome());
+  $('store-intro-home-btn').addEventListener('click', () => AppBridge.enterHome());
 
   function renderStore() {
     const profile = me();

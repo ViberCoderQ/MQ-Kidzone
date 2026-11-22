@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="reading-carousel.css?v=5" />
   <link rel="stylesheet" href="chores-redesign.css?v=12" />
   <link rel="stylesheet" href="home-overlay.css?v=24" />
+  <link rel="stylesheet" href="store-intro.css?v=1" />
 </head>
 <body>
 
@@ -112,6 +113,31 @@
       <div class="chore-list" id="chore-list"></div>
       <p class="empty-hint hidden" id="chore-empty">No chores today! 🎉</p>
     </div>
+  </section>
+
+  <!-- ================= Store intro (categories) -- Home's Rewards Store button (and the
+       savings-goal pill) opens this first now. No category buttons yet, so it's currently a
+       dead end except for its own Home button; once categories exist, each one calls
+       KidRewards' openStoreItems() to reach #store-screen below. ================= -->
+  <section id="store-intro-screen" class="screen">
+    <div class="store-intro-inner">
+      <!-- 8 category pills, 4 per cabinet (top to bottom) -- blank color capsules for now.
+           Each has a reserved icon zone (left) and label zone (right) for the admin-chosen
+           category icon/text that will come later (see store-intro.css). All route to the
+           existing (unfiltered) item grid until per-category filtering exists. -->
+      <button type="button" class="store-pill store-pill-blue" aria-label="Category 1"><span class="store-pill-icon"></span><span class="store-pill-label"></span></button>
+      <button type="button" class="store-pill store-pill-cyan" aria-label="Category 2"><span class="store-pill-icon"></span><span class="store-pill-label"></span></button>
+      <button type="button" class="store-pill store-pill-gold" aria-label="Category 3"><span class="store-pill-icon"></span><span class="store-pill-label"></span></button>
+      <button type="button" class="store-pill store-pill-green" aria-label="Category 4"><span class="store-pill-icon"></span><span class="store-pill-label"></span></button>
+      <button type="button" class="store-pill store-pill-pink" aria-label="Category 5"><span class="store-pill-icon"></span><span class="store-pill-label"></span></button>
+      <button type="button" class="store-pill store-pill-orange" aria-label="Category 6"><span class="store-pill-icon"></span><span class="store-pill-label"></span></button>
+      <button type="button" class="store-pill store-pill-purple" aria-label="Category 7"><span class="store-pill-icon"></span><span class="store-pill-label"></span></button>
+      <button type="button" class="store-pill store-pill-red" aria-label="Category 8"><span class="store-pill-icon"></span><span class="store-pill-label"></span></button>
+      <!-- Decorative gift display, centered on the rug in front of the window -- not
+           interactive, just scenery (see store-intro.css). -->
+      <div class="store-gift-display" aria-hidden="true"></div>
+    </div>
+    <button type="button" class="kz-store-intro-home" id="store-intro-home-btn" aria-label="Back to home">⌂ Home</button>
   </section>
 
   <!-- ================= Store (kid) ================= -->
@@ -828,6 +854,7 @@
     <nav class="setup-tabs" id="setup-tabs">
       <button type="button" class="setup-tab active" data-tab="chores">🧹 Chores</button>
       <button type="button" class="setup-tab" data-tab="store">🛍️ Store</button>
+      <button type="button" class="setup-tab" data-tab="categories">🎁 Reward Shop</button>
       <button type="button" class="setup-tab" data-tab="coins">🪙 Coins</button>
     </nav>
     <div class="screen-inner setup-inner">
@@ -841,6 +868,12 @@
         <p class="parent-card-note">Rewards the boys can buy with coins. You'll mark each one Paid on his iPad when you hand it over.</p>
         <div class="setup-list" id="setup-store-list"></div>
         <button type="button" class="big-btn" id="setup-add-store-btn">+ Add a store item</button>
+      </div>
+
+      <div class="setup-panel hidden" data-panel="categories">
+        <p class="parent-card-note">Pick which category shows on each button in the boys' Reward Shop. Each category can only
+          go on one pill -- picking one here removes it from the others until you free it up again.</p>
+        <div class="setup-list" id="setup-categories-list"></div>
       </div>
 
       <div class="setup-panel hidden" data-panel="coins">
@@ -1367,7 +1400,8 @@
   <script src="js/spot-the-difference-levels.js?v=1"></script>
   <script src="js/spot-the-difference.js?v=1"></script>
   <script src="js/setup.js?v=160"></script>
-  <script src="js/kid-rewards.js?v=168"></script>
+  <script src="js/kid-rewards.js?v=170"></script>
+  <script src="js/reward-shop.js?v=1"></script>
   <script src="js/war.js?v=159"></script>
   <script src="js/tictactoe.js?v=159"></script>
   <script src="js/connect4.js?v=159"></script>

@@ -1,0 +1,130 @@
+/* Store intro screen -- sits between Home and the real Store screen (not wired in yet; the
+   Rewards Store button on Home still goes straight to #store-screen until category buttons
+   exist here to route through). Background art: store-intro-computer.png (16:9ish,
+   1672x941) / store-intro-ipad.png (iPad, below, 4:3, 1448x1086) -- same cover-crop
+   aspect-ratio lock as Home/Chores/Games/Reading: .store-intro-inner is locked to the art's own
+   native ratio and grown (never shrunk) to always fully cover #store-intro-screen, via
+   min-width/min-height instead of max-width/max-height, so category buttons added later stay
+   glued to the art on any monitor/window shape instead of needing per-device tuning. */
+#store-intro-screen {
+  overflow: hidden;
+  background: #54c7f3; /* fallback strip; .store-intro-inner below always fully covers this */
+}
+#store-intro-screen .store-intro-inner {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 100%; height: 100%; aspect-ratio: 1672 / 941;
+  min-width: calc(100vh * 1672 / 941); min-height: calc(100vw * 941 / 1672);
+  max-width: none; padding: 0; margin: 0;
+  background: url('assets/store-intro/store-intro-computer.png') center / 100% 100% no-repeat;
+}
+@media (pointer: coarse) {
+  #store-intro-screen .store-intro-inner {
+    aspect-ratio: 1448 / 1086;
+    min-width: calc(100vh * 1448 / 1086); min-height: calc(100vw * 1086 / 1448);
+    background: url('assets/store-intro/store-intro-ipad.png') center / 100% 100% no-repeat;
+  }
+}
+
+/* Home pill: pinned directly to #store-intro-screen (the true, always-fully-visible screen),
+   not a child of .store-intro-inner (the locked/cropped art box) -- same reasoning as the
+   Home screen's settings gear, so it can never be cropped off on a ratio mismatch. Same look
+   as the Chores screen's Home pill (chores-redesign.css's kz-chores-home), copied rather than
+   shared since that one is scoped under #chores-screen only. */
+#store-intro-screen .kz-store-intro-home {
+  position: absolute; top: 1.5%; left: 1.5%; z-index: 10; font-weight: 900;
+  width: clamp(90px, 13%, 180px); height: clamp(40px, 7vh, 64px);
+  border: 4px solid #fff; outline: 2px solid #46bbff; border-radius: 44px; cursor: pointer;
+  background: linear-gradient(#168afc 0%, #06369d 48%, #06156b); color: #fff;
+  font-size: clamp(13px, 1.7vw, 24px); box-shadow: 0 6px 0 #043884, 0 8px 14px #1238;
+}
+
+/* Animated "Reward Shop" marquee sign (js/reward-shop.js, a <reward-shop-sign> custom
+   element -- self-contained SVG + shadow DOM, decorative/pointer-events:none, don't touch its
+   internals here). Sits centered at the very top of the art, overlapping down onto the awning
+   like a sign mounted above the storefront. Width/top tuned separately per crop since the
+   awning sits at a different height in each background. */
+#store-intro-screen .store-intro-sign {
+  position: absolute; top: -1%; left: 50%; transform: translateX(-50%);
+  width: 46%; z-index: 3;
+}
+@media (pointer: coarse) {
+  #store-intro-screen .store-intro-sign { top: 1%; width: 50%; }
+}
+
+/* 8 category pill buttons, 4 per cabinet (one per shelf). Blank color capsules for now
+   (assets/store-intro/pills/pill-*.png) -- the admin will later assign each a category, which
+   drops an icon into .store-pill-icon (left) and the category name into .store-pill-label
+   (right); those two spans are the reserved zones for that, empty/invisible until then. left/top
+   are each pill's CENTER (not top-left). width/height are set per-pill below rather than shared --
+   each pill-*.png was generated separately and has a different amount of transparent padding
+   baked around its drawn capsule (e.g. gold's capsule fills only ~94% of its canvas vs cyan's
+   ~96%), so a single shared size made them render at visibly different scales. gold was picked as
+   the reference size; every other pill's width/height here is gold's box scaled by that color's
+   own fill ratio, so all 8 capsules render at the same true size. Values tuned via
+   kid-zone-app-dev/reward-shop-pills-align-tool.html -- re-run that tool and repaste both blocks
+   below if the background art ever changes. */
+#store-intro-screen .store-pill {
+  position: absolute; transform: translate(-50%, -50%);
+  border: 0; padding: 0; margin: 0; background-color: transparent;
+  background-repeat: no-repeat; background-position: center; background-size: 100% 100%;
+  display: flex; align-items: center; cursor: pointer;
+}
+#store-intro-screen .store-pill:active { transform: translate(-50%, -50%) scale(0.96); }
+/* Holds the admin-assigned category's icon (Setup > Reward Shop tab, js/kid-rewards.js's
+   renderStorePillCategories, assets/store-intro/category-icons/*.png) -- empty/invisible until a
+   category is assigned. background-size:contain (not 100% 100%, unlike the pill itself) because
+   the 11 category icons aren't all the same aspect ratio -- contain always shows the whole icon
+   undistorted, letterboxed within this zone rather than stretched or cropped. */
+#store-intro-screen .store-pill-icon {
+  flex: 0 0 33.5%; height: 59.5%; margin-left: 10%;
+  background-repeat: no-repeat; background-position: center; background-size: contain;
+}
+/* Holds the admin-assigned category name (Setup > Reward Shop tab, js/kid-rewards.js's
+   renderStorePillCategories) -- empty/invisible until a category is assigned, same as the icon
+   zone above it. clamp() matches this app's other glued-to-the-art button labels (e.g. the Home
+   pill text sizing in store-intro.css/style.css), not a container query, since none of this
+   app's other responsive text uses cqw. */
+#store-intro-screen .store-pill-label {
+  flex: 1 1 auto; margin-left: 4%; margin-right: 6%;
+  font-weight: 900; color: #fff; text-shadow: 0 2px 2px rgba(0, 0, 0, 0.35);
+  -webkit-text-stroke: 0.4px rgba(0, 0, 0, 0.55);
+  font-size: clamp(14px, 2.04vw, 28px); line-height: 1.05;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transform: translateX(-9.5%);
+}
+
+#store-intro-screen .store-pill-blue   { left: 25.6%; top: 32.4%; width: 24.14%; height: 13.38%; background-image: url('assets/store-intro/pills/pill-blue.png'); }
+#store-intro-screen .store-pill-cyan   { left: 25.6%; top: 46.2%; width: 24.01%; height: 13.23%; background-image: url('assets/store-intro/pills/pill-cyan.png'); }
+#store-intro-screen .store-pill-gold   { left: 25.6%; top: 60.0%; width: 24.60%; height: 13.45%; background-image: url('assets/store-intro/pills/pill-gold.png'); }
+#store-intro-screen .store-pill-green  { left: 25.6%; top: 73.8%; width: 24.34%; height: 13.26%; background-image: url('assets/store-intro/pills/pill-green.png'); }
+#store-intro-screen .store-pill-pink   { left: 74.2%; top: 32.4%; width: 24.16%; height: 13.15%; background-image: url('assets/store-intro/pills/pill-pink.png'); }
+#store-intro-screen .store-pill-orange { left: 74.2%; top: 46.2%; width: 24.11%; height: 13.08%; background-image: url('assets/store-intro/pills/pill-orange.png'); }
+#store-intro-screen .store-pill-purple { left: 74.2%; top: 60.0%; width: 24.44%; height: 13.30%; background-image: url('assets/store-intro/pills/pill-purple.png'); }
+#store-intro-screen .store-pill-red    { left: 74.2%; top: 73.8%; width: 23.96%; height: 13.15%; background-image: url('assets/store-intro/pills/pill-red.png'); }
+
+@media (pointer: coarse) {
+  #store-intro-screen .store-pill-blue   { left: 23.1%; top: 32.0%; width: 26.39%; height: 13.28%; }
+  #store-intro-screen .store-pill-cyan   { left: 23.1%; top: 46.0%; width: 26.26%; height: 13.13%; }
+  #store-intro-screen .store-pill-gold   { left: 23.1%; top: 59.9%; width: 26.90%; height: 13.35%; }
+  #store-intro-screen .store-pill-green  { left: 23.1%; top: 73.7%; width: 26.62%; height: 13.16%; }
+  #store-intro-screen .store-pill-pink   { left: 76.9%; top: 32.0%; width: 26.42%; height: 13.05%; }
+  #store-intro-screen .store-pill-orange { left: 76.9%; top: 45.8%; width: 26.37%; height: 12.98%; }
+  #store-intro-screen .store-pill-purple { left: 76.9%; top: 59.7%; width: 26.73%; height: 13.20%; }
+  #store-intro-screen .store-pill-red    { left: 76.9%; top: 73.5%; width: 26.20%; height: 13.05%; }
+}
+
+/* Festive gift display -- decorative, non-interactive (pointer-events:none, no click), centered
+   on the rug in front of the window. assets/store-intro/gift-display.png is 1456x1080; its box
+   is locked to that same ratio via aspect-ratio so background-size:100% 100% can never distort
+   it -- only width (one shared "Size" handle, not independent width/height like the pills) and
+   left/top move. Values tuned via kid-zone-app-dev/reward-shop-pills-align-tool.html (Gift
+   Display section) -- re-run that tool and repaste both blocks if the background art changes. */
+#store-intro-screen .store-gift-display {
+  position: absolute; transform: translate(-50%, -50%); pointer-events: none;
+  left: 50%; top: 68.4%; width: 35.1%; aspect-ratio: 1456 / 1080;
+  background: url('assets/store-intro/gift-display.png') center / 100% 100% no-repeat;
+  z-index: 1;
+}
+@media (pointer: coarse) {
+  #store-intro-screen .store-gift-display { left: 50%; top: 70.7%; width: 39.6%; }
+}
