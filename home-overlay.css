@@ -34,13 +34,11 @@
    computer's image, plus a 4:3 lock instead of the computer's 1670:942 one. Because this is a
    different image with the banner in a different spot than the computer's, My Chores/Rewards
    Store likely need re-tuning on an actual iPad with the Button Layout Tool -- the
-   pointer:coarse values further down were tuned against the old shared image, not this one. */
-@media (pointer: coarse) {
-  #home-screen.kz-art-home .home-inner {
-    aspect-ratio: 4 / 3;
-    min-width: calc(100vh * 4 / 3); min-height: calc(100vw * 3 / 4);
-    background: url('icons/home-background-ipad.png?v=1') center / 100% 100% no-repeat;
-  }
+   html.is-ipad values further down were tuned against the old shared image, not this one. */
+html.is-ipad #home-screen.kz-art-home .home-inner {
+  aspect-ratio: 4 / 3;
+  min-width: calc(100vh * 4 / 3); min-height: calc(100vw * 3 / 4);
+  background: url('icons/home-background-ipad.png?v=1') center / 100% 100% no-repeat;
 }
 
 /* Family photo stays visible in the open sky area above the buttons, instead of being
@@ -176,41 +174,38 @@
 }
 
 /* iPad override for all nine buttons: the Home background is a completely different image on
-   touch devices (see the top of this file), with its own button row position and its own
+   a real iPad (see the top of this file), with its own button row position and its own
    wooden banner position -- so every button gets its own -ipad-suffixed variable set, read
-   only here, instead of sharing one value with the computer. pointer:coarse means touch (the
-   iPad), not the mouse-driven computer used to tune the plain values above -- the Button Layout
-   Tool (js/home-overlay.js) detects which one it's running on and writes to the matching set
-   of variables automatically. Defaults below are the last values tuned on an iPad (via Chrome's
-   device-emulation toolbar); nudge with the tool if they feel off on the real device. */
-@media (pointer: coarse) {
-  #home-screen.kz-art-home #section-grid > button[data-section="games"] {
-    left: var(--kzb-games-x-ipad, 3.6%); top: var(--kzb-games-y-ipad, 50.6%); width: var(--kzb-games-w-ipad, 16.5%);
-  }
-  #home-screen.kz-art-home #section-grid > button[data-section="coloring"] {
-    left: var(--kzb-coloring-x-ipad, 18.7071%); top: var(--kzb-coloring-y-ipad, 50.6%); width: var(--kzb-coloring-w-ipad, 16.5%);
-  }
-  #home-screen.kz-art-home #section-grid > button[data-section="reading"] {
-    left: var(--kzb-reading-x-ipad, 33.8143%); top: var(--kzb-reading-y-ipad, 50.6%); width: var(--kzb-reading-w-ipad, 16.5%);
-  }
-  #home-screen.kz-art-home #section-grid > button[data-section="math"] {
-    left: var(--kzb-math-x-ipad, 48.9214%); top: var(--kzb-math-y-ipad, 50.6%); width: var(--kzb-math-w-ipad, 16.5%);
-  }
-  #home-screen.kz-art-home #section-grid > button[data-section="puzzles"] {
-    left: var(--kzb-puzzles-x-ipad, 64.5286%); top: var(--kzb-puzzles-y-ipad, 50.6%); width: var(--kzb-puzzles-w-ipad, 16.5%);
-  }
-  #home-screen.kz-art-home #section-grid > button[data-section="music"] {
-    left: var(--kzb-music-x-ipad, 80.1357%); top: var(--kzb-music-y-ipad, 50.6%); width: var(--kzb-music-w-ipad, 16.5%);
-  }
-  #home-screen.kz-art-home #section-grid > button[data-section="chores"] {
-    left: var(--kzb-chores-x-ipad, 12.1%); top: var(--kzb-chores-y-ipad, 72.8%); width: var(--kzb-chores-w-ipad, 38%);
-  }
-  #home-screen.kz-art-home #section-grid > button[data-section="store"] {
-    left: var(--kzb-store-x-ipad, 49.7%); top: var(--kzb-store-y-ipad, 73%); width: var(--kzb-store-w-ipad, 38.2%);
-  }
-  #home-screen.kz-art-home #home-parent-settings {
-    left: var(--kzb-settings-x-ipad, 92%); top: var(--kzb-settings-y-ipad, 2%); width: var(--kzb-settings-w-ipad, 6.8%);
-  }
+   only here (gated on html.is-ipad, not the mouse-driven computer used to tune the plain values
+   above) -- the Button Layout Tool (js/home-overlay.js) detects which one it's running on and
+   writes to the matching set of variables automatically. Defaults below are the last values
+   tuned on an iPad; nudge with the tool if they feel off on the real device. */
+html.is-ipad #home-screen.kz-art-home #section-grid > button[data-section="games"] {
+  left: var(--kzb-games-x-ipad, 3.6%); top: var(--kzb-games-y-ipad, 50.6%); width: var(--kzb-games-w-ipad, 16.5%);
+}
+html.is-ipad #home-screen.kz-art-home #section-grid > button[data-section="coloring"] {
+  left: var(--kzb-coloring-x-ipad, 18.7071%); top: var(--kzb-coloring-y-ipad, 50.6%); width: var(--kzb-coloring-w-ipad, 16.5%);
+}
+html.is-ipad #home-screen.kz-art-home #section-grid > button[data-section="reading"] {
+  left: var(--kzb-reading-x-ipad, 33.8143%); top: var(--kzb-reading-y-ipad, 50.6%); width: var(--kzb-reading-w-ipad, 16.5%);
+}
+html.is-ipad #home-screen.kz-art-home #section-grid > button[data-section="math"] {
+  left: var(--kzb-math-x-ipad, 48.9214%); top: var(--kzb-math-y-ipad, 50.6%); width: var(--kzb-math-w-ipad, 16.5%);
+}
+html.is-ipad #home-screen.kz-art-home #section-grid > button[data-section="puzzles"] {
+  left: var(--kzb-puzzles-x-ipad, 64.5286%); top: var(--kzb-puzzles-y-ipad, 50.6%); width: var(--kzb-puzzles-w-ipad, 16.5%);
+}
+html.is-ipad #home-screen.kz-art-home #section-grid > button[data-section="music"] {
+  left: var(--kzb-music-x-ipad, 80.1357%); top: var(--kzb-music-y-ipad, 50.6%); width: var(--kzb-music-w-ipad, 16.5%);
+}
+html.is-ipad #home-screen.kz-art-home #section-grid > button[data-section="chores"] {
+  left: var(--kzb-chores-x-ipad, 12.1%); top: var(--kzb-chores-y-ipad, 72.8%); width: var(--kzb-chores-w-ipad, 38%);
+}
+html.is-ipad #home-screen.kz-art-home #section-grid > button[data-section="store"] {
+  left: var(--kzb-store-x-ipad, 49.7%); top: var(--kzb-store-y-ipad, 73%); width: var(--kzb-store-w-ipad, 38.2%);
+}
+html.is-ipad #home-screen.kz-art-home #home-parent-settings {
+  left: var(--kzb-settings-x-ipad, 92%); top: var(--kzb-settings-y-ipad, 2%); width: var(--kzb-settings-w-ipad, 6.8%);
 }
 
 /* Coin/profile chips float over the artwork instead of pushing it down. Not part of the

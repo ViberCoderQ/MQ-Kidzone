@@ -135,11 +135,12 @@ const KidRewards = (() => {
     all[isTouch() ? 'ipad' : 'computer'] = s;
     setData(CHORES_LAYOUT_LOCAL_KEY, all);
   }
-  // isTouch() re-checks matchMedia on every call rather than caching it once -- a one-time
-  // snapshot goes stale the moment a browser's device-emulation mode is toggled after the page
-  // already loaded, since CSS media queries re-evaluate live but a frozen JS boolean doesn't
-  // (same bug class home-overlay.js's Home Button Layout Tool hit first).
-  function isTouch() { return window.matchMedia('(pointer: coarse)').matches; }
+  // Reads the exact same html.is-ipad class every CSS rule below is now gated on (set once,
+  // synchronously, by the inline script at the top of index.html's <head>) -- not
+  // matchMedia('(pointer: coarse)'), which a touchscreen Windows laptop reports true for even
+  // docked with a mouse attached. Keeping JS and CSS reading the identical signal is what
+  // guarantees they never disagree about which device is active.
+  function isTouch() { return document.documentElement.classList.contains('is-ipad'); }
   // Position nudges (X/Y) are in %, not px -- CSS translate() percentages are relative to the
   // element's OWN box size (not the viewport), and every box here is already sized as a % of
   // the screen, so a % nudge lands in the same relative spot on any device/window width. But the
@@ -191,8 +192,8 @@ const KidRewards = (() => {
   function kzcBase(key) {
     return key.replace(/([A-Z])/g, '-$1').toLowerCase();
   }
-  // -ipad-suffixed variable name on touch devices, read only inside chores-redesign.css's
-  // `@media (pointer: coarse)` block -- plain name otherwise. Same reasoning as home-overlay.js.
+  // -ipad-suffixed variable name on a real iPad, read only inside chores-redesign.css's
+  // html.is-ipad-gated rules -- plain name otherwise. Same reasoning as home-overlay.js.
   function kzcVar(key) {
     return `--kzc-${kzcBase(key)}${isTouch() ? '-ipad' : ''}`;
   }
@@ -285,7 +286,7 @@ const KidRewards = (() => {
       `  ${kzcVar('pillsExtendUp')}: ${L.pillsExtendUp}%; ${kzcVar('pillsExtendDown')}: ${L.pillsExtendDown}%;\n` +
       `  ${kzcVar('chorePicX')}: ${L.chorePicX}%; ${kzcVar('chorePicWidthScale')}: ${L.chorePicWidthScale / 100}; ${kzcVar('chorePicHeightScale')}: ${L.chorePicHeightScale / 100};\n` +
       `}` +
-      (isTouch() ? `\n/* paste the lines above inside chores-redesign.css's existing\n   @media (pointer: coarse) { ... } block, not at the top level */` : '');
+      (isTouch() ? `\n/* paste the lines above as a plain :root { ... } block anywhere in\n   chores-redesign.css -- no @media/class wrapper needed, these are just values; the\n   html.is-ipad-gated rules already in that file decide when each one actually gets used */` : '');
     const btn = $('chores-layout-copy-btn');
     try {
       await navigator.clipboard.writeText(text);
@@ -298,14 +299,19 @@ const KidRewards = (() => {
 
   // ================= Store =================
   let buying = null;
+  // Which category pill was tapped to get here -- renderStore() filters by this. Set once per
+  // openStoreItems() call and left alone across the re-renders triggered by a purchase confirm/
+  // cancel below, so the list doesn't silently jump back to "every item" mid-flow.
+  let currentStoreCategory = null;
 
   // The item grid itself -- not called directly from Home anymore (see openStore below).
-  // Every category pill on #store-intro-screen calls this; none of them filter by category yet
-  // (see the pill click wiring below), so it's still the same full, unfiltered grid regardless
-  // of which pill was tapped.
-  function openStoreItems() {
-    renderStore();
+  function openStoreItems(category) {
+    currentStoreCategory = category || null;
+    // Shown BEFORE rendering -- renderStore()'s RewardPill.fitDescription() needs real layout to
+    // measure each name against (clientHeight/scrollHeight are both 0 on a display:none screen),
+    // so it has to run while #store-screen is already visible, not before.
     AppBridge.showScreen('store-screen');
+    renderStore();
   }
 
   const PILL_COLORS = ['blue', 'cyan', 'gold', 'green', 'pink', 'orange', 'purple', 'red'];
@@ -401,13 +407,19 @@ const KidRewards = (() => {
     }
   }
 
-  // The 8 category pills on #store-intro-screen -- no per-category filtering yet, so every pill
-  // just opens the full item grid until categories exist to route them differently.
+  // The 8 category pills on #store-intro-screen -- each opens the item grid filtered to whatever
+  // category Setup > Reward Shop currently has assigned to that pill's color (null/unassigned
+  // pills open an unfiltered grid, same as every item having no category of its own). Looked up
+  // fresh on each click, not captured once at page load, since a grown-up can reassign a pill's
+  // category in Setup without this screen ever reloading.
   document.querySelectorAll('#store-intro-screen .store-pill').forEach((btn) => {
-    btn.addEventListener('click', () => openStoreItems());
+    const color = PILL_COLORS.find((c) => btn.classList.contains(`store-pill-${c}`));
+    btn.addEventListener('click', () => openStoreItems((getSettings().storePillCategories || {})[color] || null));
   });
 
-  $('store-back-btn').addEventListener('click', () => AppBridge.enterHome());
+  // Items screen's back arrow returns to the category screen (not Home) -- it's the screen the
+  // kid actually came from (openStoreItems() is only ever reached via a category pill tap).
+  $('store-back-btn').addEventListener('click', () => openStore());
   $('store-intro-home-btn').addEventListener('click', () => AppBridge.enterHome());
 
   function renderStore() {
@@ -435,55 +447,15 @@ const KidRewards = (() => {
 
     const grid = $('store-grid');
     grid.innerHTML = '';
-    const items = getSettings().store;
+    // An item with no category of its own shows up under every pill (never silently disappears
+    // just because this feature shipped); otherwise it only shows under the pill it matches.
+    const items = getSettings().store.filter((i) => !i.category || i.category === currentStoreCategory);
     $('store-empty').classList.toggle('hidden', items.length > 0);
-    const goal = getSavingsGoal(profile);
     items.forEach((item) => {
-      const card = document.createElement('div');
-      const canAfford = spendable >= item.price;
-      const already = boughtWithinLimit(profile.id, item);
-      const isGoal = goal && goal.itemId === item.id;
-      card.className = 'store-card' + (canAfford && !already ? '' : ' cant') + (isGoal ? ' goal' : '');
-      card.innerHTML = `${pictureHtml(item.picture, 'pic-xl')}
-        <span class="store-card-name">${esc(item.name)}</span>
-        <span class="store-card-price">🪙 ${item.price}</span>`;
-      card.appendChild(Voice.button(`${item.name}. ${coins(item.price)}.`, 'corner'));
-
-      const action = document.createElement('div');
-      action.className = 'store-card-action';
-      if (already) {
-        action.innerHTML = `<span class="store-note">✓ Got it ${item.limit === 'day' ? 'today' : 'this week'}</span>`;
-      } else if (canAfford) {
-        const buy = document.createElement('button');
-        buy.type = 'button';
-        buy.className = 'buy-open-btn';
-        buy.textContent = 'Buy';
-        buy.addEventListener('click', () => openBuy(item));
-        action.appendChild(buy);
-      } else {
-        const need = item.price - spendable;
-        const note = document.createElement('span');
-        note.className = 'store-note';
-        note.textContent = `Need ${need} more`;
-        action.appendChild(note);
-        const star = document.createElement('button');
-        star.type = 'button';
-        star.className = 'goal-btn' + (isGoal ? ' on' : '');
-        star.textContent = isGoal ? '⭐ My goal' : '☆ Save for this';
-        star.addEventListener('click', () => {
-          if (isGoal) {
-            setSavingsGoal(profile.id, null);
-            Voice.speak('Okay, no goal for now.');
-          } else {
-            setSavingsGoal(profile.id, item);
-            Voice.speak(`Great! You are saving for ${item.name}. You need ${coins(need)} more.`);
-          }
-          renderStore();
-        });
-        action.appendChild(star);
-      }
-      card.appendChild(action);
-      grid.appendChild(card);
+      const pill = RewardPill.render(item, spendable, (selected) => openBuy(selected));
+      pill.appendChild(Voice.button(`${item.name}. ${coins(item.price)}.`, 'corner'));
+      grid.appendChild(pill);
+      RewardPill.fitDescription(pill); // needs real layout, so only after it's in the live DOM
     });
   }
 

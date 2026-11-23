@@ -13,8 +13,6 @@ const Setup = (() => {
     { n: 1, label: 'Mon' }, { n: 2, label: 'Tue' }, { n: 3, label: 'Wed' }, { n: 4, label: 'Thu' },
     { n: 5, label: 'Fri' }, { n: 6, label: 'Sat' }, { n: 0, label: 'Sun' },
   ];
-  const MAX_PHOTO = 512;
-
   // The 8 Reward Shop category pills (store-intro.css's .store-pill-<color>), in on-screen order
   // (left cabinet top-to-bottom, then right cabinet top-to-bottom) -- swatches match the pill art.
   const PILL_SLOTS = [
@@ -182,7 +180,7 @@ const Setup = (() => {
     const isNew = !item;
     const base = item ? clone(item) : (kind === 'chores'
       ? { name: '', picture: { type: 'emoji', value: '⭐' }, coins: 2, kids: [], days: [] }
-      : { name: '', picture: { type: 'emoji', value: '🎁' }, price: 20, limit: null });
+      : { name: '', picture: { type: 'emoji', value: '🎁' }, price: 20, limit: null, category: null });
     editing = { kind, item: base, original: item, isNew };
     editPicture = base.picture;
 
@@ -195,6 +193,8 @@ const Setup = (() => {
     $('setup-item-days-field').classList.toggle('hidden', kind !== 'chores');
     $('setup-item-limit-field').classList.toggle('hidden', kind !== 'store');
     $('setup-item-limit').value = base.limit || '';
+    $('setup-item-category-field').classList.toggle('hidden', kind !== 'store');
+    if (kind === 'store') renderCategoryOptions(base.category);
     $('setup-item-delete-btn').classList.toggle('hidden', isNew);
     if (kind === 'chores') { renderKidChips(); renderDayChips(); }
     renderPicturePicker();
@@ -220,6 +220,21 @@ const Setup = (() => {
         grid.appendChild(b);
       });
     });
+  }
+
+  // Options are only the categories currently assigned to one of the 8 shop pills (Reward Shop
+  // tab above) -- never the full fixed 11, so an item can't be filed under a category no pill
+  // actually shows right now and go invisible. `current` is the item's own saved category (may
+  // not be assigned to a pill anymore, e.g. if a grown-up reassigned pills after the fact) -- kept
+  // as a selected-but-otherwise-ordinary option so opening the editor again doesn't silently
+  // blank it out.
+  function renderCategoryOptions(current) {
+    const assigned = getSettings().storePillCategories || {};
+    const active = [...new Set(Object.values(assigned).filter(Boolean))];
+    if (current && !active.includes(current)) active.push(current);
+    const options = ['<option value="">— Not set —</option>']
+      .concat(active.map((name) => `<option value="${esc(name)}"${name === current ? ' selected' : ''}>${esc(name)}</option>`));
+    $('setup-item-category').innerHTML = options.join('');
   }
 
   // Kid-targeting uses each kid's real (Supabase) id now, not their name -- real ids can't
@@ -281,10 +296,10 @@ const Setup = (() => {
     });
   }
 
-  // Lets the uploaded picture get swapped in once it's ready -- either immediately (store items,
-  // the old blind center-square auto-crop) or after the grown-up positions/zooms it in the Chore
-  // Picture crop dialog below (chores). Same pendingPhotos/editPicture bookkeeping either way, so
-  // the rest of the editor (Done/Cancel, persistPendingPhoto) doesn't need to know which path ran.
+  // Lets the uploaded picture get swapped in once the grown-up positions/zooms it in whichever
+  // crop dialog matched the item kind (Chore Picture or Store Item Picture, below). Same
+  // pendingPhotos/editPicture bookkeeping either way, so the rest of the editor (Done/Cancel,
+  // persistPendingPhoto) doesn't need to know which dialog ran.
   function adoptPicture(blob) {
     const fileName = `${slugify($('setup-item-name').value || 'picture')}-${Date.now()}.jpg`;
     const previewUrl = URL.createObjectURL(blob);
@@ -294,27 +309,20 @@ const Setup = (() => {
   }
 
   $('setup-pic-upload-btn').addEventListener('click', () => $('setup-pic-upload').click());
-  $('setup-pic-upload').addEventListener('change', async () => {
+  $('setup-pic-upload').addEventListener('change', () => {
     const input = $('setup-pic-upload');
     const file = input.files && input.files[0];
     input.value = '';
     if (!file) return;
-    // Chores get the interactive crop box (matches .chore-card > .pic's real shape); store items
-    // keep the old blind auto-crop until Store gets its own box shape to crop against.
-    if (editing && editing.kind === 'chores') {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => { URL.revokeObjectURL(url); openChorePicCropper(img); };
-      img.onerror = () => { URL.revokeObjectURL(url); alert("That picture couldn't be opened. Try a JPG or PNG photo."); };
-      img.src = url;
-      return;
-    }
-    try {
-      adoptPicture(await shrinkPhoto(file));
-    } catch (err) {
-      console.error('[Setup] photo could not be read:', err);
-      alert("That picture couldn't be opened. Try a JPG or PNG photo.");
-    }
+    // Chores get the box matching .chore-card > .pic's real shape; store items get the box
+    // matching .kz-pill__photo's real shape (see openStorePicCropper below) -- either way, an
+    // interactive crop dialog, never the old blind auto-crop.
+    const opener = editing && editing.kind === 'chores' ? openChorePicCropper : openStorePicCropper;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); opener(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); alert("That picture couldn't be opened. Try a JPG or PNG photo."); };
+    img.src = url;
   });
 
   // ---- Chore Picture crop dialog: same pan/zoom-inside-a-shaped-box interaction as js/app.js's
@@ -462,28 +470,150 @@ const Setup = (() => {
     canvas.toBlob((blob) => { if (blob) adoptPicture(blob); }, 'image/jpeg', 0.85);
   });
 
-  // Photos are cut to a centered square and shrunk to 512 x 512 so they load fast on the iPads.
-  function shrinkPhoto(file) {
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => {
-        const side = Math.min(img.naturalWidth, img.naturalHeight);
-        const out = Math.min(MAX_PHOTO, side);
-        const c = document.createElement('canvas');
-        c.width = out;
-        c.height = out;
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, out, out);
-        ctx.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, out, out);
-        URL.revokeObjectURL(url);
-        c.toBlob((b) => (b ? resolve(b) : reject(new Error('Could not convert the photo'))), 'image/jpeg', 0.85);
+  // ---- Store Item Picture crop dialog: same pan/zoom-inside-a-shaped-box interaction as the
+  // Chore Picture crop dialog above, just against #store-pic-crop-box's own shape (a stadium
+  // matching .kz-pill__photo's real on-screen ratio, not a tall rectangle) -- producing a
+  // pendingPhotos blob (via adoptPicture) the same way. ----
+  let storeCropState = null;
+  const storeCropPointers = new Map();
+  let storeCropPinchStartDist = 0;
+  let storeCropPinchStartScale = 1;
+  const storeCropDialog = $('store-pic-crop-dialog');
+  const storeCropViewport = $('store-pic-crop-viewport');
+  const storeCropImg = $('store-pic-crop-img');
+  const storeCropBox = $('store-pic-crop-box');
+  const storeCropZoomInput = $('store-pic-crop-zoom');
+
+  function openStorePicCropper(img) {
+    storeCropImg.src = img.src;
+    storeCropDialog.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      const vpRect = storeCropViewport.getBoundingClientRect();
+      const boxRect = storeCropBox.getBoundingClientRect();
+      const boxLeft = boxRect.left - vpRect.left;
+      const boxTop = boxRect.top - vpRect.top;
+      const coverScale = Math.max(boxRect.width / img.naturalWidth, boxRect.height / img.naturalHeight);
+      const containScale = Math.min(boxRect.width / img.naturalWidth, boxRect.height / img.naturalHeight);
+      const minScale = containScale * 0.5;
+      storeCropState = {
+        naturalW: img.naturalWidth, naturalH: img.naturalHeight,
+        boxLeft, boxTop, boxW: boxRect.width, boxH: boxRect.height,
+        minScale, maxScale: coverScale * 4, scale: coverScale,
       };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Not an image')); };
-      img.src = url;
+      storeCropState.offsetX = boxLeft + boxRect.width / 2 - (img.naturalWidth * coverScale) / 2;
+      storeCropState.offsetY = boxTop + boxRect.height / 2 - (img.naturalHeight * coverScale) / 2;
+      storeClampCropOffset();
+      storeCropZoomInput.value = Math.round(((coverScale - minScale) / (storeCropState.maxScale - minScale)) * 100);
+      storeRenderCropImage();
     });
   }
+
+  function storeClampCropOffset() {
+    const s = storeCropState;
+    const dispW = s.naturalW * s.scale;
+    const dispH = s.naturalH * s.scale;
+    s.offsetX = dispW >= s.boxW
+      ? Math.min(s.boxLeft, Math.max(s.boxLeft + s.boxW - dispW, s.offsetX))
+      : s.boxLeft + (s.boxW - dispW) / 2;
+    s.offsetY = dispH >= s.boxH
+      ? Math.min(s.boxTop, Math.max(s.boxTop + s.boxH - dispH, s.offsetY))
+      : s.boxTop + (s.boxH - dispH) / 2;
+  }
+
+  function storeRenderCropImage() {
+    const s = storeCropState;
+    storeCropImg.style.width = `${s.naturalW * s.scale}px`;
+    storeCropImg.style.height = `${s.naturalH * s.scale}px`;
+    storeCropImg.style.transform = `translate(${s.offsetX}px, ${s.offsetY}px)`;
+  }
+
+  function storeApplyCropZoom(newScaleRaw, anchorX, anchorY) {
+    const s = storeCropState;
+    const newScale = Math.min(s.maxScale, Math.max(s.minScale, newScaleRaw));
+    const imgX = (anchorX - s.offsetX) / s.scale;
+    const imgY = (anchorY - s.offsetY) / s.scale;
+    s.scale = newScale;
+    s.offsetX = anchorX - imgX * newScale;
+    s.offsetY = anchorY - imgY * newScale;
+    storeClampCropOffset();
+    storeRenderCropImage();
+    storeCropZoomInput.value = Math.round(((s.scale - s.minScale) / (s.maxScale - s.minScale || 1)) * 100);
+  }
+
+  storeCropZoomInput.addEventListener('input', (e) => {
+    if (!storeCropState) return;
+    const s = storeCropState;
+    const t = Number(e.target.value) / 100;
+    storeApplyCropZoom(s.minScale + t * (s.maxScale - s.minScale), s.boxLeft + s.boxW / 2, s.boxTop + s.boxH / 2);
+  });
+
+  function storeCropPoint(e) {
+    const r = storeCropViewport.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  storeCropViewport.addEventListener('pointerdown', (e) => {
+    if (!storeCropState) return;
+    try { storeCropViewport.setPointerCapture(e.pointerId); } catch { /* pointer already gone -- harmless */ }
+    storeCropPointers.set(e.pointerId, storeCropPoint(e));
+    if (storeCropPointers.size === 2) {
+      const pts = [...storeCropPointers.values()];
+      storeCropPinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      storeCropPinchStartScale = storeCropState.scale;
+    }
+  });
+  storeCropViewport.addEventListener('pointermove', (e) => {
+    if (!storeCropState || !storeCropPointers.has(e.pointerId)) return;
+    const prev = storeCropPointers.get(e.pointerId);
+    const curr = storeCropPoint(e);
+    storeCropPointers.set(e.pointerId, curr);
+    if (storeCropPointers.size === 1) {
+      storeCropState.offsetX += curr.x - prev.x;
+      storeCropState.offsetY += curr.y - prev.y;
+      storeClampCropOffset();
+      storeRenderCropImage();
+    } else if (storeCropPointers.size === 2 && storeCropPinchStartDist > 0) {
+      const pts = [...storeCropPointers.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const midX = (pts[0].x + pts[1].x) / 2;
+      const midY = (pts[0].y + pts[1].y) / 2;
+      storeApplyCropZoom(storeCropPinchStartScale * (dist / storeCropPinchStartDist), midX, midY);
+    }
+  });
+  function storeCropPointerEnd(e) {
+    storeCropPointers.delete(e.pointerId);
+    if (storeCropPointers.size < 2) storeCropPinchStartDist = 0;
+  }
+  storeCropViewport.addEventListener('pointerup', storeCropPointerEnd);
+  storeCropViewport.addEventListener('pointercancel', storeCropPointerEnd);
+
+  function closeStorePicCropper() {
+    storeCropDialog.classList.add('hidden');
+    storeCropState = null;
+    storeCropPointers.clear();
+    storeCropPinchStartDist = 0;
+  }
+  $('store-pic-crop-cancel-btn').addEventListener('click', closeStorePicCropper);
+  $('store-pic-crop-save-btn').addEventListener('click', () => {
+    if (!storeCropState) return;
+    const s = storeCropState;
+    const srcX = (s.boxLeft - s.offsetX) / s.scale;
+    const srcY = (s.boxTop - s.offsetY) / s.scale;
+    const srcW = s.boxW / s.scale;
+    const srcH = s.boxH / s.scale;
+    const outW = 480;
+    const outH = Math.round(outW / (s.boxW / s.boxH));
+    const canvas = document.createElement('canvas');
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    // Zoomed out past "fits the box" leaves a gap on one or both axes -- fill it white first so
+    // JPEG export (no alpha channel) doesn't turn that gap black.
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, outW, outH);
+    ctx.drawImage(storeCropImg, srcX, srcY, srcW, srcH, 0, 0, outW, outH);
+    closeStorePicCropper();
+    canvas.toBlob((blob) => { if (blob) adoptPicture(blob); }, 'image/jpeg', 0.85);
+  });
 
   function closeEditor() {
     $('setup-item-overlay').classList.add('hidden');
@@ -522,7 +652,7 @@ const Setup = (() => {
     item.name = name;
     item.picture = editPicture;
     if (editing.kind === 'chores') item.coins = amount;
-    else { item.price = amount; item.limit = $('setup-item-limit').value || null; }
+    else { item.price = amount; item.limit = $('setup-item-limit').value || null; item.category = $('setup-item-category').value || null; }
 
     const btn = $('setup-item-done-btn');
     btn.disabled = true;

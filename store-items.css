@@ -1,0 +1,200 @@
+/* Store (kid) -- the Items Section of the Reward Shop. Background art: items-background-
+   computer.png (16:9ish, 1672x941) / items-background-ipad.png (iPad, 4:3, 1448x1086) -- same
+   cover-crop aspect-ratio lock as Home/Chores/Games/Reading/Store-intro: .store-items-inner is
+   locked to the art's own native ratio and grown (never shrunk) to always fully cover
+   #store-screen, via min-width/min-height instead of max-width/max-height, so the back button/
+   coin balance/pill list stay glued to the art on any monitor/window shape instead of needing
+   per-device tuning. The two images are the same scene (same pig/sign composition on the left,
+   just more blank wall to the right on computer), so the --si-back-/--si-coin- variables below
+   each get their own -ipad fallback the same way chores-redesign.css/home-overlay.css do it, picked
+   by the html.is-ipad class (set in index.html's <head>, true only on a real iPad -- a touchscreen
+   Windows laptop doesn't match). The back button and coin balance are pinned to .store-items-inner (the
+   art box itself, not the outer screen) because they track specific drawn elements in the art
+   (the purple arrow, the cream "My Coins" plate) -- they must crop together with the art, not
+   float independently of it the way store-intro's Home pill deliberately does. */
+:root {
+  --si-back-x: 2.8%; --si-back-y: 5%; --si-back-w: 5.4%;
+  --si-coin-x: 4.2%; --si-coin-y: 20.7%; --si-coin-w: 16.7%; --si-coin-h: 8%;
+  --si-x: 22%; --si-y: 14.7%; --si-w: 78%; --si-max-h: 82%; /* --si-y + --si-max-h must stay
+    under 100% -- this box is positioned inside .store-items-inner (the cover-cropped art, which
+    #store-screen clips with overflow:hidden), so any overshoot past 100% is cropped off below the
+    art's own bottom edge and permanently unreachable, no matter how far the list scrolls inside
+    it. 82% leaves a ~3% bottom margin under 14.7%. */
+  --si-gap: 0.15cqh; /* .store-pill-list's own height is intrinsic (grows to fit its pills), and a
+    plain % gap can't resolve against an indefinite size -- it silently computes to 0 regardless
+    of the value. cqh (relative to .store-items-inner, same stable box --si-pill-h uses) fixes
+    that the same way. */
+  --si-pill-h: 16.8cqh; /* the art's own native pill proportion, expressed as a height relative to
+    .store-items-inner's own height (cqh, from its container-type:size below) rather than
+    aspect-ratio or the pill's own width -- so Width (--si-w, a % of that same box's WIDTH) and
+    Height are two fully independent axes of the same stable reference box, not derived from
+    each other. */
+}
+:root.is-ipad {
+  --si-back-x: 3.3%; --si-back-y: 4.3%; --si-back-w: 6.8%;
+  --si-coin-x: 4.8%; --si-coin-y: 20.8%; --si-coin-w: 21%; --si-coin-h: 7.6%;
+  /* Whole-pill size/position, tuned separately from computer (same starting point as computer
+     until adjusted in the align tool -- iPad's different background aspect ratio means a size
+     that looks right on one can look off on the other). */
+  --si-x: 27.8%; --si-y: 13.7%; --si-w: 71.9%; --si-gap: 0.15cqh; --si-pill-h: 17.1cqh;
+  --si-max-h: 83%; /* same under-100% fix as desktop, kept to this breakpoint's own --si-y */
+}
+#store-screen {
+  overflow: hidden;
+  background: #7a4a2a; /* fallback strip; .store-items-inner below always fully covers this */
+}
+#store-screen .store-items-inner {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 100%; height: 100%; aspect-ratio: 1672 / 941;
+  min-width: calc(100vh * 1672 / 941); min-height: calc(100vw * 941 / 1672);
+  max-width: none; padding: 0; margin: 0;
+  background: url('assets/store-items/items-background-computer.png') center / 100% 100% no-repeat;
+  /* Always an explicit, non-intrinsic width/height (never sized from its own content), so this
+     can safely be a full size container -- lets .kz-pill's height (--si-pill-h, in cqh) reference
+     this box's height, same stable reference .store-items-content already uses (via %) for its
+     own width. */
+  container-type: size;
+}
+html.is-ipad #store-screen .store-items-inner {
+  aspect-ratio: 1448 / 1086;
+  min-width: calc(100vh * 1448 / 1086); min-height: calc(100vw * 1086 / 1448);
+  background: url('assets/store-items/items-background-ipad.png') center / 100% 100% no-repeat;
+}
+
+/* Back arrow -- drawn into the art at its top-left; this button sits exactly on top of it,
+   transparent, so the art shows through and only the tap target is real. */
+#store-screen .store-items-back {
+  position: absolute; left: var(--si-back-x); top: var(--si-back-y); width: var(--si-back-w);
+  aspect-ratio: 1 / 1; height: auto; background: transparent; box-shadow: none; z-index: 5;
+}
+
+/* Coin balance -- sits on the art's cream "My Coins" plate under the wooden sign. */
+#store-screen .store-items-coins {
+  position: absolute; left: var(--si-coin-x); top: var(--si-coin-y); width: var(--si-coin-w);
+  height: var(--si-coin-h); z-index: 5; justify-content: center; background: transparent;
+  border: none; box-shadow: none; font-size: clamp(14px, 1.8vw, 26px); color: #3a2e2e;
+}
+
+/* Everything else (waiting chips + the pill list + empty hint) -- one block, "top right" of the
+   blank wood wall per the first pass; --si-* vars make it easy to nudge later without touching
+   markup. List scrolls internally (rather than growing past the art) if there end up being more
+   pills than fit. */
+#store-screen .store-items-content {
+  position: absolute; left: var(--si-x); top: var(--si-y); width: var(--si-w);
+  max-height: var(--si-max-h); overflow-y: auto; z-index: 4;
+  display: flex; flex-direction: column; gap: 1.4%;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge */
+}
+#store-screen .store-items-content::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+#store-screen .store-waiting { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+#store-screen .empty-hint { color: #fff; text-shadow: 0 2px 4px #000a; text-align: center; }
+
+#store-screen .store-pill-list {
+  display: flex; flex-direction: column; gap: var(--si-gap);
+}
+
+/* ============== Reward pill (ported from the Cursor handoff's RewardPill.jsx/.css) ==============
+   Every --x/--y/--w/--h below is relative to the 2048x682 blank pill artwork. Change only these
+   variables to nudge or resize an independent layer -- font sizes use cqw (this pill's own
+   container width), not vw, so they scale with the pill's own width when .kz-pill-list's --si-w
+   (or a pill's own flex width) changes, instead of the viewport. */
+.kz-pill {
+  position: relative; width: 100%; height: var(--si-pill-h); overflow: hidden;
+  container-type: inline-size; isolation: isolate;
+  color: #080d57; font-family: 'Trebuchet MS', 'Arial Rounded MT Bold', sans-serif; font-weight: 900;
+  --photo-x: 2.3%; --photo-y: 11.5%; --photo-w: 17%; --photo-h: 76%;
+  --frame-x: 1.73%; --frame-y: 2.26%; --frame-w: 18.21%; --frame-h: 98.1%;
+  --description-x: 22.8%; --description-y: 15.1%; --description-w: 20.3%; --description-h: 32.1%;
+  --cost-x: 23.8%; --cost-y: 45.4%; --cost-w: 17%; --cost-h: 42.7%;
+  --cost-text-x: 27.3%; --cost-text-y: 57%; --cost-text-w: 11.7%; --cost-text-h: 14.2%;
+  --divider-x: 43.3%; --divider-y: 26%; --divider-h: 49%;
+  --remaining-x: 45.3%; --remaining-y: 17.4%; --remaining-w: 26.7%; --remaining-h: 20.2%;
+  --progress-x: 45.4%; --progress-y: 44.2%; --progress-w: 24.3%; --progress-h: 18.5%;
+  --count-x: 41%; --count-y: 65%; --count-w: 34%; --count-h: 15%;
+  --status-x: 77.7%; --status-y: 11.6%; --status-w: 20.5%; --status-h: 74.1%;
+  --status-bg-x: 0%; --status-bg-y: 0%; --status-bg-w: 100%; --status-bg-h: 100%;
+  --status-icon-x: 7%; --status-icon-y: 20%; --status-icon-w: 29%; --status-icon-h: 60%;
+  --status-text-x: 36.1%; --status-text-y: 14%; --status-text-w: 58%; --status-text-h: 72%;
+  --description-font: 3.07cqw; --cost-text-font: 2.05cqw; --divider-w: 0.18cqw;
+  --remaining-font: 2.42cqw; --count-font: 1.96cqw; --status-text-font: 2.46cqw;
+  --description-wrap: normal; --cost-text-wrap: nowrap; --remaining-wrap: nowrap;
+  --count-wrap: nowrap; --status-text-wrap: normal;
+  --photo-emoji-size: 6.8cqw; --photo-emoji-x: -1.5%; --photo-emoji-y: -4%;
+}
+/* First real per-device divergence for the pill's own content (not just the list/background art
+   above) -- these 7 were tuned by eye against the iPad's different photo/frame/cost/progress/
+   status proportions, back before the align tool supported true per-device values (so they'd
+   briefly landed in the shared block above and applied to Computer too, which was wrong -- this
+   is the correction). */
+html.is-ipad .kz-pill {
+  --photo-x: 2.5%; --photo-y: 9.1%; --photo-w: 20%; --photo-h: 79.9%; --photo-emoji-y: -2.5%;
+  --frame-x: 2.33%; --frame-w: 20.7%; --frame-h: 97.5%;
+  --cost-x: 22.8%; --cost-w: 20.5%; --cost-text-x: 28.3%;
+  --progress-y: 36.6%; --progress-h: 24.1%; --progress-w: 28.3%;
+  --count-x: 42.4%; --count-font: 2.38cqw;
+  --status-x: 75.3%; --status-w: 22.2%;
+}
+/* Rounded-end 1289x167 status PNGs are nine-slice reconstructed from the original artwork.
+   All three share identical canvas and inset geometry. No vertical overscale/cropping:
+   preserving the caps is essential to avoiding pointy ends. */
+.kz-pill__background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
+.kz-pill__photo, .kz-pill__photo-frame, .kz-pill__description, .kz-pill__cost-badge,
+.kz-pill__cost-text, .kz-pill__divider, .kz-pill__remaining, .kz-pill__progress,
+.kz-pill__progress-count, .kz-pill__status { position: absolute; box-sizing: border-box; }
+.kz-pill__photo {
+  left: var(--photo-x); top: var(--photo-y); width: var(--photo-w); height: var(--photo-h);
+  /* 9999px (not 50%) clamps to a stadium shape (straight sides, semicircular caps on the shorter
+     axis) on any box ratio, matching product-photo-frame.png's own stadium ring -- 50% would make
+     an ellipse instead, since it rounds each corner independently of the others. */
+  border-radius: 9999px; overflow: hidden; background: #fff; z-index: 1; display: grid; place-items: center;
+}
+/* min-width/min-height:0 disable the browser's "automatic minimum size" for this grid item -- by
+   default a replaced element (img) with its own intrinsic aspect ratio gets an implicit min-height
+   floor computed FROM that ratio, which silently overrides an explicit height:100% whenever 100%
+   would be smaller than the ratio demands. That let photos overflow past the bottom of the
+   circular frame, uncentered, instead of being contained and centered as object-fit:contain
+   intends. display:block overrides style.css's shared ".pic { display: inline-flex }" too --
+   .pic-emoji below re-asserts flex just for the emoji-span case, which does need it to center
+   the glyph; a plain photo doesn't need flex at all. */
+.kz-pill__photo .kz-pill__photo-img, .kz-pill__photo .pic { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: contain; }
+/* Size is independently controllable (not just a fixed 10cqw) since emoji glyphs render at wildly
+   different visual sizes relative to their own font-size across platforms. The translate offset
+   exists because flex centering only centers the glyph's LINE BOX, not its actual painted pixels
+   -- emoji fonts routinely draw the glyph a bit high/low/off-center within that box (varies by
+   browser/platform), so a manual nudge is the only reliable fix. Uploaded photos are untouched by
+   either of these -- they go through their own per-item crop dialog instead (Setup > item
+   editor), already positioned there by whoever picked them. */
+.kz-pill__photo .pic-emoji { display: flex; align-items: center; justify-content: center; font-size: var(--photo-emoji-size); transform: translate(var(--photo-emoji-x), var(--photo-emoji-y)); }
+/* product-photo-frame.png (matte gold capsule ring) is drawn full-bleed -- the ring itself touches
+   all four canvas edges, unlike the old noisy ring art it replaced (which had ~8-9% transparent
+   padding baked in). --frame-x/y/w/h below are recalculated from that old padding so the ring
+   lands in the exact same on-screen spot around the photo as before, just with cleaner art. */
+.kz-pill__photo-frame { left: var(--frame-x); top: var(--frame-y); width: var(--frame-w); height: var(--frame-h); object-fit: fill; z-index: 2; pointer-events: none; }
+.kz-pill__description { left: var(--description-x); top: var(--description-y); width: var(--description-w); height: var(--description-h); z-index: 3; font-size: var(--description-font); font-weight: 900; line-height: 1.12; white-space: var(--description-wrap); overflow: hidden; }
+.kz-pill__cost-badge { left: var(--cost-x); top: var(--cost-y); width: var(--cost-w); height: var(--cost-h); z-index: 3; pointer-events: none; }
+.kz-pill__cost-badge img { width: 100%; height: 100%; object-fit: fill; }
+.kz-pill__cost-text { left: var(--cost-text-x); top: var(--cost-text-y); width: var(--cost-text-w); height: var(--cost-text-h); display: flex; align-items: center; justify-content: center; text-align: center; z-index: 4; font-size: var(--cost-text-font); font-weight: 900; white-space: var(--cost-text-wrap); pointer-events: none; }
+.kz-pill__divider { left: var(--divider-x); top: var(--divider-y); width: max(2px, var(--divider-w)); height: var(--divider-h); background: #080d57; border-radius: 999px; z-index: 3; pointer-events: none; }
+.kz-pill__divider::before, .kz-pill__divider::after { content: ''; position: absolute; left: 50%; transform: translateX(-50%); width: max(4px, .45cqw); aspect-ratio: 1; background: #080d57; border-radius: 50%; }
+.kz-pill__divider::before { top: -2px; }
+.kz-pill__divider::after { bottom: -2px; }
+.kz-pill__remaining { left: var(--remaining-x); top: var(--remaining-y); width: var(--remaining-w); height: var(--remaining-h); font-size: var(--remaining-font); font-weight: 900; line-height: 1.15; z-index: 4; white-space: var(--remaining-wrap); }
+.kz-pill__progress { left: var(--progress-x); top: var(--progress-y); width: var(--progress-w); height: var(--progress-h); border: max(2px, .16cqw) solid #080d35; border-radius: 999px; overflow: hidden; background: linear-gradient(#f7f8fd, #aab5ca); z-index: 4; pointer-events: none; }
+.kz-pill__progress-fill { width: 0; height: 100%; max-width: 100%; border-radius: inherit; background: linear-gradient(#fff780, #ffe900 35%, #ff9c00); transition: width 500ms ease-out; }
+.kz-pill--close .kz-pill__progress-fill { background: linear-gradient(#ffd080, #ff8900); }
+.kz-pill--ready .kz-pill__progress-fill { background: linear-gradient(#baff80, #21cf00); }
+.kz-pill__progress-count { left: var(--count-x); top: var(--count-y); width: var(--count-w); height: var(--count-h); font-size: var(--count-font); font-weight: 900; line-height: 1.1; text-align: center; white-space: var(--count-wrap); z-index: 4; }
+.kz-pill__status { left: var(--status-x); top: var(--status-y); width: var(--status-w); height: var(--status-h); padding: 0; background: transparent; border: 0; cursor: pointer; z-index: 5; }
+.kz-pill__status-background { position: absolute; left: var(--status-bg-x); top: var(--status-bg-y); width: var(--status-bg-w); height: var(--status-bg-h); box-sizing: border-box; border: max(2px, .18cqw) solid #db8200; border-radius: 999px; background: linear-gradient(#fff89c, #ffe600 48%, #ffb900); box-shadow: inset 0 2px 3px #fff9c0, 0 2px 3px #995300; }
+.kz-pill--close .kz-pill__status-background { border-color: #b94a00; background: linear-gradient(#ffcf6d, #ff8b00, #f45100); }
+.kz-pill--ready .kz-pill__status-background { border-color: #187b00; background: linear-gradient(#baff80, #43eb00, #17ad00); }
+.kz-pill__status-icon { position: absolute; left: var(--status-icon-x); top: var(--status-icon-y); width: var(--status-icon-w); height: var(--status-icon-h); object-fit: contain; z-index: 2; pointer-events: none; }
+/* Deliberately Arial, not .kz-pill's own Trebuchet MS/Arial Rounded MT Bold stack -- this is the
+   plainer look the status button had before font-family:inherit was added, kept on purpose
+   instead of left to whatever a given browser's un-reset default button font happens to be
+   (which isn't the same across devices, e.g. iOS Safari's native button font vs Chrome-on-
+   Windows's). */
+.kz-pill__status-text { position: absolute; left: var(--status-text-x); top: var(--status-text-y); width: var(--status-text-w); height: var(--status-text-h); display: flex; align-items: center; justify-content: center; text-align: center; font-family: Arial, sans-serif; font-size: var(--status-text-font); line-height: 1.05; font-weight: 1000; color: #fff; text-shadow: 1px 1px #542000, -1px -1px #542000, 1px -1px #542000, -1px 1px #542000; white-space: var(--status-text-wrap); z-index: 3; pointer-events: none; }
+.kz-pill__status:focus-visible { outline: 3px solid #6630ff; outline-offset: 2px; border-radius: 999px; }
+@media (prefers-reduced-motion: reduce) { .kz-pill__progress-fill { transition: none; } }

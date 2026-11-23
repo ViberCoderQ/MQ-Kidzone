@@ -1,6 +1,21 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Device detection: a real iPad vs. a touchscreen Windows laptop, which @media(pointer:coarse)
+       alone can't tell apart (a touchscreen laptop reports pointer:coarse even docked with a
+       mouse attached -- the digitizer being merely present is what the browser reports, not which
+       input is actually driving at the moment). iPadOS Safari disguises its UA as desktop Safari
+       (since iOS 13), so the standard workaround is this platform+touch-point combo instead --
+       only a real iPad is "MacIntel" AND reports more than one touch point; no Windows/Android
+       device does both. Synchronous and inline, placed before any stylesheet, so the class is
+       already set before first paint -- no flash of the wrong device's layout (same technique
+       dark-mode scripts use to avoid a flash of the wrong theme). Every CSS file's former
+       @media(pointer:coarse) block is now an .is-ipad-qualified rule instead; js/kid-rewards.js's
+       isTouch() and js/home-overlay.js's equivalent read this same class, not matchMedia, so CSS
+       and JS never disagree about which device is active. -->
+  <script>
+    document.documentElement.classList.toggle('is-ipad', navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  </script>
   <meta charset="UTF-8" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -13,14 +28,15 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kid Zone" />
-  <link rel="stylesheet" href="style.css?v=161" />
+  <link rel="stylesheet" href="style.css?v=163" />
   <link rel="stylesheet" href="memory-match.css?v=159" />
   <link rel="stylesheet" href="spot-the-difference.css?v=1" />
   <link rel="stylesheet" href="games-carousel.css?v=6" />
   <link rel="stylesheet" href="reading-carousel.css?v=5" />
-  <link rel="stylesheet" href="chores-redesign.css?v=12" />
-  <link rel="stylesheet" href="home-overlay.css?v=24" />
-  <link rel="stylesheet" href="store-intro.css?v=1" />
+  <link rel="stylesheet" href="chores-redesign.css?v=13" />
+  <link rel="stylesheet" href="home-overlay.css?v=25" />
+  <link rel="stylesheet" href="store-intro.css?v=2" />
+  <link rel="stylesheet" href="store-items.css?v=11" />
 </head>
 <body>
 
@@ -142,15 +158,14 @@
 
   <!-- ================= Store (kid) ================= -->
   <section id="store-screen" class="screen">
-    <header class="sub-header">
-      <button type="button" class="icon-btn back-btn" id="store-back-btn" aria-label="Back">←</button>
-      <h2 class="sub-header-title">Store</h2>
-      <span class="coin-chip" id="store-coins"></span>
-    </header>
-    <div class="screen-inner">
-      <div class="store-waiting hidden" id="store-waiting"></div>
-      <div class="store-grid" id="store-grid"></div>
-      <p class="empty-hint hidden" id="store-empty">The store is empty right now.</p>
+    <div class="store-items-inner">
+      <button type="button" class="icon-btn store-items-back" id="store-back-btn" aria-label="Back"></button>
+      <span class="coin-chip store-items-coins" id="store-coins"></span>
+      <div class="store-items-content">
+        <div class="store-waiting hidden" id="store-waiting"></div>
+        <div class="store-pill-list" id="store-grid"></div>
+        <p class="empty-hint hidden" id="store-empty">The store is empty right now.</p>
+      </div>
     </div>
   </section>
 
@@ -932,6 +947,13 @@
         </select>
       </label>
 
+      <!-- Options are built live from whichever categories currently have a pill assigned
+           (Setup > Reward Shop tab) -- see renderCategoryOptions() in js/setup.js -- so an item
+           can never be filed under a category no pill actually shows right now. -->
+      <label class="setup-field" id="setup-item-category-field">Which Reward Shop category?
+        <select id="setup-item-category" class="name-input small-input"></select>
+      </label>
+
       <div class="overlay-actions">
         <button type="button" class="big-btn danger-btn" id="setup-item-delete-btn">Delete</button>
         <button type="button" class="big-btn" id="setup-item-cancel-btn">Cancel</button>
@@ -1186,9 +1208,8 @@
        (28.8% x 62.4% of the card, 12% border-radius -- chores-redesign.css) -- a tall rectangle,
        not square, since that's the actual slot a chore's picture shows in. Same drag/pinch/
        slider-zoom interaction as the Child Photo dialog above, including the white-filled-gap
-       behavior when zoomed out past "fills the box" (js/setup.js). Store items share the same
-       picture-upload button today but are NOT wired to this dialog -- they still get the old
-       blind center-square auto-crop until Store gets its own box shape. -->
+       behavior when zoomed out past "fills the box" (js/setup.js). Store items get their own
+       circular crop dialog below instead, matching their own box shape. -->
   <div class="hidden photo-crop-dialog" id="chore-pic-crop-dialog" role="dialog" aria-modal="true" aria-labelledby="chore-pic-crop-title">
     <div class="photo-crop-card">
       <h3 id="chore-pic-crop-title">Position the Picture</h3>
@@ -1201,6 +1222,29 @@
       <div class="photo-crop-actions">
         <button type="button" class="big-btn" id="chore-pic-crop-cancel-btn">Cancel</button>
         <button type="button" class="big-btn" id="chore-pic-crop-save-btn">Use Picture</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crop dialog for Reward Shop item pictures (Setup > a store item's picture, upload-your-own
+       only -- emoji pictures skip this). The box matches .kz-pill__photo's real on-screen ratio
+       (store-items.css's --photo-w/--photo-h stretched by the pill's own --si-w/--si-pill-h
+       proportions against the 1672x941 background art) -- same border-radius:9999px stadium
+       clamp as the real slot, not a plain circle, so this previews exactly where/how the photo
+       will sit behind product-photo-frame.png's ring. Same drag/pinch/slider-zoom interaction and
+       shared .photo-crop-* shell as the two dialogs above. -->
+  <div class="hidden photo-crop-dialog" id="store-pic-crop-dialog" role="dialog" aria-modal="true" aria-labelledby="store-pic-crop-title">
+    <div class="photo-crop-card">
+      <h3 id="store-pic-crop-title">Position the Picture</h3>
+      <p class="photo-crop-hint">Drag to move, pinch or use the slider to zoom. Only what's inside the box will be saved.</p>
+      <div class="photo-crop-viewport" id="store-pic-crop-viewport">
+        <img id="store-pic-crop-img" alt="" draggable="false" />
+        <div class="photo-crop-box" id="store-pic-crop-box"></div>
+      </div>
+      <input type="range" id="store-pic-crop-zoom" class="photo-crop-zoom-slider" min="0" max="100" value="0" step="1" aria-label="Zoom" />
+      <div class="photo-crop-actions">
+        <button type="button" class="big-btn" id="store-pic-crop-cancel-btn">Cancel</button>
+        <button type="button" class="big-btn" id="store-pic-crop-save-btn">Use Picture</button>
       </div>
     </div>
   </div>
@@ -1374,7 +1418,7 @@
   <script src="js/store.js?v=159"></script>
   <script src="js/voice.js?v=159"></script>
   <script src="js/parent-pin.js?v=159"></script>
-  <script src="js/settings.js?v=159"></script>
+  <script src="js/settings.js?v=160"></script>
   <script src="js/coins.js?v=159"></script>
   <script src="js/rewards-data.js?v=159"></script>
   <script src="js/profiles.js?v=160"></script>
@@ -1399,8 +1443,9 @@
   <script src="js/memory-match-game.js?v=160"></script>
   <script src="js/spot-the-difference-levels.js?v=1"></script>
   <script src="js/spot-the-difference.js?v=1"></script>
-  <script src="js/setup.js?v=160"></script>
-  <script src="js/kid-rewards.js?v=170"></script>
+  <script src="js/setup.js?v=161"></script>
+  <script src="js/reward-pill.js?v=3"></script>
+  <script src="js/kid-rewards.js?v=175"></script>
   <script src="js/reward-shop.js?v=1"></script>
   <script src="js/war.js?v=159"></script>
   <script src="js/tictactoe.js?v=159"></script>
@@ -1408,6 +1453,6 @@
   <script src="games-carousel.js?v=2"></script>
   <script src="reading-carousel.js?v=2"></script>
   <script src="js/games.js?v=159"></script>
-  <script src="js/home-overlay.js?v=23"></script>
+  <script src="js/home-overlay.js?v=24"></script>
 </body>
 </html>

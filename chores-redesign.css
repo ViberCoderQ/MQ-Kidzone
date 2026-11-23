@@ -223,52 +223,52 @@
 /* iPad override for every --kzc-* nudge above: the Chores background art is a different shape
    on an iPad than on a computer window (same reason the Home screen's background differs per
    device -- see home-overlay.css), so the sign/banner/avatar/text/pills need their own position
-   on each. Every variable below mirrors one above with an -ipad suffix, read only here;
-   pointer:coarse means touch (the iPad), not the mouse-driven computer the plain values were
-   tuned from. js/kid-rewards.js's Chores Layout Tool detects which one it's running on and
-   writes to the matching set automatically. */
-@media (pointer: coarse) {
-  #chores-screen.kz-chores-redesign .kz-chores-sign {
-    transform: translateX(-50%) translate(var(--kzc-header-x-ipad, 0%), var(--kzc-header-y-ipad, 1%)) scale(var(--kzc-header-scale-ipad, 0.76));
-  }
-  #chores-screen.kz-chores-redesign .kz-chores-sign-text {
-    transform: translate(var(--kzc-header-text-x-ipad, 1.5%), var(--kzc-header-text-y-ipad, -6%));
-  }
-  #chores-screen.kz-chores-redesign .kz-chores-sign-label {
-    font-size: calc(60px * var(--kzc-header-text-size-ipad, 1.33));
-  }
-  #chores-screen.kz-chores-redesign .kz-chores-banner {
-    transform: translate(var(--kzc-banner-x-ipad, 0%), var(--kzc-banner-y-ipad, -2.5%))
-               scale(var(--kzc-banner-scale-ipad, 0.97)) scaleY(var(--kzc-banner-height-scale-ipad, 1.96));
-  }
-  #chores-screen.kz-chores-redesign .kz-chores-avatar {
-    transform: translate(var(--kzc-avatar-x-ipad, 1%), var(--kzc-avatar-y-ipad, -25%))
-               scale(var(--kzc-avatar-size-ipad, 1.04)) scaleY(calc(1 / var(--kzc-banner-height-scale-ipad, 1.96)));
-  }
-  #chores-screen.kz-chores-redesign .kz-chores-today {
-    left: calc(20.7% + var(--kzc-today-x-ipad, -0.5%)); top: calc(52% + var(--kzc-today-y-ipad, -14.5%));
-    font-size: calc(clamp(20px, 3.3vw, 52px) * var(--kzc-today-size-ipad, 0.87));
-    transform: scaleY(calc(1 / var(--kzc-banner-height-scale-ipad, 1.96)));
-  }
-  #chores-screen.kz-chores-redesign .kz-chores-count {
-    left: calc(20.7% + var(--kzc-count-x-ipad, 0%)); top: calc(75% + var(--kzc-count-y-ipad, -23.5%));
-    font-size: calc(clamp(10px, 1.65vw, 26px) * var(--kzc-count-size-ipad, 1.05));
-    transform: scaleY(calc(1 / var(--kzc-banner-height-scale-ipad, 1.96)));
-  }
-  #chores-screen.kz-chores-redesign .chore-list {
-    top: calc(35% - var(--kzc-pills-extend-up-ipad, 0%));
-    height: calc(65% + var(--kzc-pills-extend-up-ipad, 0%) + var(--kzc-pills-extend-down-ipad, 0%));
-    transform: translate(var(--kzc-pills-x-ipad, 0%), var(--kzc-pills-y-ipad, 0%));
-  }
-  #chores-screen.kz-chores-redesign .chore-card {
-    transform: scale(var(--kzc-pills-scale-ipad, 0.99));
-  }
-  #chores-screen.kz-chores-redesign .chore-card > .pic {
-    left: calc(8.6% - (28.8% * (var(--kzc-chore-pic-width-scale-ipad, 1.27) - 1)) / 2 + var(--kzc-chore-pic-x-ipad, 1%));
-    top: calc(18.8% - (62.4% * (var(--kzc-chore-pic-height-scale-ipad, 1.01) - 1)) / 2);
-    width: calc(28.8% * var(--kzc-chore-pic-width-scale-ipad, 1.27));
-    height: calc(62.4% * var(--kzc-chore-pic-height-scale-ipad, 1.01));
-  }
+   on each. Every variable below mirrors one above with an -ipad suffix, read only here; gated on
+   html.is-ipad (set by the inline script at the very top of index.html's <head>), not plain
+   pointer:coarse, since a touchscreen Windows laptop reports pointer:coarse too even when docked
+   with a mouse -- only a real iPad gets this class. js/kid-rewards.js's Chores Layout Tool detects
+   which one it's running on (via the same class, not matchMedia) and writes to the matching set
+   automatically. */
+html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-sign {
+  transform: translateX(-50%) translate(var(--kzc-header-x-ipad, 0%), var(--kzc-header-y-ipad, 1%)) scale(var(--kzc-header-scale-ipad, 0.76));
+}
+html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-sign-text {
+  transform: translate(var(--kzc-header-text-x-ipad, 1.5%), var(--kzc-header-text-y-ipad, -6%));
+}
+html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-sign-label {
+  font-size: calc(60px * var(--kzc-header-text-size-ipad, 1.33));
+}
+html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-banner {
+  transform: translate(var(--kzc-banner-x-ipad, 0%), var(--kzc-banner-y-ipad, -2.5%))
+             scale(var(--kzc-banner-scale-ipad, 0.97)) scaleY(var(--kzc-banner-height-scale-ipad, 1.96));
+}
+html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-avatar {
+  transform: translate(var(--kzc-avatar-x-ipad, 1%), var(--kzc-avatar-y-ipad, -25%))
+             scale(var(--kzc-avatar-size-ipad, 1.04)) scaleY(calc(1 / var(--kzc-banner-height-scale-ipad, 1.96)));
+}
+html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-today {
+  left: calc(20.7% + var(--kzc-today-x-ipad, -0.5%)); top: calc(52% + var(--kzc-today-y-ipad, -14.5%));
+  font-size: calc(clamp(20px, 3.3vw, 52px) * var(--kzc-today-size-ipad, 0.87));
+  transform: scaleY(calc(1 / var(--kzc-banner-height-scale-ipad, 1.96)));
+}
+html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-count {
+  left: calc(20.7% + var(--kzc-count-x-ipad, 0%)); top: calc(75% + var(--kzc-count-y-ipad, -23.5%));
+  font-size: calc(clamp(10px, 1.65vw, 26px) * var(--kzc-count-size-ipad, 1.05));
+  transform: scaleY(calc(1 / var(--kzc-banner-height-scale-ipad, 1.96)));
+}
+html.is-ipad #chores-screen.kz-chores-redesign .chore-list {
+  top: calc(35% - var(--kzc-pills-extend-up-ipad, 0%));
+  height: calc(65% + var(--kzc-pills-extend-up-ipad, 0%) + var(--kzc-pills-extend-down-ipad, 0%));
+  transform: translate(var(--kzc-pills-x-ipad, 0%), var(--kzc-pills-y-ipad, 0%));
+}
+html.is-ipad #chores-screen.kz-chores-redesign .chore-card {
+  transform: scale(var(--kzc-pills-scale-ipad, 0.99));
+}
+html.is-ipad #chores-screen.kz-chores-redesign .chore-card > .pic {
+  left: calc(8.6% - (28.8% * (var(--kzc-chore-pic-width-scale-ipad, 1.27) - 1)) / 2 + var(--kzc-chore-pic-x-ipad, 1%));
+  top: calc(18.8% - (62.4% * (var(--kzc-chore-pic-height-scale-ipad, 1.01) - 1)) / 2);
+  width: calc(28.8% * var(--kzc-chore-pic-width-scale-ipad, 1.27));
+  height: calc(62.4% * var(--kzc-chore-pic-height-scale-ipad, 1.01));
 }
 
 /* ---- Chores Layout Tool: floats over the real Chores screen (Grown-ups > Chores Screen

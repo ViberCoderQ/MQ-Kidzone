@@ -53,18 +53,18 @@
   // The Home background is a completely different image on touch devices (icons/
   // home-background-ipad.png vs icons/home-background.png -- see home-overlay.css), with its
   // own button-row position and its own wooden banner position. So every button gets its own
-  // -ipad-suffixed set of CSS vars, read only inside home-overlay.css's `@media (pointer:
-  // coarse)` block, instead of sharing one value with the computer. pointer:coarse means touch
-  // (the iPad), pointer:fine means the mouse-driven computer this is likely being tuned from.
+  // -ipad-suffixed set of CSS vars, read only inside home-overlay.css's html.is-ipad-gated rules,
+  // instead of sharing one value with the computer.
   //
-  // isTouch() re-checks matchMedia on every call instead of caching it once at script load --
-  // a one-time snapshot would go stale the moment you toggle a browser's device-emulation mode
-  // AFTER the page already loaded (the normal workflow: load the page, then turn on the device
-  // toolbar). CSS media queries re-evaluate live when that happens; a frozen JS boolean doesn't,
-  // so the tool kept writing to the plain variable while the CSS -- now matching pointer:coarse
-  // -- had switched to reading the -ipad one. Two different variables, only one of which
-  // anything was listening to, so every nudge silently updated a value nothing displayed.
-  function isTouch() { return window.matchMedia('(pointer: coarse)').matches; }
+  // Reads the exact same html.is-ipad class every one of those CSS rules is gated on (set once,
+  // synchronously, by the inline script at the top of index.html's <head>) -- not
+  // matchMedia('(pointer: coarse)'), which a touchscreen Windows laptop reports true for even
+  // docked with a mouse attached (that was the original bug this used to guard against with a
+  // live re-check instead of a cached one: toggling DevTools' device emulation mid-session used
+  // to desync a frozen JS boolean from CSS's live-reevaluating media query -- reading the same
+  // class JS and CSS both already agree on sidesteps that class of bug entirely, since there's
+  // only one signal to go stale instead of two that could disagree).
+  function isTouch() { return document.documentElement.classList.contains('is-ipad'); }
   function cssVarName(id, field) {
     return `--kzb-${id}-${field}${isTouch() ? '-ipad' : ''}`;
   }
@@ -313,7 +313,7 @@
         `  ${cssVarName(id, 'x')}: ${state[id].x}%; ${cssVarName(id, 'y')}: ${state[id].y}%; ${cssVarName(id, 'w')}: ${state[id].w}%;`
       ).join('\n') +
       `\n}` +
-      (isTouch() ? `\n/* paste the chores/store lines above inside home-overlay.css's existing\n   @media (pointer: coarse) { ... } block, not at the top level */` : '');
+      (isTouch() ? `\n/* paste the chores/store lines above as a plain :root { ... } block anywhere\n   in home-overlay.css -- no @media/class wrapper needed, these are just values; the\n   html.is-ipad-gated rules already in that file decide when each one actually gets used */` : '');
     const btn = document.getElementById('home-layout-copy-btn');
     try {
       await navigator.clipboard.writeText(text);

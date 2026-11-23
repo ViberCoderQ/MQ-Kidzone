@@ -56,7 +56,7 @@ function rowToChore(row) {
   return { id: row.id, name: row.name, picture: row.picture, coins: row.coins, kids: row.kid_ids || [], days: row.days || [] };
 }
 function rowToStoreItem(row) {
-  return { id: row.id, name: row.name, picture: row.picture, price: row.price, limit: row.item_limit || null };
+  return { id: row.id, name: row.name, picture: row.picture, price: row.price, limit: row.item_limit || null, category: row.category || null };
 }
 
 async function refreshSharedData() {
@@ -182,7 +182,7 @@ async function deleteChoreItem(id) {
 async function saveStoreItem(item, isNew) {
   const familyId = ParentAuth.getFamilyId();
   if (!familyId) throw new Error('Sign in to the Family Account first.');
-  const row = { family_id: familyId, name: item.name, picture: item.picture, price: item.price, item_limit: item.limit || null };
+  const row = { family_id: familyId, name: item.name, picture: item.picture, price: item.price, item_limit: item.limit || null, category: item.category || null };
   if (isNew) {
     const { data, error } = await supabaseClient.from('store_items').insert(row).select('*').single();
     if (error) throw error;

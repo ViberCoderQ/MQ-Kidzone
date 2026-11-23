@@ -2699,50 +2699,8 @@ select.name-input { text-align: left; background: #fff; }
   background: #fff;
   font-weight: 700;
 }
-.store-grid {
-  width: 100%;
-  max-width: 900px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-}
-.store-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 1.1rem 0.9rem 0.9rem;
-  border-radius: 26px;
-  background: #fff;
-  border: 4px solid #ffe08a;
-  box-shadow: var(--shadow);
-  text-align: center;
-}
-.store-card.cant .pic, .store-card.cant .store-card-name { opacity: 0.5; }
-.store-card.goal { border-color: #ffb52e; box-shadow: 0 0 0 4px #fff1c2, var(--shadow); }
-.store-card-name { font-size: 1.15rem; font-weight: 800; }
-.store-card-price { font-size: 1.3rem; font-weight: 800; color: #c98a00; }
-.store-card-action { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; margin-top: auto; }
-.buy-open-btn {
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 999px;
-  background: #ff8a5b;
-  color: #fff;
-  font-size: 1.35rem;
-  font-weight: 800;
-  box-shadow: 0 5px 0 #e0683a;
-}
-.store-note { font-weight: 800; color: var(--ink-soft); }
-.goal-btn {
-  padding: 0.5rem 0.9rem;
-  border-radius: 999px;
-  border: 3px solid #ffd84d;
-  background: #fff;
-  font-weight: 800;
-}
-.goal-btn.on { background: #ffd84d; }
+/* .store-grid/.store-card* retired -- the Items Section now renders reward pills
+   (store-items.css's .kz-pill, built by js/reward-pill.js) instead of plain cards. */
 
 .buy-card { max-width: 400px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
 .buy-name { font-size: 1.8rem; font-weight: 800; }
@@ -3201,11 +3159,19 @@ select.name-input { text-align: left; background: #fff; }
   aspect-ratio: calc(28.8 * var(--kzc-chore-pic-width-scale, 1)) / calc(62.4 * var(--kzc-chore-pic-height-scale, 1));
   border-radius: 12%;
 }
-@media (pointer: coarse) {
-  #chore-pic-crop-box {
-    aspect-ratio: calc(28.8 * var(--kzc-chore-pic-width-scale-ipad, 1)) / calc(62.4 * var(--kzc-chore-pic-height-scale-ipad, 1));
-  }
+html.is-ipad #chore-pic-crop-box {
+  aspect-ratio: calc(28.8 * var(--kzc-chore-pic-width-scale-ipad, 1)) / calc(62.4 * var(--kzc-chore-pic-height-scale-ipad, 1));
 }
+/* store-items.css's .kz-pill__photo isn't a plain circle -- --photo-w/--photo-h are percentages
+   of the PILL's own width/height, and the pill itself is a short, wide capsule (--si-w% of a
+   1672x941-ratio box's width vs. --si-pill-h in cqh of that same box's height), so the photo
+   slot's real on-screen ratio works out to roughly 1.975:1 on desktop, ~1.248:1 on iPad (shorter,
+   wider pills there). border-radius:9999px (not 50%) matches .kz-pill__photo's own clamp, which
+   produces a stadium shape on a non-square box instead of an ellipse. Recompute both ratios if
+   --photo-w/-h, --si-w, --si-pill-h, or the background art's aspect ratio change in
+   store-items.css. */
+#store-pic-crop-box { aspect-ratio: 1.975; border-radius: 9999px; }
+html.is-ipad #store-pic-crop-box { aspect-ratio: 1.248; }
 .photo-crop-zoom-slider { width: 100%; margin-bottom: 16px; }
 .photo-crop-actions { display: flex; gap: 10px; justify-content: center; }
 

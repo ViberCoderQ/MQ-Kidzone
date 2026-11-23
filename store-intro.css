@@ -17,12 +17,10 @@
   max-width: none; padding: 0; margin: 0;
   background: url('assets/store-intro/store-intro-computer.png') center / 100% 100% no-repeat;
 }
-@media (pointer: coarse) {
-  #store-intro-screen .store-intro-inner {
-    aspect-ratio: 1448 / 1086;
-    min-width: calc(100vh * 1448 / 1086); min-height: calc(100vw * 1086 / 1448);
-    background: url('assets/store-intro/store-intro-ipad.png') center / 100% 100% no-repeat;
-  }
+html.is-ipad #store-intro-screen .store-intro-inner {
+  aspect-ratio: 1448 / 1086;
+  min-width: calc(100vh * 1448 / 1086); min-height: calc(100vw * 1086 / 1448);
+  background: url('assets/store-intro/store-intro-ipad.png') center / 100% 100% no-repeat;
 }
 
 /* Home pill: pinned directly to #store-intro-screen (the true, always-fully-visible screen),
@@ -47,9 +45,7 @@
   position: absolute; top: -1%; left: 50%; transform: translateX(-50%);
   width: 46%; z-index: 3;
 }
-@media (pointer: coarse) {
-  #store-intro-screen .store-intro-sign { top: 1%; width: 50%; }
-}
+html.is-ipad #store-intro-screen .store-intro-sign { top: 1%; width: 50%; }
 
 /* 8 category pill buttons, 4 per cabinet (one per shelf). Blank color capsules for now
    (assets/store-intro/pills/pill-*.png) -- the admin will later assign each a category, which
@@ -102,16 +98,14 @@
 #store-intro-screen .store-pill-purple { left: 74.2%; top: 60.0%; width: 24.44%; height: 13.30%; background-image: url('assets/store-intro/pills/pill-purple.png'); }
 #store-intro-screen .store-pill-red    { left: 74.2%; top: 73.8%; width: 23.96%; height: 13.15%; background-image: url('assets/store-intro/pills/pill-red.png'); }
 
-@media (pointer: coarse) {
-  #store-intro-screen .store-pill-blue   { left: 23.1%; top: 32.0%; width: 26.39%; height: 13.28%; }
-  #store-intro-screen .store-pill-cyan   { left: 23.1%; top: 46.0%; width: 26.26%; height: 13.13%; }
-  #store-intro-screen .store-pill-gold   { left: 23.1%; top: 59.9%; width: 26.90%; height: 13.35%; }
-  #store-intro-screen .store-pill-green  { left: 23.1%; top: 73.7%; width: 26.62%; height: 13.16%; }
-  #store-intro-screen .store-pill-pink   { left: 76.9%; top: 32.0%; width: 26.42%; height: 13.05%; }
-  #store-intro-screen .store-pill-orange { left: 76.9%; top: 45.8%; width: 26.37%; height: 12.98%; }
-  #store-intro-screen .store-pill-purple { left: 76.9%; top: 59.7%; width: 26.73%; height: 13.20%; }
-  #store-intro-screen .store-pill-red    { left: 76.9%; top: 73.5%; width: 26.20%; height: 13.05%; }
-}
+html.is-ipad #store-intro-screen .store-pill-blue   { left: 23.1%; top: 32.0%; width: 26.39%; height: 13.28%; }
+html.is-ipad #store-intro-screen .store-pill-cyan   { left: 23.1%; top: 46.0%; width: 26.26%; height: 13.13%; }
+html.is-ipad #store-intro-screen .store-pill-gold   { left: 23.1%; top: 59.9%; width: 26.90%; height: 13.35%; }
+html.is-ipad #store-intro-screen .store-pill-green  { left: 23.1%; top: 73.7%; width: 26.62%; height: 13.16%; }
+html.is-ipad #store-intro-screen .store-pill-pink   { left: 76.9%; top: 32.0%; width: 26.42%; height: 13.05%; }
+html.is-ipad #store-intro-screen .store-pill-orange { left: 76.9%; top: 45.8%; width: 26.37%; height: 12.98%; }
+html.is-ipad #store-intro-screen .store-pill-purple { left: 76.9%; top: 59.7%; width: 26.73%; height: 13.20%; }
+html.is-ipad #store-intro-screen .store-pill-red    { left: 76.9%; top: 73.5%; width: 26.20%; height: 13.05%; }
 
 /* Festive gift display -- decorative, non-interactive (pointer-events:none, no click), centered
    on the rug in front of the window. assets/store-intro/gift-display.png is 1456x1080; its box
@@ -125,6 +119,4 @@
   background: url('assets/store-intro/gift-display.png') center / 100% 100% no-repeat;
   z-index: 1;
 }
-@media (pointer: coarse) {
-  #store-intro-screen .store-gift-display { left: 50%; top: 70.7%; width: 39.6%; }
-}
+html.is-ipad #store-intro-screen .store-gift-display { left: 50%; top: 70.7%; width: 39.6%; }
