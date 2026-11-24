@@ -29,6 +29,7 @@ const Games = (() => {
   let waitingSessionId = null; // the challenge *I* sent and am watching for a response
   let shownChallengeOverlayFor = null; // session id currently shown in the incoming-challenge overlay
   let currentPlaySessionId = null; // the session shown on vs-play-screen, kept live via Realtime
+  let playScreenPollTimer = null;
 
   function gameInfo(gameType) {
     return CATALOG.find((g) => g.id === gameType) || null;
@@ -126,6 +127,32 @@ const Games = (() => {
     checkWaitingSession();
     checkIncomingChallenge();
     refreshPlayScreenIfOpen();
+  }
+
+  // Safety net for the Realtime subscription silently dying -- which iOS Safari does to
+  // backgrounded WebSockets routinely, and exactly what the waiting-for-your-turn kid's iPad is
+  // doing most of a VS match (screen off/app backgrounded until it's their turn). When that
+  // happens, no postgres_changes event ever arrives to tell them a move was made, so their board
+  // just never updates again even though the game is fine server-side -- they see the board/names
+  // (rendered once at accept-time, before the socket died) but never the other kid's moves. Two
+  // independent catches, since either on its own can miss a case the other covers:
+  // (1) the moment their iPad comes back to the foreground at all (covers the common "was locked/
+  // backgrounded" case immediately, not waiting for the poll below);
+  // (2) a plain poll, but ONLY while actually on the VS play screen (not app-wide) -- catches a
+  // socket that died for some other reason while the app stayed foregrounded the whole time.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshSessions().then(onSessionsChanged);
+  });
+  function startPlayScreenPoll() {
+    stopPlayScreenPoll();
+    playScreenPollTimer = setInterval(async () => {
+      if (!currentPlaySessionId) return;
+      await refreshSessions();
+      onSessionsChanged();
+    }, 4000);
+  }
+  function stopPlayScreenPoll() {
+    if (playScreenPollTimer) { clearInterval(playScreenPollTimer); playScreenPollTimer = null; }
   }
 
   // Keeps the play screen live: every flip/collect from either kid re-renders the board.
@@ -362,9 +389,14 @@ const Games = (() => {
       $('vs-play-body').innerHTML = `<p class="parent-card-note">You're playing ${info ? info.name : 'a game'} with ${opponent ? opponent.name : 'your opponent'}! The game itself is coming soon -- for now this just proves the challenge connected.</p>`;
     }
     AppBridge.showScreen('vs-play-screen');
+    // openPlayScreen is only ever reached for a real (Supabase-backed) session -- the vs-computer
+    // path above (startVsComputer) is entirely separate and never calls this -- so this is always
+    // a game that actually needs the Realtime-dead safety net.
+    startPlayScreenPoll();
   }
   $('vs-play-back-btn').addEventListener('click', () => {
     currentPlaySessionId = null;
+    stopPlayScreenPoll();
     War.clearLocalGame();
     TicTacToe.clearLocalGame();
     Connect4.clearLocalGame();

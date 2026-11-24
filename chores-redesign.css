@@ -7,18 +7,27 @@
 /* No position override: .screen already sets position:fixed;inset:0 to size the whole screen
    to the viewport -- same fix every other screen redesign in this app needed. */
 #chores-screen.kz-chores-redesign { background: #54c7f3; overflow: hidden; }
-/* .screen-inner (background art + the Home/coins pills) is locked to the background art's own
-   aspect ratio and grown (never shrunk) to always fully cover #chores-screen, via min-width/
-   min-height instead of max-width/max-height -- the same cover-crop trick used on the Home
-   screen. The sign/banner/pill-list are NOT inside this box (see below) -- they're glued to the
-   true screen instead, since their absolute size would otherwise vary with how much this box
-   grows to cover different window shapes. */
+/* .screen-inner (background art only -- nothing interactive lives inside it anymore, see below)
+   is locked to the background art's own aspect ratio and grown (never shrunk) to always fully
+   cover #chores-screen, via min-width/min-height instead of max-width/max-height -- the same
+   cover-crop trick used on the Home screen. Everything else (home/coins pills, sign, banner,
+   chore list) is NOT inside this box -- it's glued to the true screen instead, since its
+   absolute size would otherwise vary with how much this box grows to cover different window
+   shapes, and since nothing in this scenery needs pixel alignment with any of it. */
 #chores-screen.kz-chores-redesign > .screen-inner {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: 100%; height: 100%; aspect-ratio: 1670 / 942;
   min-width: calc(100vh * 1670 / 942); min-height: calc(100vw * 942 / 1670);
   max-width: none; padding: 0; margin: 0; overflow: visible;
   background: url('assets/chores/background.png') center / 100% 100% no-repeat;
+}
+/* iPad only: a separate background image, already 4:3 (so only the OUTER crop applies, if the
+   real device isn't exactly 4:3, e.g. iPad Air/Pro 11 -- same deal as Home's iPad background),
+   same technique as home-overlay.css's html.is-ipad override. */
+html.is-ipad #chores-screen.kz-chores-redesign > .screen-inner {
+  aspect-ratio: 4 / 3;
+  min-width: calc(100vh * 4 / 3); min-height: calc(100vw * 3 / 4);
+  background: url('assets/chores/background-ipad.png') center / 100% 100% no-repeat;
 }
 
 /* Native back-button/title hidden (redundant with the new Home pill below); the voice button
@@ -44,7 +53,7 @@
      own current size. */
   transform: translateX(-50%) translate(var(--kzc-header-x, 0%), var(--kzc-header-y, 0%));
   transform-origin: top center;
-  width: var(--kzc-header-w, 40%); aspect-ratio: 2048 / 682; pointer-events: none; z-index: 3;
+  width: var(--kzc-header-w, 31%); aspect-ratio: 2048 / 682; pointer-events: none; z-index: 3;
 }
 #chores-screen.kz-chores-redesign .kz-chores-sign-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 #chores-screen.kz-chores-redesign .kz-chores-sign-text {
@@ -53,7 +62,7 @@
      image/whole-sign scale above. The arc's curve ("slope") isn't a CSS var -- it's the
      #kz-chores-sign-arc path's `d` attribute, recomputed by applyChoresLayout() in
      js/kid-rewards.js since SVG path geometry can't be driven by custom properties. */
-  transform: translate(var(--kzc-header-text-x, 0%), var(--kzc-header-text-y, -5%));
+  transform: translate(var(--kzc-header-text-x, 1%), var(--kzc-header-text-y, -5%));
   transform-origin: center;
 }
 #chores-screen.kz-chores-redesign .kz-chores-sign-label {
@@ -91,14 +100,14 @@
    --kzc-banner-height-scale var, since that value was already identical on both devices
    anyway. The art itself still uses object-fit:fill, so it stretches cleanly either way. */
 #chores-screen.kz-chores-redesign .kz-chores-banner {
-  position: absolute; left: 50%; top: 15.5%; width: var(--kzc-banner-w, 55%);
+  position: absolute; left: 50%; top: 15.5%; width: var(--kzc-banner-w, 60.5%);
   aspect-ratio: 2048 / 754.6; z-index: 2;
-  transform: translateX(-50%) translate(var(--kzc-banner-x, 0%), var(--kzc-banner-y, 0%));
+  transform: translateX(-50%) translate(var(--kzc-banner-x, 0%), var(--kzc-banner-y, -26.5%));
   transform-origin: center;
 }
 #chores-screen.kz-chores-redesign .kz-chores-banner-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
 #chores-screen.kz-chores-redesign .kz-chores-avatar {
-  position: absolute; left: 2.35%; top: 27.2%; width: var(--kzc-avatar-w, 15%);
+  position: absolute; left: 2.35%; top: 27.2%; width: var(--kzc-avatar-w, 16%);
   aspect-ratio: 1 / 1; border-radius: 23%; overflow: hidden; z-index: 2;
   display: flex; align-items: center; justify-content: center;
   /* Square (aspect-ratio: 1/1) so the live photo frame matches the round/square frame drawn
@@ -107,7 +116,7 @@
      Chores Layout Tool), all % of the banner (this element's containing block) -- no counter-
      transform needed anymore now that the banner's own height is aspect-ratio-locked instead
      of a post-layout scaleY() stretch, so nothing here inherits any distortion to cancel. */
-  transform: translate(var(--kzc-avatar-x, 1.5%), var(--kzc-avatar-y, -25%));
+  transform: translate(var(--kzc-avatar-x, -3%), var(--kzc-avatar-y, -3.5%));
   transform-origin: center;
 }
 #chores-screen.kz-chores-redesign .kz-chores-avatar .profile-avatar { width: 100%; height: 100%; font-size: clamp(16px, 2.4vw, 36px); }
@@ -119,16 +128,16 @@
      rather than a self-relative transform: translate() -- this row's own box is just one line
      of text, maybe 30-50px tall, so a % of ITS height barely moves it at all. A % of the much
      taller banner gives real travel room, e.g. enough to move it to the top of the banner. */
-  left: calc(20.7% + var(--kzc-today-x, 0%)); top: calc(52% + var(--kzc-today-y, -15.5%));
-  font-size: calc(clamp(20px, 3.3vw, 52px) * var(--kzc-today-size, 0.87));
+  left: calc(20.7% + var(--kzc-today-x, 0%)); top: calc(52% + var(--kzc-today-y, -11%));
+  font-size: calc(clamp(20px, 3.3vw, 52px) * var(--kzc-today-size, 0.71));
   line-height: 1.05; letter-spacing: -0.035em; white-space: nowrap; z-index: 2;
 }
 #chores-screen.kz-chores-redesign .kz-chores-count {
   position: absolute; width: 27.2%; font-weight: 1000; color: #050c4c;
   /* --kzc-count-x/-y/-size: nudge tool controls for this row specifically (move + font size).
      Same left/top (not transform translate) reasoning as .kz-chores-today above. */
-  left: calc(20.7% + var(--kzc-count-x, 0.5%)); top: calc(75% + var(--kzc-count-y, -23%));
-  font-size: calc(clamp(10px, 1.65vw, 26px) * var(--kzc-count-size, 1.05));
+  left: calc(20.7% + var(--kzc-count-x, 0.5%)); top: calc(75% + var(--kzc-count-y, -20.5%));
+  font-size: calc(clamp(10px, 1.65vw, 26px) * var(--kzc-count-size, 0.89));
   line-height: 1.05; letter-spacing: -0.035em; white-space: nowrap; z-index: 2;
   /* Same "X of Y Chores Finished!" text/math as always (js/kid-rewards.js's renderChoresBanner
      is untouched) -- only the rendering is corrected here. */
@@ -238,19 +247,19 @@ html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-sign-label {
   font-size: calc(60px * var(--kzc-header-text-size-ipad, 1.28));
 }
 html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-banner {
-  width: var(--kzc-banner-w-ipad, 55%);
-  transform: translateX(-50%) translate(var(--kzc-banner-x-ipad, 0%), var(--kzc-banner-y-ipad, 0%));
+  width: var(--kzc-banner-w-ipad, 71.5%);
+  transform: translateX(-50%) translate(var(--kzc-banner-x-ipad, 0%), var(--kzc-banner-y-ipad, -19%));
 }
 html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-avatar {
-  width: var(--kzc-avatar-w-ipad, 15%);
-  transform: translate(var(--kzc-avatar-x-ipad, 1.5%), var(--kzc-avatar-y-ipad, -25%));
+  width: var(--kzc-avatar-w-ipad, 16%);
+  transform: translate(var(--kzc-avatar-x-ipad, -3%), var(--kzc-avatar-y-ipad, -4%));
 }
 html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-today {
-  left: calc(20.7% + var(--kzc-today-x-ipad, 0%)); top: calc(52% + var(--kzc-today-y-ipad, -15.5%));
-  font-size: calc(clamp(20px, 3.3vw, 52px) * var(--kzc-today-size-ipad, 0.87));
+  left: calc(20.7% + var(--kzc-today-x-ipad, 0%)); top: calc(52% + var(--kzc-today-y-ipad, -11%));
+  font-size: calc(clamp(20px, 3.3vw, 52px) * var(--kzc-today-size-ipad, 0.83));
 }
 html.is-ipad #chores-screen.kz-chores-redesign .kz-chores-count {
-  left: calc(20.7% + var(--kzc-count-x-ipad, 0.5%)); top: calc(75% + var(--kzc-count-y-ipad, -23%));
+  left: calc(20.7% + var(--kzc-count-x-ipad, 0.5%)); top: calc(75% + var(--kzc-count-y-ipad, -19.5%));
   font-size: calc(clamp(10px, 1.65vw, 26px) * var(--kzc-count-size-ipad, 1.05));
 }
 html.is-ipad #chores-screen.kz-chores-redesign .chore-list {

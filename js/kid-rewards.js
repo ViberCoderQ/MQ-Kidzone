@@ -181,22 +181,24 @@ const KidRewards = (() => {
   // same reason as everything else -- it's just not structurally glued the way size/position are.
   const CHORES_LAYOUT_DEFAULTS = {
     computer: {
-      headerX: 0, headerY: 0, headerW: 40,
-      headerTextX: 0, headerTextY: -5, headerTextCurve: 82, headerTextSize: 128,
-      bannerX: 0, bannerY: 0, bannerW: 55,
-      avatarX: 1.5, avatarY: -25, avatarW: 15,
-      todayX: 0, todayY: -15.5, todaySize: 87,
-      countX: 0.5, countY: -23, countSize: 105,
+      // Tuned via the Chores Layout Tool, against the real background.
+      headerX: 0, headerY: 0, headerW: 31,
+      headerTextX: 1, headerTextY: -5, headerTextCurve: 82, headerTextSize: 128,
+      bannerX: 0, bannerY: -26.5, bannerW: 60.5,
+      avatarX: -3, avatarY: -3.5, avatarW: 16,
+      todayX: 0, todayY: -11, todaySize: 71,
+      countX: 0.5, countY: -20.5, countSize: 89,
       pillsX: 0, pillsY: 0, pillsScale: 101, pillsExtendUp: 0, pillsExtendDown: 0,
       chorePicX: 1, chorePicWidthScale: 128, chorePicHeightScale: 100,
     },
     ipad: {
+      // Tuned via the Chores Layout Tool's device toggle, against the real 4:3 iPad background.
       headerX: 0, headerY: 0, headerW: 40,
       headerTextX: 0, headerTextY: -5, headerTextCurve: 82, headerTextSize: 128,
-      bannerX: 0, bannerY: 0, bannerW: 55,
-      avatarX: 1.5, avatarY: -25, avatarW: 15,
-      todayX: 0, todayY: -15.5, todaySize: 87,
-      countX: 0.5, countY: -23, countSize: 105,
+      bannerX: 0, bannerY: -19, bannerW: 71.5,
+      avatarX: -3, avatarY: -4, avatarW: 16,
+      todayX: 0, todayY: -11, todaySize: 83,
+      countX: 0.5, countY: -19.5, countSize: 105,
       pillsX: 0, pillsY: 0, pillsScale: 101, pillsExtendUp: 0, pillsExtendDown: 0,
       chorePicX: 1, chorePicWidthScale: 128, chorePicHeightScale: 100,
     },
@@ -529,39 +531,16 @@ const KidRewards = (() => {
       renderStore();
       return;
     }
+    // The home-screen "Saving for..." pill that showed/cleared this was removed (no in-game way
+    // to set a goal exists since the Reward Shop redesign dropped the wishlist button it needed --
+    // a future wishlist feature will replace both), but profile.savingsGoal itself is kept and
+    // still cleared here so stale data doesn't linger for whatever reuses that field later.
     const goal = getSavingsGoal(profile);
     if (goal && goal.itemId === item.id) setSavingsGoal(profile.id, null);
     Voice.speak(`Yay! Mom or Dad will bring you ${item.name} soon.`);
     AppBridge.showToast(`🎉 Mom or Dad will bring: ${item.name}`, 2600);
     renderStore();
   });
-
-  // ================= Savings goal on the home screen =================
-  function renderHomeGoal(profile) {
-    const el = $('home-goal');
-    let goal = profile ? getSavingsGoal(profile) : null;
-    if (goal && !goal.available) {
-      // The item was taken out of the store -- quietly drop the goal.
-      setSavingsGoal(profile.id, null);
-      goal = null;
-    }
-    el.classList.toggle('hidden', !goal);
-    if (!goal) { el.innerHTML = ''; return; }
-    const have = Math.max(0, spendableCoins(profile.id));
-    const pct = Math.min(100, Math.round((have / goal.price) * 100));
-    const ready = have >= goal.price;
-    el.classList.toggle('ready', ready);
-    el.innerHTML = `${pictureHtml(goal.picture, 'pic-md')}
-      <span class="home-goal-body">
-        <span class="home-goal-label">${ready ? 'You can buy it! 🎉' : `Saving for ${esc(goal.name)}`}</span>
-        <span class="coin-today-bar"><span style="width:${pct}%"></span></span>
-      </span>
-      <span class="home-goal-count">${Math.min(have, goal.price)} / ${goal.price}</span>`;
-    el.appendChild(Voice.button(ready
-      ? `You have enough coins for ${goal.name}! Go to the store to buy it.`
-      : `You are saving for ${goal.name}. You have ${coins(Math.min(have, goal.price))} of ${goal.price}.`));
-  }
-  $('home-goal').addEventListener('click', () => openStore());
 
   // ================= Parent lists =================
   function dayWord(day) {
@@ -655,5 +634,5 @@ const KidRewards = (() => {
     AppBridge.renderParentKidList();
   }
 
-  return { openChores, openStore, renderHomeGoal, renderParentQueues, choresLeftToday };
+  return { openChores, openStore, renderParentQueues, choresLeftToday };
 })();

@@ -40,13 +40,13 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kid Zone" />
-  <link rel="stylesheet" href="style.css?v=163" />
+  <link rel="stylesheet" href="style.css?v=164" />
   <link rel="stylesheet" href="memory-match.css?v=159" />
   <link rel="stylesheet" href="spot-the-difference.css?v=1" />
   <link rel="stylesheet" href="games-carousel.css?v=7" />
   <link rel="stylesheet" href="reading-carousel.css?v=6" />
-  <link rel="stylesheet" href="chores-redesign.css?v=15" />
-  <link rel="stylesheet" href="home-overlay.css?v=25" />
+  <link rel="stylesheet" href="chores-redesign.css?v=16" />
+  <link rel="stylesheet" href="home-overlay.css?v=26" />
   <link rel="stylesheet" href="store-intro.css?v=2" />
   <link rel="stylesheet" href="store-items.css?v=12" />
 </head>
@@ -93,7 +93,6 @@
     </header>
     <div class="screen-inner home-inner">
       <img class="home-logo" src="icons/home-logo.png?v=159" alt="Kid Zone" />
-      <button type="button" class="home-goal hidden" id="home-goal"></button>
       <div class="section-grid" id="section-grid"></div>
     </div>
     <button type="button" id="home-parent-settings" aria-label="Grown-ups: settings"></button>
@@ -121,14 +120,17 @@
       <h2 class="sub-header-title">My Chores</h2>
       <span class="header-spacer" id="chores-voice-slot"></span>
     </header>
-    <div class="screen-inner">
-      <button type="button" class="kz-chores-home" id="kz-chores-home" aria-label="Back to home">⌂ Home</button>
-      <div class="kz-chores-coins" id="kz-chores-coins"></div>
-    </div>
-    <!-- Sign/banner/pill-list are siblings of .screen-inner, not children of it -- glued to the
-         true #chores-screen (same technique home-overlay.css's Home buttons use) instead of the
-         cover-cropped background image, whose own absolute size varies a lot more between
-         devices than the screen itself does. See chores-redesign.css. -->
+    <div class="screen-inner"></div>
+    <!-- Home/coins/sign/banner/pill-list are all siblings of .screen-inner, not children of it --
+         glued to the true #chores-screen (same technique home-overlay.css's Home buttons use)
+         instead of the cover-cropped background image, whose own absolute size varies a lot more
+         between devices than the screen itself does -- a button pinned near an edge of that box
+         can end up entirely in the region that overflows past the real screen and gets cropped
+         off (confirmed on a real iPad: kz-chores-home/kz-chores-coins were still inside
+         .screen-inner above until this, the one pair left behind when sign/banner/pill-list were
+         already moved out). See chores-redesign.css. -->
+    <button type="button" class="kz-chores-home" id="kz-chores-home" aria-label="Back to home">⌂ Home</button>
+    <div class="kz-chores-coins" id="kz-chores-coins"></div>
     <div class="kz-chores-sign">
       <img class="kz-chores-sign-img" src="assets/chores/wooden-header.png" alt="" />
       <svg class="kz-chores-sign-text" viewBox="0 0 1000 333" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
@@ -1464,7 +1466,7 @@
   <script src="js/canvas-engine.js?v=159"></script>
   <script src="js/gallery.js?v=159"></script>
   <script src="js/backup.js?v=159"></script>
-  <script src="js/app.js?v=159"></script>
+  <script src="js/app.js?v=160"></script>
   <script src="js/math-content.js?v=159"></script>
   <script src="js/learning.js?v=159"></script>
   <script src="js/custom-reading-pics.js?v=159"></script>
@@ -1476,7 +1478,7 @@
   <script src="js/spot-the-difference.js?v=1"></script>
   <script src="js/setup.js?v=161"></script>
   <script src="js/reward-pill.js?v=3"></script>
-  <script src="js/kid-rewards.js?v=179"></script>
+  <script src="js/kid-rewards.js?v=180"></script>
   <script src="js/reward-shop.js?v=1"></script>
   <script src="js/pig-clerk.js?v=6"></script>
   <script src="js/asset-preloader.js?v=1"></script>
@@ -1485,7 +1487,7 @@
   <script src="js/connect4.js?v=159"></script>
   <script src="games-carousel.js?v=2"></script>
   <script src="reading-carousel.js?v=2"></script>
-  <script src="js/games.js?v=159"></script>
+  <script src="js/games.js?v=160"></script>
   <script src="js/home-overlay.js?v=25"></script>
 </body>
 </html>

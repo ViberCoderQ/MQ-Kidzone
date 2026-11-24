@@ -331,7 +331,6 @@
     homeProfileChip.innerHTML = `<span class="profile-avatar small" style="--avatar-color:${profile.avatarColor}">${escapeHtml(profile.name.charAt(0).toUpperCase())}</span>${escapeHtml(profile.name)}<span class="chip-bye" aria-hidden="true">👋</span>`;
     homeCoinCount.textContent = spendableCoins(profile.id); // coins set aside for purchases aren't counted
     renderSectionGrid();
-    KidRewards.renderHomeGoal(profile);
     showScreen('home-screen');
   }
 
