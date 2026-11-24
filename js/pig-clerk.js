@@ -283,6 +283,16 @@
     rafId = requestAnimationFrame(draw);
   }
 
+  // Lets js/asset-preloader.js start fetching/decoding the ~17MB sprite set in the background
+  // (e.g. while the kid is still looking at Home) instead of only starting the moment they
+  // actually tap into the item screen. Safe to call anytime, any number of times -- it's the
+  // exact same memoized assetsPromise enter() itself uses, just without touching session/canvas
+  // state, so if enter() runs later it just reuses whatever this already started/finished.
+  function preload() {
+    if (!assetsPromise) assetsPromise = loadAssets().catch((err) => { console.warn('[pig-clerk] asset load failed', err); assetsPromise = null; });
+    return assetsPromise;
+  }
+
   function enter() {
     if (!canvas || !mainCtx) return;
     size = place();
@@ -321,5 +331,5 @@
     if (typeof setData === 'function') setData(TUNE_KEY, CONFIG);
   }
 
-  window.PigClerk = { enter, exit, getTune, setTune, resetTune, DEFAULT_TUNE };
+  window.PigClerk = { enter, exit, preload, getTune, setTune, resetTune, DEFAULT_TUNE };
 })();

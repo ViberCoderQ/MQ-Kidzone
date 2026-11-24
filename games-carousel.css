@@ -1,12 +1,16 @@
 /* No position override here: .screen already sets position:fixed;inset:0 to size the whole
    screen to the viewport. Overriding it to "relative" collapses this element to zero height
    once .screen-inner (and everything in it) goes position:absolute below. */
-/* .screen-inner (background art, home/settings buttons, carousel -- everything) is locked to
-   the background art's own aspect ratio and grown (never shrunk) to always fully cover
-   #games-screen, via min-width/min-height instead of max-width/max-height -- the cover-crop
-   trick used on the Home screen. The art and every button live inside this same locked,
-   growing box, so a button's position relative to the art behind it never shifts on any
-   monitor/window shape -- only how much of the edges gets cropped away changes. */
+/* .screen-inner (background art + the carousel) is locked to the background art's own aspect
+   ratio and grown (never shrunk) to always fully cover #games-screen, via min-width/min-height
+   instead of max-width/max-height -- the cover-crop trick used on the Home screen. games-meadow.png
+   is plain scenery with nothing baked in that a button needs to align to, so unlike Store/Chores
+   this box was never given a separate iPad-ratio background -- it just crops more on a shape it
+   wasn't fit to. The home/settings buttons are NOT inside this box (see below) -- a button sitting
+   near the edge of a box that's allowed to grow arbitrarily wide/tall and overflow #games-screen's
+   bounds (overflow:hidden) could end up entirely in the cropped-off region, as kz-games-home did
+   on a real iPad. They're glued to the true screen instead, same "glue" technique home-overlay.css's
+   Home buttons and chores-redesign.css's sign/banner use. */
 #games-screen.kz-games-redesign{background:#3ba8ed!important;overflow:hidden}
 #games-screen.kz-games-redesign>.sub-header,#games-screen.kz-games-redesign>.screen-inner>.section-grid{display:none!important}
 #games-screen.kz-games-redesign>.screen-inner{
@@ -16,6 +20,8 @@
   max-width:none!important;padding:0!important;margin:0!important;overflow:visible!important;
   background:url('assets/games-carousel/games-meadow.png?v=3') center/100% 100% no-repeat!important;
 }
+/* Percentages below are now of the true #games-screen box (position:fixed;inset:0 on .screen),
+   not of the cover-crop art box -- see the comment above. */
 .kz-games-home,.kz-games-settings{position:absolute;z-index:10;border:0;background:transparent;cursor:pointer;touch-action:manipulation}
 /* Standalone sprite (assets/games-carousel/games-home-btn.png, ~2205x713, ~3.1:1 -- home icon
    + "Games" label on a wooden plaque), same aspect-ratio-locked pattern as the Home screen's

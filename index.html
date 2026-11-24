@@ -43,8 +43,8 @@
   <link rel="stylesheet" href="style.css?v=163" />
   <link rel="stylesheet" href="memory-match.css?v=159" />
   <link rel="stylesheet" href="spot-the-difference.css?v=1" />
-  <link rel="stylesheet" href="games-carousel.css?v=6" />
-  <link rel="stylesheet" href="reading-carousel.css?v=5" />
+  <link rel="stylesheet" href="games-carousel.css?v=7" />
+  <link rel="stylesheet" href="reading-carousel.css?v=6" />
   <link rel="stylesheet" href="chores-redesign.css?v=15" />
   <link rel="stylesheet" href="home-overlay.css?v=25" />
   <link rel="stylesheet" href="store-intro.css?v=2" />
@@ -210,9 +210,14 @@
       <div class="setup-list kz-resume-wrapper" id="games-resume-list"></div>
       <div class="section-grid" id="games-list" style="display:none"></div>
       <div id="kz-games-carousel" class="kz-carousel"></div>
-      <button id="kz-games-home" class="kz-games-home" aria-label="Back to home"></button>
-      <button id="kz-games-settings" class="kz-games-settings" aria-label="Parent settings"></button>
     </div>
+    <!-- Siblings of .screen-inner, not children of it -- glued to the true #games-screen (same
+         "glue" technique home-overlay.css's Home buttons and chores-redesign.css's sign/banner
+         use) instead of the cover-cropped background image, so they stay fully on-screen
+         regardless of how much of that oversized box's edges get cropped away on a device shape
+         games-meadow.png was never fit to (e.g. iPad). See games-carousel.css. -->
+    <button id="kz-games-home" class="kz-games-home" aria-label="Back to home"></button>
+    <button id="kz-games-settings" class="kz-games-settings" aria-label="Parent settings"></button>
   </section>
 
   <!-- ================= Games: one game's detail -- VS or Play against Computer ================= -->
@@ -326,9 +331,15 @@
     <div class="screen-inner home-inner">
       <div class="section-grid area-grid" id="subject-tiles"></div>
       <div id="kz-reading-carousel" class="kz-carousel"></div>
-      <button id="kz-reading-home" class="kz-reading-home" aria-label="Back to home"></button>
-      <button id="kz-reading-settings" class="kz-reading-settings" aria-label="Parent settings"></button>
     </div>
+    <!-- Siblings of .screen-inner, not children of it -- glued to the true #subject-screen (same
+         "glue" technique home-overlay.css's Home buttons and chores-redesign.css's sign/banner
+         use) instead of the cover-cropped background image, so they stay fully on-screen
+         regardless of how much of that oversized box's edges get cropped away on a device shape
+         meadow.png was never fit to (e.g. iPad). Only shown/positioned when Reading mode is
+         active -- see reading-carousel.css. -->
+    <button id="kz-reading-home" class="kz-reading-home" aria-label="Back to home"></button>
+    <button id="kz-reading-settings" class="kz-reading-settings" aria-label="Parent settings"></button>
   </section>
 
   <!-- ================= Practice ================= -->
@@ -1467,7 +1478,8 @@
   <script src="js/reward-pill.js?v=3"></script>
   <script src="js/kid-rewards.js?v=179"></script>
   <script src="js/reward-shop.js?v=1"></script>
-  <script src="js/pig-clerk.js?v=5"></script>
+  <script src="js/pig-clerk.js?v=6"></script>
+  <script src="js/asset-preloader.js?v=1"></script>
   <script src="js/war.js?v=159"></script>
   <script src="js/tictactoe.js?v=159"></script>
   <script src="js/connect4.js?v=159"></script>

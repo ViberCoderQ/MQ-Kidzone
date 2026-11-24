@@ -5,12 +5,17 @@
 
 /* No position override: .screen already sets position:fixed;inset:0 to size the whole screen
    to the viewport -- same fix as games-carousel.css/home-overlay.css needed. */
-/* .screen-inner (background art, home/settings buttons, carousel -- everything) is locked to
-   the background art's own aspect ratio and grown (never shrunk) to always fully cover
-   #subject-screen, via min-width/min-height instead of max-width/max-height -- the cover-crop
-   trick used on the Home screen. The art and every button live inside this same locked,
-   growing box, so a button's position relative to the art behind it never shifts on any
-   monitor/window shape -- only how much of the edges gets cropped away changes. */
+/* .screen-inner (background art + the carousel) is locked to the background art's own aspect
+   ratio and grown (never shrunk) to always fully cover #subject-screen, via min-width/min-height
+   instead of max-width/max-height -- the cover-crop trick used on the Home screen. meadow.png is
+   plain scenery with nothing baked in that a button needs to align to, so unlike Store/Chores this
+   box was never given a separate iPad-ratio background -- it just crops more on a shape it wasn't
+   fit to. The home/settings buttons are NOT inside this box (see below, now siblings of
+   .screen-inner in index.html) -- a button sitting near the edge of a box that's allowed to grow
+   arbitrarily wide/tall and overflow #subject-screen's bounds (overflow:hidden) could end up
+   entirely in the cropped-off region, as kz-reading-home did on a real iPad. They're glued to the
+   true screen instead, same "glue" technique home-overlay.css's Home buttons and
+   chores-redesign.css's sign/banner use. */
 #subject-screen.kz-reading-redesign{background:#3ba8ed!important;overflow:hidden}
 #subject-screen.kz-reading-redesign>.screen-inner>.section-grid{display:none!important}
 #subject-screen.kz-reading-redesign>.screen-inner{
@@ -43,7 +48,8 @@
 /* Standalone sprites (assets/reading-carousel/reading-home-btn.png, ~2172x724, ~3:1 -- home
    icon + "Reading" label; reading-settings-btn.png, ~1402x1122, ~1.25:1 -- same gear art as the
    Home screen/Games screen), aspect-ratio-locked so neither ever distorts. Eyeballed placement
-   -- nudge if it feels off. */
+   -- nudge if it feels off. Percentages are of the true #subject-screen box now (position:fixed;
+   inset:0 on .screen), not the cover-crop art box -- see the comment up top. */
 #subject-screen.kz-reading-redesign .kz-reading-home{left:1.5%;top:1.5%;width:24%;aspect-ratio:2172/724;border-radius:0;background-image:url('assets/reading-carousel/reading-home-btn.png');background-size:100% 100%;background-repeat:no-repeat;background-position:center}
 #subject-screen.kz-reading-redesign .kz-reading-settings{right:1.2%;top:1.5%;width:7%;aspect-ratio:1402/1122;border-radius:0;background-image:url('assets/reading-carousel/reading-settings-btn.png');background-size:100% 100%;background-repeat:no-repeat;background-position:center}
 

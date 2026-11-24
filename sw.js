@@ -1,7 +1,7 @@
 ﻿// Offline support. "Network first": when the iPad is online it always gets the newest files
 // from Netlify (so a new deploy shows up right away), and a copy of each file is kept. When it's
 // offline, the kept copy is used instead, so the app still opens and works.
-const CACHE = 'family-app-v117';
+const CACHE = 'family-app-v119';
 const CORE = [
   './',
   'index.html',
@@ -39,6 +39,7 @@ const CORE = [
   'js/kid-rewards.js',
   'js/reward-pill.js',
   'js/pig-clerk.js',
+  'js/asset-preloader.js',
   'js/war.js',
   'js/tictactoe.js',
   'js/connect4.js',
