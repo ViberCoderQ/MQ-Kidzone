@@ -22,6 +22,13 @@
   const CHAR_W = 1312, CHAR_H = 1199;
   const END_PHASE = 2.8;       // seconds: total wave-to-rest animation length (168 frames @ 60fps)
   const TAIL_START = 149.5 / 60; // seconds: frames >=150 use the regenerated newFrame PNGs
+  // Idle sway/breathing grid -- the handoff used 12x12 (288 triangles/frame); that many
+  // clip+drawImage calls every frame, for as long as the pig idles, is the suspected cause of
+  // iPad jitter. 7x7 (98 triangles) plus the cropped-source change in tri() above cuts that
+  // substantially -- not yet verified on a real iPad, so treat this number as a starting point to
+  // adjust (lower = smoother/choppier-looking sway, higher = smoother-looking/slower) if testing
+  // shows it still needs to come down further, or can afford to go back up.
+  const IDLE_GRID = 7;
 
   // Character canvas size/scale at each breakpoint -- NOT tunable from the align tool (only
   // position is), since these were already calibrated once by compositing master.png over each
@@ -80,8 +87,15 @@
   const stageCtx = stage.getContext('2d');
 
   // Triangle-warp blit used only for the idle sway/breathing deform below -- splits the
-  // character image into a 12x12 grid and redraws each triangle offset by deform(), same
-  // technique (and same source coordinates) as the handoff.
+  // character image into a grid (IDLE_GRID below) and redraws each triangle offset by deform(),
+  // same technique (and same source coordinates) as the handoff, with two changes for iPad
+  // performance: (1) each draw is cropped to that triangle's own source bounding box instead of
+  // passing the full 1312x1199 image through the clip+transform every time -- the transform maps
+  // the coordinate SYSTEM, not a specific pixel selection, so cropping to just the needed source
+  // pixels is equivalent, just far less for the browser to rasterize per call; (2) the grid is
+  // coarser (see IDLE_GRID) than the handoff's original 12x12, cutting total draws further. Both
+  // were the suspected cost on iPad Safari, which is markedly slower than desktop at clip-heavy
+  // canvas work -- see pig-align-tool.html for a way to compare before/after frame time.
   function tri(ctx, img, s, d) {
     const [a, b, c] = s, [A, B, C] = d;
     const den = (b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1]);
@@ -100,7 +114,12 @@
     ctx.closePath();
     ctx.clip();
     ctx.transform(u, q, v, r, A[0] - u * a[0] - v * a[1], A[1] - q * a[0] - r * a[1]);
-    ctx.drawImage(img, 0, 0);
+    const pad = 3; // a touch of slack around the triangle so its own antialiased edge isn't cut
+    const sx = Math.max(0, Math.min(a[0], b[0], c[0]) - pad);
+    const sy = Math.max(0, Math.min(a[1], b[1], c[1]) - pad);
+    const sw = Math.min(img.width, Math.max(a[0], b[0], c[0]) + pad) - sx;
+    const sh = Math.min(img.height, Math.max(a[1], b[1], c[1]) + pad) - sy;
+    ctx.drawImage(img, sx, sy, sw, sh, sx, sy, sw, sh);
     ctx.restore();
   }
 
@@ -139,7 +158,30 @@
     return s;
   }
 
+  // ---- optional on-screen FPS readout, for judging perf changes on a real device without a
+  // plugged-in debugger -- add ?pigfps=1 (or ?pigfps=1&device=ipad in the real app) to the URL.
+  // Invisible unless that flag is present; costs nothing when it's not.
+  const DEBUG_FPS = new URLSearchParams(location.search).has('pigfps');
+  let fpsEl = null, fpsFrames = 0, fpsWindowStart = 0, fpsLastShown = '';
+  function fpsTick(now) {
+    if (!DEBUG_FPS) return;
+    if (!fpsEl) {
+      fpsEl = document.createElement('div');
+      fpsEl.style.cssText = 'position:fixed;top:8px;left:8px;z-index:9999;background:#000a;color:#6f6;font:14px/1.3 monospace;padding:4px 8px;border-radius:6px;pointer-events:none;white-space:pre;';
+      document.body.appendChild(fpsEl);
+    }
+    fpsFrames++;
+    if (!fpsWindowStart) fpsWindowStart = now;
+    const elapsed = now - fpsWindowStart;
+    if (elapsed >= 500) { // refresh twice a second -- frequent enough to see jank, cheap enough not to add its own
+      fpsLastShown = (fpsFrames / (elapsed / 1000)).toFixed(0) + ' fps  (' + (elapsed / fpsFrames).toFixed(1) + ' ms/frame)';
+      fpsFrames = 0; fpsWindowStart = now;
+    }
+    fpsEl.textContent = 'pig-clerk: ' + fpsLastShown;
+  }
+
   function draw(now) {
+    fpsTick(now);
     const dt = Math.min(0.05, (now - last) / 1000 || 0);
     last = now;
     t += dt * CONFIG.speed;
@@ -182,7 +224,7 @@
     if (Math.abs(b) + Math.abs(e) + Math.abs(tilt) < 0.001) {
       mainCtx.drawImage(img, 0, 0);
     } else {
-      const n = 12, m = 12;
+      const n = IDLE_GRID, m = IDLE_GRID;
       for (let jj = 0; jj < m; jj++) for (let ii = 0; ii < n; ii++) {
         const a1 = [ii * CHAR_W / n, jj * CHAR_H / m], b1 = [(ii + 1) * CHAR_W / n, jj * CHAR_H / m];
         const d1 = [ii * CHAR_W / n, (jj + 1) * CHAR_H / m], f1 = [(ii + 1) * CHAR_W / n, (jj + 1) * CHAR_H / m];
@@ -232,6 +274,7 @@
     sessionId++; // invalidate any enter() still waiting on assetsPromise
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     if (mainCtx && canvas) mainCtx.clearRect(0, 0, canvas.width, canvas.height);
+    if (fpsEl) fpsEl.textContent = 'pig-clerk: stopped';
   }
 
   // ---- tuning API, used by pig-align-tool.html (and available from the console too) ----
