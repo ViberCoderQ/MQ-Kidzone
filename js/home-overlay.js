@@ -65,6 +65,15 @@
   // class JS and CSS both already agree on sidesteps that class of bug entirely, since there's
   // only one signal to go stale instead of two that could disagree).
   function isTouch() { return document.documentElement.classList.contains('is-ipad'); }
+  // Lets a grown-up tune the iPad half of this tool from a computer (or vice versa) -- without
+  // this, isTouch() only ever reflects whichever device is physically open right now, so the
+  // OTHER device's values/CSS could only ever be edited by someone literally holding that
+  // device. Forces the real html.is-ipad class itself (not a separate tool-only flag), which is
+  // what every is-ipad-gated CSS rule app-wide reads -- so the preview behind this panel (or
+  // revealed by the "Preview" button below) is pixel-accurate to the other device, background
+  // art included, not just a numbers simulation. Captured once at load, before any toggling, so
+  // Done can restore the device's own real state.
+  const HOME_REAL_IS_IPAD = isTouch();
   function cssVarName(id, field) {
     return `--kzb-${id}-${field}${isTouch() ? '-ipad' : ''}`;
   }
@@ -197,8 +206,11 @@
   panel.className = 'kz-layout-tool-panel hidden';
   panel.setAttribute('aria-label', 'Home button layout tool');
   panel.innerHTML =
-    `<div class="chores-layout-head"><strong>Home Buttons Layout Tool (${isTouch() ? 'iPad' : 'Computer'})</strong>` +
+    `<div class="chores-layout-head"><strong id="home-layout-title">Home Buttons Layout Tool (${isTouch() ? 'iPad' : 'Computer'})</strong>` +
+    `<button type="button" id="home-layout-device-btn" class="big-btn"></button>` +
     `<button type="button" id="home-layout-done-btn" class="big-btn primary-btn">✅ Done</button></div>` +
+    `<p class="parent-card-note">Tap the device button above to tune the OTHER device's values/` +
+    `preview from here -- without it, the iPad half can only ever be edited by someone physically on an iPad.</p>` +
     `<button type="button" id="home-layout-preview-btn" class="big-btn" style="margin-top:10px;width:100%">👀 Preview (hide this panel)</button>` +
     `<div class="chores-layout-section">Icon row -- Games through Music, all six together (nudges each one by the same amount from wherever it already is)</div>` +
     GROUP_FIELDS.map(([field, fieldLabel, decLabel, incLabel]) =>
@@ -209,7 +221,7 @@
       `</div>`
     ).join('') +
     BUTTONS.map(({ id, label }) => {
-      const section = `<div class="chores-layout-section">${label} -- ${isTouch() ? 'iPad-only' : 'computer-only'} values</div>`;
+      const section = `<div class="chores-layout-section" data-device-label="${id}">${label} -- ${isTouch() ? 'iPad-only' : 'computer-only'} values</div>`;
       const rows = fieldsFor(id).map(([field, fieldLabel, kind, min, max]) =>
         fieldHtml(id, field, fieldLabel, kind, min, max, state[id][field])
       ).join('');
@@ -220,6 +232,29 @@
     `<button type="button" id="home-layout-copy-btn" class="big-btn primary-btn">📋 Copy CSS</button>` +
     `</div>`;
   document.body.appendChild(panel);
+
+  // Updates the title badge + every per-button "-- iPad-only/computer-only values" section
+  // header to match the device setChoresPreviewDevice-style toggle below just switched to --
+  // these are baked into the HTML as plain text at build time (above), so they don't update on
+  // their own the way the actual field values (syncControls) already do.
+  function refreshHomeDeviceLabels() {
+    const title = document.getElementById('home-layout-title');
+    if (title) title.textContent = `Home Buttons Layout Tool (${isTouch() ? 'iPad' : 'Computer'})`;
+    BUTTONS.forEach(({ id, label }) => {
+      const el = panel.querySelector(`[data-device-label="${id}"]`);
+      if (el) el.textContent = `${label} -- ${isTouch() ? 'iPad-only' : 'computer-only'} values`;
+    });
+    const btn = document.getElementById('home-layout-device-btn');
+    if (btn) btn.textContent = isTouch() ? '📱 Editing: iPad' : '💻 Editing: Computer';
+  }
+  function setHomePreviewDevice(wantIpad) {
+    document.documentElement.classList.toggle('is-ipad', wantIpad);
+    state = { ...currentDefaults(), ...loadDraft() };
+    BUTTONS.forEach(({ id }) => { state[id] = clampButtonState(state[id]); });
+    applyLayout();
+    syncControls();
+    refreshHomeDeviceLabels();
+  }
 
   // Small floating pill shown while the panel is hidden for a preview -- the only way back,
   // since the panel itself is gone. Not part of .kz-layout-tool-panel (that's the full-size
@@ -250,6 +285,7 @@
     });
   }
   syncControls();
+  refreshHomeDeviceLabels();
 
   GROUP_FIELDS.forEach(([field]) => {
     document.getElementById(`hb-group-${field}-dec`).addEventListener('click', () => nudgeIconRow(field, -STEP));
@@ -287,9 +323,11 @@
     window.AppBridge.enterHome();
     panel.classList.remove('hidden');
   });
+  document.getElementById('home-layout-device-btn').addEventListener('click', () => setHomePreviewDevice(!isTouch()));
   document.getElementById('home-layout-done-btn').addEventListener('click', () => {
     panel.classList.add('hidden');
     previewBackBtn.classList.add('hidden');
+    setHomePreviewDevice(HOME_REAL_IS_IPAD); // back to whichever device this really is
     window.AppBridge.enterParentArea();
   });
   document.getElementById('home-layout-preview-btn').addEventListener('click', () => {

@@ -12,9 +12,21 @@
        dark-mode scripts use to avoid a flash of the wrong theme). Every CSS file's former
        @media(pointer:coarse) block is now an .is-ipad-qualified rule instead; js/kid-rewards.js's
        isTouch() and js/home-overlay.js's equivalent read this same class, not matchMedia, so CSS
-       and JS never disagree about which device is active. -->
+       and JS never disagree about which device is active.
+
+       ?device=ipad / ?device=computer in the URL overrides the real check -- unlike the old
+       pointer:coarse signal, this one can't be tricked by Chrome DevTools' device toolbar
+       (which spoofs navigator.userAgent and touch points, but not navigator.platform, so it
+       never actually matches "MacIntel"). Add ?device=ipad to the address bar to preview/test
+       any screen as a real iPad from a regular computer browser, no devtools needed. Only
+       affects this one page load -- the Chores/Home Layout Tools' own device-toggle buttons are
+       for switching mid-session without reloading. -->
   <script>
-    document.documentElement.classList.toggle('is-ipad', navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    (function () {
+      var forced = new URLSearchParams(location.search).get('device');
+      var isIpad = forced ? forced === 'ipad' : (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      document.documentElement.classList.toggle('is-ipad', isIpad);
+    })();
   </script>
   <meta charset="UTF-8" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -33,10 +45,10 @@
   <link rel="stylesheet" href="spot-the-difference.css?v=1" />
   <link rel="stylesheet" href="games-carousel.css?v=6" />
   <link rel="stylesheet" href="reading-carousel.css?v=5" />
-  <link rel="stylesheet" href="chores-redesign.css?v=13" />
+  <link rel="stylesheet" href="chores-redesign.css?v=15" />
   <link rel="stylesheet" href="home-overlay.css?v=25" />
   <link rel="stylesheet" href="store-intro.css?v=2" />
-  <link rel="stylesheet" href="store-items.css?v=11" />
+  <link rel="stylesheet" href="store-items.css?v=12" />
 </head>
 <body>
 
@@ -110,25 +122,29 @@
       <span class="header-spacer" id="chores-voice-slot"></span>
     </header>
     <div class="screen-inner">
-      <div class="kz-chores-sign">
-        <img class="kz-chores-sign-img" src="assets/chores/wooden-header.png" alt="" />
-        <svg class="kz-chores-sign-text" viewBox="0 0 1000 333" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-          <defs><path id="kz-chores-sign-arc" d="M 150 270 Q 500 188 850 270"/></defs>
-          <text class="kz-chores-sign-label"><textPath id="kz-chores-sign-name" href="#kz-chores-sign-arc" startOffset="50%" textLength="630" lengthAdjust="spacingAndGlyphs"></textPath></text>
-        </svg>
-      </div>
       <button type="button" class="kz-chores-home" id="kz-chores-home" aria-label="Back to home">⌂ Home</button>
       <div class="kz-chores-coins" id="kz-chores-coins"></div>
-      <div class="kz-chores-banner" id="kz-chores-banner">
-        <img class="kz-chores-banner-art" src="assets/chores/progress-banner.png" alt="" />
-        <div class="kz-chores-avatar" id="kz-chores-avatar"></div>
-        <div class="kz-chores-today">Today's Progress</div>
-        <div class="kz-chores-count" id="kz-chores-count"></div>
-        <div class="kz-chores-track"><div class="kz-chores-fill" id="kz-chores-fill"></div></div>
-      </div>
-      <div class="chore-list" id="chore-list"></div>
-      <p class="empty-hint hidden" id="chore-empty">No chores today! 🎉</p>
     </div>
+    <!-- Sign/banner/pill-list are siblings of .screen-inner, not children of it -- glued to the
+         true #chores-screen (same technique home-overlay.css's Home buttons use) instead of the
+         cover-cropped background image, whose own absolute size varies a lot more between
+         devices than the screen itself does. See chores-redesign.css. -->
+    <div class="kz-chores-sign">
+      <img class="kz-chores-sign-img" src="assets/chores/wooden-header.png" alt="" />
+      <svg class="kz-chores-sign-text" viewBox="0 0 1000 333" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs><path id="kz-chores-sign-arc" d="M 150 270 Q 500 188 850 270"/></defs>
+        <text class="kz-chores-sign-label"><textPath id="kz-chores-sign-name" href="#kz-chores-sign-arc" startOffset="50%" textLength="630" lengthAdjust="spacingAndGlyphs"></textPath></text>
+      </svg>
+    </div>
+    <div class="kz-chores-banner" id="kz-chores-banner">
+      <img class="kz-chores-banner-art" src="assets/chores/progress-banner.png" alt="" />
+      <div class="kz-chores-avatar" id="kz-chores-avatar"></div>
+      <div class="kz-chores-today">Today's Progress</div>
+      <div class="kz-chores-count" id="kz-chores-count"></div>
+      <div class="kz-chores-track"><div class="kz-chores-fill" id="kz-chores-fill"></div></div>
+    </div>
+    <div class="chore-list" id="chore-list"></div>
+    <p class="empty-hint hidden" id="chore-empty">No chores today! 🎉</p>
   </section>
 
   <!-- ================= Store intro (categories) -- Home's Rewards Store button (and the
@@ -161,6 +177,7 @@
     <div class="store-items-inner">
       <button type="button" class="icon-btn store-items-back" id="store-back-btn" aria-label="Back"></button>
       <span class="coin-chip store-items-coins" id="store-coins"></span>
+      <canvas class="store-pig-clerk" id="pig-clerk-canvas" aria-hidden="true"></canvas>
       <div class="store-items-content">
         <div class="store-waiting hidden" id="store-waiting"></div>
         <div class="store-pill-list" id="store-grid"></div>
@@ -1020,8 +1037,13 @@
   <aside id="chores-layout-panel" class="kz-layout-tool-panel hidden" aria-label="Chores layout tool">
     <div class="chores-layout-head">
       <strong>Chores Layout Tool</strong>
+      <button type="button" id="chores-layout-device-btn" class="big-btn"></button>
       <button type="button" id="chores-layout-done-btn" class="big-btn primary-btn">✅ Done</button>
     </div>
+    <p class="parent-card-note">Tap the device button above to tune the OTHER device's
+      values/preview from here -- without it, the iPad half can only ever be edited by someone
+      physically on an iPad.</p>
+    <button type="button" id="chores-layout-copy-device-btn" class="big-btn" style="width:100%;margin-bottom:6px"></button>
 
     <!-- Left/right and Up/down sliders below are % (of each element's own box), not px --
          translate() percentages are self-relative, so the same number lands in the same
@@ -1032,8 +1054,8 @@
     <input type="range" id="cl-header-x" min="-40" max="40" step="0.5" value="0">
     <label for="cl-header-y">Up / down <output id="cl-header-y-val"></output></label>
     <input type="range" id="cl-header-y" min="-40" max="40" step="0.5" value="0">
-    <label for="cl-header-scale">Size <output id="cl-header-scale-val"></output></label>
-    <input type="range" id="cl-header-scale" min="50" max="150" step="1" value="61">
+    <label for="cl-header-w">Size (% of screen width) <output id="cl-header-w-val"></output></label>
+    <input type="range" id="cl-header-w" min="15" max="70" step="0.5" value="40">
 
     <div class="chores-layout-section">Header text (child's name)</div>
     <label for="cl-header-text-x">Left / right <output id="cl-header-text-x-val"></output></label>
@@ -1049,19 +1071,17 @@
     <label for="cl-banner-x">Left / right <output id="cl-banner-x-val"></output></label>
     <input type="range" id="cl-banner-x" min="-40" max="40" step="0.5" value="0">
     <label for="cl-banner-y">Up / down <output id="cl-banner-y-val"></output></label>
-    <input type="range" id="cl-banner-y" min="-40" max="40" step="0.5" value="-15">
-    <label for="cl-banner-scale">Size <output id="cl-banner-scale-val"></output></label>
-    <input type="range" id="cl-banner-scale" min="50" max="150" step="1" value="78">
-    <label for="cl-banner-height-scale">Height (independent of Size) <output id="cl-banner-height-scale-val"></output></label>
-    <input type="range" id="cl-banner-height-scale" min="50" max="220" step="1" value="196">
+    <input type="range" id="cl-banner-y" min="-40" max="40" step="0.5" value="0">
+    <label for="cl-banner-w">Size (% of screen width) <output id="cl-banner-w-val"></output></label>
+    <input type="range" id="cl-banner-w" min="30" max="80" step="0.5" value="55">
 
     <div class="chores-layout-section">Child's photo</div>
     <label for="cl-avatar-x">Left / right <output id="cl-avatar-x-val"></output></label>
     <input type="range" id="cl-avatar-x" min="-40" max="40" step="0.5" value="1.5">
     <label for="cl-avatar-y">Up / down <output id="cl-avatar-y-val"></output></label>
     <input type="range" id="cl-avatar-y" min="-40" max="40" step="0.5" value="-25">
-    <label for="cl-avatar-size">Size <output id="cl-avatar-size-val"></output></label>
-    <input type="range" id="cl-avatar-size" min="50" max="200" step="1" value="104">
+    <label for="cl-avatar-w">Size (% of banner width) <output id="cl-avatar-w-val"></output></label>
+    <input type="range" id="cl-avatar-w" min="5" max="30" step="0.5" value="15">
 
     <!-- Wider range than the other sections' Up/down -- these two are now a % of the banner
          (their containing block), not of their own tiny text-line box, so the same number
@@ -1445,14 +1465,15 @@
   <script src="js/spot-the-difference.js?v=1"></script>
   <script src="js/setup.js?v=161"></script>
   <script src="js/reward-pill.js?v=3"></script>
-  <script src="js/kid-rewards.js?v=175"></script>
+  <script src="js/kid-rewards.js?v=179"></script>
   <script src="js/reward-shop.js?v=1"></script>
+  <script src="js/pig-clerk.js?v=3"></script>
   <script src="js/war.js?v=159"></script>
   <script src="js/tictactoe.js?v=159"></script>
   <script src="js/connect4.js?v=159"></script>
   <script src="games-carousel.js?v=2"></script>
   <script src="reading-carousel.js?v=2"></script>
   <script src="js/games.js?v=159"></script>
-  <script src="js/home-overlay.js?v=24"></script>
+  <script src="js/home-overlay.js?v=25"></script>
 </body>
 </html>

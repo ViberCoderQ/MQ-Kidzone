@@ -135,52 +135,81 @@ const KidRewards = (() => {
     all[isTouch() ? 'ipad' : 'computer'] = s;
     setData(CHORES_LAYOUT_LOCAL_KEY, all);
   }
+  // A specific device's current values regardless of which one is active right now (hardcoded
+  // defaults merged with that device's own saved draft) -- same merge currentChoresDefaults() +
+  // loadChoresDraft() do for whichever device isTouch() says is active, just explicitly callable
+  // for the OTHER one too, for "Copy values from the other device" below.
+  function choresBaselineFor(device) {
+    const all = getData(CHORES_LAYOUT_LOCAL_KEY, null) || {};
+    return { ...CHORES_LAYOUT_DEFAULTS[device], ...(all[device] || {}) };
+  }
   // Reads the exact same html.is-ipad class every CSS rule below is now gated on (set once,
   // synchronously, by the inline script at the top of index.html's <head>) -- not
   // matchMedia('(pointer: coarse)'), which a touchscreen Windows laptop reports true for even
   // docked with a mouse attached. Keeping JS and CSS reading the identical signal is what
   // guarantees they never disagree about which device is active.
   function isTouch() { return document.documentElement.classList.contains('is-ipad'); }
+  // Lets a grown-up tune the iPad half of this tool from a computer (or vice versa) -- without
+  // this, isTouch() only ever reflects whichever device is physically open right now, so the
+  // OTHER device's values/CSS could only ever be edited by someone literally holding that
+  // device. Forces the real html.is-ipad class itself (not a separate tool-only flag), which is
+  // what every is-ipad-gated CSS rule app-wide reads -- so the preview behind this panel is
+  // pixel-accurate to the other device (background art included), not just a numbers simulation.
+  // Captured once at load, before any toggling, so Done can restore the device's own real state.
+  const CHORES_REAL_IS_IPAD = isTouch();
+  function setChoresPreviewDevice(wantIpad) {
+    document.documentElement.classList.toggle('is-ipad', wantIpad);
+    choresLayoutState = { ...currentChoresDefaults(), ...loadChoresDraft() };
+    applyChoresLayout(choresLayoutState);
+    refreshChoresDeviceLabels();
+  }
+  function refreshChoresDeviceLabels() {
+    const deviceBtn = $('chores-layout-device-btn');
+    if (deviceBtn) deviceBtn.textContent = isTouch() ? '📱 Editing: iPad' : '💻 Editing: Computer';
+    const copyBtn = $('chores-layout-copy-device-btn');
+    if (copyBtn) copyBtn.textContent = `📋 Copy values from ${isTouch() ? 'Computer' : 'iPad'}`;
+  }
   // Position nudges (X/Y) are in %, not px -- CSS translate() percentages are relative to the
-  // element's OWN box size (not the viewport), and every box here is already sized as a % of
-  // the screen, so a % nudge lands in the same relative spot on any device/window width. But the
-  // Chores screen's background art is a different shape on an iPad than on a computer window
-  // (same reason the Home screen's background differs per device), so each value below has its
-  // own computer/ipad pair -- picked by isTouch() -- instead of one shared number. headerTextCurve
-  // is the #kz-chores-sign-arc path's curve, not a CSS var (see applyChoresLayout below), but
-  // still gets its own per-device value for the same reason.
+  // element's OWN box size (not the viewport), so a % nudge lands in the same relative spot on
+  // any device/window width. Size (headerW/bannerW/avatarW) is now a real % of a stable box
+  // (the screen for header/banner, the banner for avatar) with height locked via aspect-ratio in
+  // CSS -- not a scale() multiplier against the old cover-cropped-image-relative layout -- so
+  // Computer and iPad start fully IDENTICAL on purpose (there's no longer a structural reason
+  // they'd need to differ; only diverge a specific field via the device toggle if something
+  // actually looks off on a real iPad). headerTextCurve is the #kz-chores-sign-arc path's curve,
+  // not a CSS var (see applyChoresLayout below), but still gets its own per-device value for the
+  // same reason as everything else -- it's just not structurally glued the way size/position are.
   const CHORES_LAYOUT_DEFAULTS = {
     computer: {
-      headerX: 0, headerY: 0, headerScale: 61,
+      headerX: 0, headerY: 0, headerW: 40,
       headerTextX: 0, headerTextY: -5, headerTextCurve: 82, headerTextSize: 128,
-      bannerX: 0, bannerY: -15, bannerScale: 78, bannerHeightScale: 196,
-      avatarX: 1.5, avatarY: -25, avatarSize: 104,
+      bannerX: 0, bannerY: 0, bannerW: 55,
+      avatarX: 1.5, avatarY: -25, avatarW: 15,
       todayX: 0, todayY: -15.5, todaySize: 87,
       countX: 0.5, countY: -23, countSize: 105,
       pillsX: 0, pillsY: 0, pillsScale: 101, pillsExtendUp: 0, pillsExtendDown: 0,
       chorePicX: 1, chorePicWidthScale: 128, chorePicHeightScale: 100,
     },
     ipad: {
-      headerX: 0, headerY: 1, headerScale: 76,
-      headerTextX: 1.5, headerTextY: -6, headerTextCurve: 80, headerTextSize: 133,
-      bannerX: 0, bannerY: -2.5, bannerScale: 97, bannerHeightScale: 196,
-      avatarX: 1, avatarY: -25, avatarSize: 104,
-      todayX: -0.5, todayY: -14.5, todaySize: 87,
-      countX: 0, countY: -23.5, countSize: 105,
-      pillsX: 0, pillsY: 0, pillsScale: 99, pillsExtendUp: 0, pillsExtendDown: 0,
-      chorePicX: 1, chorePicWidthScale: 127, chorePicHeightScale: 101,
+      headerX: 0, headerY: 0, headerW: 40,
+      headerTextX: 0, headerTextY: -5, headerTextCurve: 82, headerTextSize: 128,
+      bannerX: 0, bannerY: 0, bannerW: 55,
+      avatarX: 1.5, avatarY: -25, avatarW: 15,
+      todayX: 0, todayY: -15.5, todaySize: 87,
+      countX: 0.5, countY: -23, countSize: 105,
+      pillsX: 0, pillsY: 0, pillsScale: 101, pillsExtendUp: 0, pillsExtendDown: 0,
+      chorePicX: 1, chorePicWidthScale: 128, chorePicHeightScale: 100,
     },
   };
   function currentChoresDefaults() {
     return { ...(isTouch() ? CHORES_LAYOUT_DEFAULTS.ipad : CHORES_LAYOUT_DEFAULTS.computer) };
   }
   const CHORES_LAYOUT_SPEC = [
-    ['headerX', 'cl-header-x', '%'], ['headerY', 'cl-header-y', '%'], ['headerScale', 'cl-header-scale', '%'],
+    ['headerX', 'cl-header-x', '%'], ['headerY', 'cl-header-y', '%'], ['headerW', 'cl-header-w', '%'],
     ['headerTextX', 'cl-header-text-x', '%'], ['headerTextY', 'cl-header-text-y', '%'],
     ['headerTextCurve', 'cl-header-text-curve', ''], ['headerTextSize', 'cl-header-text-size', '%'],
-    ['bannerX', 'cl-banner-x', '%'], ['bannerY', 'cl-banner-y', '%'], ['bannerScale', 'cl-banner-scale', '%'],
-    ['bannerHeightScale', 'cl-banner-height-scale', '%'],
-    ['avatarX', 'cl-avatar-x', '%'], ['avatarY', 'cl-avatar-y', '%'], ['avatarSize', 'cl-avatar-size', '%'],
+    ['bannerX', 'cl-banner-x', '%'], ['bannerY', 'cl-banner-y', '%'], ['bannerW', 'cl-banner-w', '%'],
+    ['avatarX', 'cl-avatar-x', '%'], ['avatarY', 'cl-avatar-y', '%'], ['avatarW', 'cl-avatar-w', '%'],
     ['todayX', 'cl-today-x', '%'], ['todayY', 'cl-today-y', '%'], ['todaySize', 'cl-today-size', '%'],
     ['countX', 'cl-count-x', '%'], ['countY', 'cl-count-y', '%'], ['countSize', 'cl-count-size', '%'],
     ['pillsX', 'cl-pills-x', '%'], ['pillsY', 'cl-pills-y', '%'], ['pillsScale', 'cl-pills-scale', '%'],
@@ -203,7 +232,7 @@ const KidRewards = (() => {
     const root = document.documentElement.style;
     root.setProperty(kzcVar('headerX'), L.headerX + '%');
     root.setProperty(kzcVar('headerY'), L.headerY + '%');
-    root.setProperty(kzcVar('headerScale'), L.headerScale / 100);
+    root.setProperty(kzcVar('headerW'), L.headerW + '%');
     root.setProperty(kzcVar('headerTextX'), L.headerTextX + '%');
     root.setProperty(kzcVar('headerTextY'), L.headerTextY + '%');
     root.setProperty(kzcVar('headerTextSize'), L.headerTextSize / 100);
@@ -215,11 +244,10 @@ const KidRewards = (() => {
     centerChoresSignText(); // arc length just changed with the curve above -- keep the name centered on it
     root.setProperty(kzcVar('bannerX'), L.bannerX + '%');
     root.setProperty(kzcVar('bannerY'), L.bannerY + '%');
-    root.setProperty(kzcVar('bannerScale'), L.bannerScale / 100);
-    root.setProperty(kzcVar('bannerHeightScale'), L.bannerHeightScale / 100);
+    root.setProperty(kzcVar('bannerW'), L.bannerW + '%');
     root.setProperty(kzcVar('avatarX'), L.avatarX + '%');
     root.setProperty(kzcVar('avatarY'), L.avatarY + '%');
-    root.setProperty(kzcVar('avatarSize'), L.avatarSize / 100);
+    root.setProperty(kzcVar('avatarW'), L.avatarW + '%');
     root.setProperty(kzcVar('todayX'), L.todayX + '%');
     root.setProperty(kzcVar('todayY'), L.todayY + '%');
     root.setProperty(kzcVar('todaySize'), L.todaySize / 100);
@@ -258,11 +286,23 @@ const KidRewards = (() => {
 
   $('chores-layout-open-btn').addEventListener('click', () => {
     applyChoresLayout(choresLayoutState);
+    refreshChoresDeviceLabels();
     openChores();
     $('chores-layout-panel').classList.remove('hidden');
   });
+  $('chores-layout-device-btn').addEventListener('click', () => setChoresPreviewDevice(!isTouch()));
+  // One-time copy, not a live link: seeds the CURRENT device's values from a snapshot of the
+  // other device's current values -- a fast starting point (most fields are usually close between
+  // devices already), not an ongoing tether. Edit/Save/Reset afterward all behave exactly as
+  // before; nothing about this button changes how the two devices are stored or applied.
+  $('chores-layout-copy-device-btn').addEventListener('click', () => {
+    choresLayoutState = choresBaselineFor(isTouch() ? 'computer' : 'ipad');
+    applyChoresLayout(choresLayoutState);
+    saveChoresDraft(choresLayoutState);
+  });
   $('chores-layout-done-btn').addEventListener('click', () => {
     $('chores-layout-panel').classList.add('hidden');
+    setChoresPreviewDevice(CHORES_REAL_IS_IPAD); // back to whichever device this really is
     AppBridge.enterParentArea();
   });
   $('chores-layout-reset-btn').addEventListener('click', () => {
@@ -274,12 +314,12 @@ const KidRewards = (() => {
     const L = choresLayoutState;
     const text = `:root {\n` +
       `  /* ${isTouch() ? 'iPad' : 'Computer'} values */\n` +
-      `  ${kzcVar('headerX')}: ${L.headerX}%; ${kzcVar('headerY')}: ${L.headerY}%; ${kzcVar('headerScale')}: ${L.headerScale / 100};\n` +
+      `  ${kzcVar('headerX')}: ${L.headerX}%; ${kzcVar('headerY')}: ${L.headerY}%; ${kzcVar('headerW')}: ${L.headerW}%;\n` +
       `  ${kzcVar('headerTextX')}: ${L.headerTextX}%; ${kzcVar('headerTextY')}: ${L.headerTextY}%; ${kzcVar('headerTextSize')}: ${L.headerTextSize / 100};\n` +
       `  /* also update index.html's <path id="kz-chores-sign-arc"> d attribute to: */\n` +
       `  /* d="M 150 270 Q 500 ${270 - L.headerTextCurve} 850 270" */\n` +
-      `  ${kzcVar('bannerX')}: ${L.bannerX}%; ${kzcVar('bannerY')}: ${L.bannerY}%; ${kzcVar('bannerScale')}: ${L.bannerScale / 100}; ${kzcVar('bannerHeightScale')}: ${L.bannerHeightScale / 100};\n` +
-      `  ${kzcVar('avatarX')}: ${L.avatarX}%; ${kzcVar('avatarY')}: ${L.avatarY}%; ${kzcVar('avatarSize')}: ${L.avatarSize / 100};\n` +
+      `  ${kzcVar('bannerX')}: ${L.bannerX}%; ${kzcVar('bannerY')}: ${L.bannerY}%; ${kzcVar('bannerW')}: ${L.bannerW}%;\n` +
+      `  ${kzcVar('avatarX')}: ${L.avatarX}%; ${kzcVar('avatarY')}: ${L.avatarY}%; ${kzcVar('avatarW')}: ${L.avatarW}%;\n` +
       `  ${kzcVar('todayX')}: ${L.todayX}%; ${kzcVar('todayY')}: ${L.todayY}%; ${kzcVar('todaySize')}: ${L.todaySize / 100};\n` +
       `  ${kzcVar('countX')}: ${L.countX}%; ${kzcVar('countY')}: ${L.countY}%; ${kzcVar('countSize')}: ${L.countSize / 100};\n` +
       `  ${kzcVar('pillsX')}: ${L.pillsX}%; ${kzcVar('pillsY')}: ${L.pillsY}%; ${kzcVar('pillsScale')}: ${L.pillsScale / 100};\n` +
@@ -312,6 +352,7 @@ const KidRewards = (() => {
     // so it has to run while #store-screen is already visible, not before.
     AppBridge.showScreen('store-screen');
     renderStore();
+    if (window.PigClerk) window.PigClerk.enter();
   }
 
   const PILL_COLORS = ['blue', 'cyan', 'gold', 'green', 'pink', 'orange', 'purple', 'red'];
@@ -419,7 +460,10 @@ const KidRewards = (() => {
 
   // Items screen's back arrow returns to the category screen (not Home) -- it's the screen the
   // kid actually came from (openStoreItems() is only ever reached via a category pill tap).
-  $('store-back-btn').addEventListener('click', () => openStore());
+  $('store-back-btn').addEventListener('click', () => {
+    if (window.PigClerk) window.PigClerk.exit();
+    openStore();
+  });
   $('store-intro-home-btn').addEventListener('click', () => AppBridge.enterHome());
 
   function renderStore() {

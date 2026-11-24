@@ -75,6 +75,15 @@ html.is-ipad #store-screen .store-items-inner {
   border: none; box-shadow: none; font-size: clamp(14px, 1.8vw, 26px); color: #3a2e2e;
 }
 
+/* Animated pig shopkeeper (js/pig-clerk.js) -- sits over the counter art, drawn at the box's own
+   native pixel resolution (set via the canvas width/height attribute in JS, one of the two
+   PLACEMENT entries there) and then stretched 1:1 with the background by CSS, same as the art
+   itself. z-index between the plain wood backdrop and the real controls above it so it never
+   blocks taps. */
+#store-screen .store-pig-clerk {
+  position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none;
+}
+
 /* Everything else (waiting chips + the pill list + empty hint) -- one block, "top right" of the
    blank wood wall per the first pass; --si-* vars make it easy to nudge later without touching
    markup. List scrolls internally (rather than growing past the art) if there end up being more
