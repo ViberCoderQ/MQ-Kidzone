@@ -24,19 +24,13 @@
   const TAIL_START = 149.5 / 60; // seconds: frames >=150 use the regenerated newFrame PNGs
   // Idle sway/breathing grid -- the handoff used 12x12 (288 triangles/frame); that many
   // clip+drawImage calls every frame, for as long as the pig idles, was the suspected cause of
-  // iPad jitter. Confirmed better but still choppy at 7x7 with per-triangle source cropping, so
-  // dropping further to 5x5 (50 triangles) plus throttling how often it's recomputed at all (see
-  // WARP_INTERVAL/applyWarp below) -- not yet re-verified, adjust if still too much/little.
-  const IDLE_GRID = 5;
-  // Once the pig is at rest (not mid-wave), the only thing changing between frames is the
-  // breathing/tilt/wiggle sway, and that moves slowly and smoothly -- recomputing the full
-  // 50-triangle warp on every single one of ~60 frames/sec is wasted work (and, on iPad, wasted
-  // GC pressure from the per-triangle temporary arrays) when every 3rd frame looks the same to
-  // the eye. Recomputed at most this often instead; the main canvas still redraws at full rate,
-  // just by blitting the last computed result in between (see draw()'s img === imgs.master
-  // branch). NOT used during the wave/tail animation itself, since that image's own content
-  // changes every frame regardless of sway -- caching there would freeze it mid-motion.
-  const WARP_INTERVAL = 1 / 20;
+  // iPad jitter. 7x7 (98 triangles) with per-triangle source cropping (see tri() below) was an
+  // improvement but still choppy. A coarser 5x5 grid plus throttling the recompute rate made the
+  // frame rate better but visibly worse -- fewer/bigger triangles approximate the smooth
+  // breathing/tilt curve with cruder flat facets, which shows up as a slight "dragging" warp in
+  // the art on anything but a very subtle sway. Back to 7x7; see the vertex de-duplication below
+  // instead for the next round of cost-cutting that doesn't touch visual resolution.
+  const IDLE_GRID = 7;
 
   // Character canvas size/scale at each breakpoint -- NOT tunable from the align tool (only
   // position is), since these were already calibrated once by compositing master.png over each
@@ -133,25 +127,42 @@
 
   // ---- idle deform (breathing/ear-wiggle/head-tilt sway + blinking) -- same formulas as the
   // handoff, applied only once the pig has settled to rest (see draw()).
-  function deform(x, y, b, e, tilt) {
+  function deform(x, y, b, e, tilt, out) {
     const top = Math.max(0, 1 - y / CHAR_H);
     const ear = Math.exp(-((x - 800) ** 2 / 85000 + (y - 100) ** 2 / 45000));
-    return [x + tilt * 7 * top + b * 3 * (x - CHAR_W / 2) / CHAR_W, y + b * 5 * Math.sin(Math.PI * y / CHAR_H) + e * 9 * ear];
+    const nx = x + tilt * 7 * top + b * 3 * (x - CHAR_W / 2) / CHAR_W;
+    const ny = y + b * 5 * Math.sin(Math.PI * y / CHAR_H) + e * 9 * ear;
+    if (out) { out[0] = nx; out[1] = ny; return out; }
+    return [nx, ny];
   }
+
+  // Precomputed once (grid shape never changes at runtime): IDLE_GRID carves the character into
+  // an (n+1)x(n+1) vertex mesh, same as the old V6 rig's verts/indices approach. The handoff's
+  // original code called deform() once per TRIANGLE CORNER (3x per triangle, ~6x per interior
+  // vertex since a regular grid's interior vertices are shared by ~6 triangles) -- i.e. it
+  // deformed most vertices multiple times over with the identical result. Deforming each of the
+  // (n+1)^2 unique vertices exactly once per frame instead, into a reused output buffer (no new
+  // arrays), is the same math/same visual result for a fraction of the calls and allocations:
+  // for IDLE_GRID=7, 64 deform() calls instead of 294, and zero per-frame array creation for the
+  // vertex positions themselves (only the small per-triangle s/d arrays tri() takes remain).
+  const gridN = IDLE_GRID;
+  const gridVerts = []; // source (undeformed) positions, index = jj*(gridN+1)+ii
+  for (let jj = 0; jj <= gridN; jj++) for (let ii = 0; ii <= gridN; ii++) {
+    gridVerts.push([ii * CHAR_W / gridN, jj * CHAR_H / gridN]);
+  }
+  const deformedVerts = gridVerts.map(() => [0, 0]); // reused in place every frame, same shape
+  const gridTris = []; // each entry: [i0, i1, i2] indices into gridVerts/deformedVerts
+  for (let jj = 0; jj < gridN; jj++) for (let ii = 0; ii < gridN; ii++) {
+    const k = jj * (gridN + 1) + ii;
+    gridTris.push([k, k + 1, k + gridN + 1], [k + 1, k + gridN + 2, k + gridN + 1]);
+  }
+
   function applyWarp(ctx, img, b, e, tilt) {
-    const n = IDLE_GRID, m = IDLE_GRID;
-    for (let jj = 0; jj < m; jj++) for (let ii = 0; ii < n; ii++) {
-      const a1 = [ii * CHAR_W / n, jj * CHAR_H / m], b1 = [(ii + 1) * CHAR_W / n, jj * CHAR_H / m];
-      const d1 = [ii * CHAR_W / n, (jj + 1) * CHAR_H / m], f1 = [(ii + 1) * CHAR_W / n, (jj + 1) * CHAR_H / m];
-      for (const sTri of [[a1, b1, d1], [b1, f1, d1]]) tri(ctx, img, sTri, sTri.map((pt) => deform(pt[0], pt[1], b, e, tilt)));
+    for (let k = 0; k < gridVerts.length; k++) deform(gridVerts[k][0], gridVerts[k][1], b, e, tilt, deformedVerts[k]);
+    for (const [i0, i1, i2] of gridTris) {
+      tri(ctx, img, [gridVerts[i0], gridVerts[i1], gridVerts[i2]], [deformedVerts[i0], deformedVerts[i1], deformedVerts[i2]]);
     }
   }
-  // Offscreen, untransformed (native CHAR_W x CHAR_H) cache of the last computed warp -- see
-  // WARP_INTERVAL above for why this is throttled independently of the main 60fps draw loop.
-  const warpCanvas = document.createElement('canvas');
-  warpCanvas.width = CHAR_W; warpCanvas.height = CHAR_H;
-  const warpCtx = warpCanvas.getContext('2d');
-  let warpCacheT = -Infinity;
 
   function loadAssets() {
     return Promise.all(Object.entries(ASSET_FILES).map(([key, file]) => new Promise((resolve, reject) => {
@@ -245,18 +256,7 @@
 
     if (Math.abs(b) + Math.abs(e) + Math.abs(tilt) < 0.001) {
       mainCtx.drawImage(img, 0, 0);
-    } else if (img === imgs.master) {
-      // At rest -- the image itself is static, so the warp can be recomputed on a slower clock
-      // than the draw loop and just re-blitted (one cheap drawImage) on the frames in between.
-      if (t - warpCacheT >= WARP_INTERVAL) {
-        warpCacheT = t;
-        warpCtx.clearRect(0, 0, CHAR_W, CHAR_H);
-        applyWarp(warpCtx, img, b, e, tilt);
-      }
-      mainCtx.drawImage(warpCanvas, 0, 0);
     } else {
-      // Still mid-wave/tail -- img's own content changes every frame regardless of sway, so the
-      // warp must be recomputed every frame too (the cache above would freeze it mid-motion).
       applyWarp(mainCtx, img, b, e, tilt);
     }
 
