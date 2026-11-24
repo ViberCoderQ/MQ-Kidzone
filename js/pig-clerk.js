@@ -23,12 +23,20 @@
   const END_PHASE = 2.8;       // seconds: total wave-to-rest animation length (168 frames @ 60fps)
   const TAIL_START = 149.5 / 60; // seconds: frames >=150 use the regenerated newFrame PNGs
   // Idle sway/breathing grid -- the handoff used 12x12 (288 triangles/frame); that many
-  // clip+drawImage calls every frame, for as long as the pig idles, is the suspected cause of
-  // iPad jitter. 7x7 (98 triangles) plus the cropped-source change in tri() above cuts that
-  // substantially -- not yet verified on a real iPad, so treat this number as a starting point to
-  // adjust (lower = smoother/choppier-looking sway, higher = smoother-looking/slower) if testing
-  // shows it still needs to come down further, or can afford to go back up.
-  const IDLE_GRID = 7;
+  // clip+drawImage calls every frame, for as long as the pig idles, was the suspected cause of
+  // iPad jitter. Confirmed better but still choppy at 7x7 with per-triangle source cropping, so
+  // dropping further to 5x5 (50 triangles) plus throttling how often it's recomputed at all (see
+  // WARP_INTERVAL/applyWarp below) -- not yet re-verified, adjust if still too much/little.
+  const IDLE_GRID = 5;
+  // Once the pig is at rest (not mid-wave), the only thing changing between frames is the
+  // breathing/tilt/wiggle sway, and that moves slowly and smoothly -- recomputing the full
+  // 50-triangle warp on every single one of ~60 frames/sec is wasted work (and, on iPad, wasted
+  // GC pressure from the per-triangle temporary arrays) when every 3rd frame looks the same to
+  // the eye. Recomputed at most this often instead; the main canvas still redraws at full rate,
+  // just by blitting the last computed result in between (see draw()'s img === imgs.master
+  // branch). NOT used during the wave/tail animation itself, since that image's own content
+  // changes every frame regardless of sway -- caching there would freeze it mid-motion.
+  const WARP_INTERVAL = 1 / 20;
 
   // Character canvas size/scale at each breakpoint -- NOT tunable from the align tool (only
   // position is), since these were already calibrated once by compositing master.png over each
@@ -130,6 +138,20 @@
     const ear = Math.exp(-((x - 800) ** 2 / 85000 + (y - 100) ** 2 / 45000));
     return [x + tilt * 7 * top + b * 3 * (x - CHAR_W / 2) / CHAR_W, y + b * 5 * Math.sin(Math.PI * y / CHAR_H) + e * 9 * ear];
   }
+  function applyWarp(ctx, img, b, e, tilt) {
+    const n = IDLE_GRID, m = IDLE_GRID;
+    for (let jj = 0; jj < m; jj++) for (let ii = 0; ii < n; ii++) {
+      const a1 = [ii * CHAR_W / n, jj * CHAR_H / m], b1 = [(ii + 1) * CHAR_W / n, jj * CHAR_H / m];
+      const d1 = [ii * CHAR_W / n, (jj + 1) * CHAR_H / m], f1 = [(ii + 1) * CHAR_W / n, (jj + 1) * CHAR_H / m];
+      for (const sTri of [[a1, b1, d1], [b1, f1, d1]]) tri(ctx, img, sTri, sTri.map((pt) => deform(pt[0], pt[1], b, e, tilt)));
+    }
+  }
+  // Offscreen, untransformed (native CHAR_W x CHAR_H) cache of the last computed warp -- see
+  // WARP_INTERVAL above for why this is throttled independently of the main 60fps draw loop.
+  const warpCanvas = document.createElement('canvas');
+  warpCanvas.width = CHAR_W; warpCanvas.height = CHAR_H;
+  const warpCtx = warpCanvas.getContext('2d');
+  let warpCacheT = -Infinity;
 
   function loadAssets() {
     return Promise.all(Object.entries(ASSET_FILES).map(([key, file]) => new Promise((resolve, reject) => {
@@ -223,13 +245,19 @@
 
     if (Math.abs(b) + Math.abs(e) + Math.abs(tilt) < 0.001) {
       mainCtx.drawImage(img, 0, 0);
-    } else {
-      const n = IDLE_GRID, m = IDLE_GRID;
-      for (let jj = 0; jj < m; jj++) for (let ii = 0; ii < n; ii++) {
-        const a1 = [ii * CHAR_W / n, jj * CHAR_H / m], b1 = [(ii + 1) * CHAR_W / n, jj * CHAR_H / m];
-        const d1 = [ii * CHAR_W / n, (jj + 1) * CHAR_H / m], f1 = [(ii + 1) * CHAR_W / n, (jj + 1) * CHAR_H / m];
-        for (const sTri of [[a1, b1, d1], [b1, f1, d1]]) tri(mainCtx, img, sTri, sTri.map((pt) => deform(pt[0], pt[1], b, e, tilt)));
+    } else if (img === imgs.master) {
+      // At rest -- the image itself is static, so the warp can be recomputed on a slower clock
+      // than the draw loop and just re-blitted (one cheap drawImage) on the frames in between.
+      if (t - warpCacheT >= WARP_INTERVAL) {
+        warpCacheT = t;
+        warpCtx.clearRect(0, 0, CHAR_W, CHAR_H);
+        applyWarp(warpCtx, img, b, e, tilt);
       }
+      mainCtx.drawImage(warpCanvas, 0, 0);
+    } else {
+      // Still mid-wave/tail -- img's own content changes every frame regardless of sway, so the
+      // warp must be recomputed every frame too (the cache above would freeze it mid-motion).
+      applyWarp(mainCtx, img, b, e, tilt);
     }
 
     if (idleActive && fx.blinking) {
