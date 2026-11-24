@@ -1,7 +1,7 @@
 ﻿// Offline support. "Network first": when the iPad is online it always gets the newest files
 // from Netlify (so a new deploy shows up right away), and a copy of each file is kept. When it's
 // offline, the kept copy is used instead, so the app still opens and works.
-const CACHE = 'family-app-v119';
+const CACHE = 'family-app-v120';
 const CORE = [
   './',
   'index.html',
@@ -80,6 +80,37 @@ self.addEventListener('fetch', (event) => {
   // The photo editor's save check must always hit the real file, never a kept copy.
   if (url.searchParams.has('_verify') || req.cache === 'reload') return;
 
+  // Static art (backgrounds, icons, the pig's sprites) -- cache first, not network first. These
+  // never change in place: a real content change always comes with either a bumped "?v=NN" query
+  // string or a bumped CACHE constant above (which deletes every old entry on activate), so once
+  // a given URL has been fetched once, it's safe to keep serving it from the cache forever without
+  // re-checking the network -- which is what makes a second visit to any screen, even after the
+  // whole app has been fully closed and reopened, show up instantly instead of re-fetching and
+  // re-decoding the same image over again. This was the actual cause of the "every screen is slow
+  // the first time, every time" feeling: everything below used to go through the network-first
+  // path meant for index.html/JS/CSS (where "always get the newest" matters and files are small
+  // enough that re-checking costs nothing), including images that never change and can be large.
+  if ((req.destination === 'image') && (url.pathname.includes('/assets/') || url.pathname.includes('/icons/'))) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE);
+      const hit = await cache.match(req);
+      if (hit) return hit;
+      try {
+        const fresh = await fetch(req);
+        if (fresh && fresh.ok) cache.put(req, fresh.clone());
+        return fresh;
+      } catch (err) {
+        const anyVersion = await cache.match(req, { ignoreSearch: true });
+        if (anyVersion) return anyVersion;
+        throw err;
+      }
+    })());
+    return;
+  }
+
+  // Everything else (the HTML shell, JS, CSS, manifest) -- network first, unchanged: always get
+  // the newest file when online, so a new deploy shows up right away without a stale cache ever
+  // masking it; only fall back to the kept copy when actually offline.
   event.respondWith((async () => {
     try {
       const fresh = await fetch(req);
