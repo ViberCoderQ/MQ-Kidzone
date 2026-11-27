@@ -80,11 +80,6 @@ const Games = (() => {
   function incomingChallengesFor(kidId) {
     return sessionsCache.filter((s) => s.opponent_id === kidId && s.status === 'pending');
   }
-  // In-progress games this kid is part of -- lets them get back in after a reload, an accidental
-  // back-tap, or just closing the app mid-game, instead of the match being stranded.
-  function activeSessionsFor(kidId) {
-    return sessionsCache.filter((s) => s.status === 'active' && (s.challenger_id === kidId || s.opponent_id === kidId));
-  }
   function sessionById(id) {
     return sessionsCache.find((s) => s.id === id) || null;
   }
@@ -239,25 +234,6 @@ const Games = (() => {
   });
 
   function renderGamesList() {
-    const resumeBox = $('games-resume-list');
-    resumeBox.innerHTML = '';
-    const me = getActiveProfile();
-    if (me) {
-      activeSessionsFor(me.id).forEach((session) => {
-        const opponentId = session.challenger_id === me.id ? session.opponent_id : session.challenger_id;
-        const opponent = opponentId === 'computer' ? { name: 'Computer' } : loadProfiles().find((p) => p.id === opponentId);
-        const info = gameInfo(session.game_type);
-        const row = document.createElement('button');
-        row.type = 'button';
-        row.className = 'setup-row';
-        row.innerHTML = `<span class="pic pic-md pic-emoji">${info ? info.emoji : '🎮'}</span>` +
-          `<span class="setup-row-text"><span class="setup-row-name">Resume ${info ? info.name : 'game'}</span><span class="setup-row-meta">vs ${esc(opponent ? opponent.name : 'opponent')}</span></span>` +
-          `<span class="parent-kid-more">▶</span>`;
-        row.addEventListener('click', () => openPlayScreen(session));
-        resumeBox.appendChild(row);
-      });
-    }
-
     // Games are rendered as a carousel (games-carousel.js), not the old tile grid. To add a
     // game: add its CATALOG entry above and drop assets/games-carousel/<id>.png -- no layout
     // edits needed here.

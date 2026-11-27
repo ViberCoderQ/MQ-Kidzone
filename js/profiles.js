@@ -23,6 +23,8 @@ function rowToProfile(row) {
     id: row.id,
     name: row.name,
     avatarColor: row.avatar_color,
+    dashboardColor: row.dashboard_color,
+    dashboardVisible: row.dashboard_visible,
     photoUrl: row.photo_url,
     spellingHelper: row.spelling_helper,
     autoRead: row.auto_read,
@@ -36,6 +38,14 @@ function patchToRow(patch) {
   const row = {};
   if ('name' in patch) row.name = patch.name;
   if ('avatarColor' in patch) row.avatar_color = patch.avatarColor;
+  // The admin dashboard-color <select> (js/app.js) writes this straight to Supabase itself
+  // instead of going through updateProfile(), since it wants its own disabled/Saved/rollback-on-
+  // failure feedback -- kept here anyway so updateProfile(id, { dashboardColor }) also works for
+  // any future caller, same as every other profile field.
+  if ('dashboardColor' in patch) row.dashboard_color = patch.dashboardColor;
+  // The Setup > Dashboard tab's checkboxes (js/setup.js) also write this straight to Supabase
+  // themselves, same Saving.../Saved/error feedback reasoning as dashboardColor above.
+  if ('dashboardVisible' in patch) row.dashboard_visible = patch.dashboardVisible;
   if ('photoUrl' in patch) row.photo_url = patch.photoUrl;
   if ('spellingHelper' in patch) row.spelling_helper = patch.spellingHelper;
   if ('autoRead' in patch) row.auto_read = patch.autoRead;

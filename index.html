@@ -43,12 +43,13 @@
   <link rel="stylesheet" href="style.css?v=164" />
   <link rel="stylesheet" href="memory-match.css?v=159" />
   <link rel="stylesheet" href="spot-the-difference.css?v=1" />
-  <link rel="stylesheet" href="games-carousel.css?v=7" />
+  <link rel="stylesheet" href="games-carousel.css?v=8" />
   <link rel="stylesheet" href="reading-carousel.css?v=6" />
-  <link rel="stylesheet" href="chores-redesign.css?v=17" />
+  <link rel="stylesheet" href="chores-redesign.css?v=18" />
   <link rel="stylesheet" href="home-overlay.css?v=26" />
   <link rel="stylesheet" href="store-intro.css?v=2" />
   <link rel="stylesheet" href="store-items.css?v=12" />
+  <link rel="stylesheet" href="all-kids-dashboard.css?v=3" />
 </head>
 <body>
 
@@ -96,6 +97,43 @@
       <div class="section-grid" id="section-grid"></div>
     </div>
     <button type="button" id="home-parent-settings" aria-label="Grown-ups: settings"></button>
+    <button type="button" id="all-kids-open" aria-label="All Kids Chores dashboard"></button>
+  </section>
+
+  <!-- ================= Music (Beta 1): Music Room / Piano / Drums / Recording Studio, supplied
+       as self-contained static files (see music/*.html and js/music.js). Hosted in an iframe --
+       the first one in this app -- rather than merged into the main HTML, since each file is
+       tens of MB of embedded artwork/audio; keeping them separate lets the browser cache each
+       one independently instead of re-parsing it as part of this page. The iframe is same-
+       origin (never srcdoc), so the instrument files call top.getActiveProfile()/
+       top.AppBridge.openPinPad() directly for identity and parent-gating -- no postMessage
+       bridge needed at this (outer) layer. ================= -->
+  <section id="music-screen" class="screen">
+    <iframe id="music-frame" title="Music" style="position:absolute;inset:0;width:100%;height:100%;border:0;background:#172638"></iframe>
+    <button type="button" id="kz-music-home" aria-label="Back to home" style="position:absolute;left:1%;top:1%;z-index:2">⌂ Home</button>
+  </section>
+
+  <!-- ================= All Kids Chores dashboard: read-only overview of every child's chores/
+       coins for the day (Grown-up or any kid can open it from Home); see js/all-kids-dashboard.js
+       and all-kids-dashboard.css. Nothing here writes a chore/coin change -- audio and Home are
+       the only interactive bits. ================= -->
+  <section id="all-kids-screen" class="screen">
+    <main class="stage desktop">
+      <header>
+        <button type="button" class="home" aria-label="Home">Home</button>
+        <img class="title" src="assets/dashboard/wooden-header.png" alt="Kid Zone" />
+        <div class="titletext">Today's Chores</div>
+        <div class="all">All Kids</div>
+        <!-- Locked (default): tapping a chore works the same as the kid's own Chores screen --
+             marks it waiting for a grown-up, nothing more. Unlocked (parent PIN): tapping a chore
+             marks it straight to completed (for a parent standing right there watching it
+             happen), and tapping an already-completed one undoes it. Auto-relocks on Home. -->
+        <button type="button" class="lock" id="all-kids-lock" aria-label="Unlock to mark chores complete yourself">🔒</button>
+      </header>
+      <div class="admin-banner hidden" id="all-kids-admin-banner">Unlocked -- tapping a chore marks it done</div>
+      <div class="panels"></div>
+      <div class="dashboard-message" role="status"></div>
+    </main>
   </section>
 
   <!-- ================= My coins ================= -->
@@ -209,7 +247,6 @@
       <span class="header-spacer"></span>
     </header>
     <div class="screen-inner">
-      <div class="setup-list kz-resume-wrapper" id="games-resume-list"></div>
       <div class="section-grid" id="games-list" style="display:none"></div>
       <div id="kz-games-carousel" class="kz-carousel"></div>
     </div>
@@ -901,6 +938,7 @@
       <button type="button" class="setup-tab" data-tab="store">🛍️ Store</button>
       <button type="button" class="setup-tab" data-tab="categories">🎁 Reward Shop</button>
       <button type="button" class="setup-tab" data-tab="coins">🪙 Coins</button>
+      <button type="button" class="setup-tab" data-tab="dashboard">📊 Dashboard</button>
     </nav>
     <div class="screen-inner setup-inner">
       <div class="setup-panel" data-panel="chores">
@@ -933,6 +971,12 @@
           <button type="button" class="big-btn" id="setup-suggest-btn">💡 Suggest values</button>
           <div class="setup-suggest-result hidden" id="setup-suggest-result"></div>
         </div>
+      </div>
+
+      <div class="setup-panel hidden" data-panel="dashboard">
+        <p class="parent-card-note">Choose which kids show up on the "All Kids Chores" dashboard (Home screen, top). Unchecking a
+          kid hides their panel there -- it doesn't affect their own iPad, chores, or coins at all.</p>
+        <div class="setup-list" id="setup-dashboard-list"></div>
       </div>
     </div>
     <footer class="setup-footer">
@@ -1014,6 +1058,22 @@
         </span>
         <input type="checkbox" id="kid-autoread-toggle" class="switch" />
       </label>
+
+      <label class="parent-card-note">
+        Dashboard panel color
+        <select id="kid-dashboard-color">
+          <option value="">Default</option>
+          <option value="blue">Blue</option>
+          <option value="orange">Orange</option>
+          <option value="green">Green</option>
+          <option value="red">Red</option>
+          <option value="purple">Purple</option>
+          <option value="pink">Pink</option>
+          <option value="gold">Gold</option>
+          <option value="silver">Silver</option>
+        </select>
+      </label>
+      <p id="kid-dashboard-color-message" role="status"></p>
 
       <div class="kid-learning" id="kid-learning"></div>
 
@@ -1453,8 +1513,8 @@
   <script src="js/parent-pin.js?v=159"></script>
   <script src="js/settings.js?v=160"></script>
   <script src="js/coins.js?v=159"></script>
-  <script src="js/rewards-data.js?v=159"></script>
-  <script src="js/profiles.js?v=160"></script>
+  <script src="js/rewards-data.js?v=160"></script>
+  <script src="js/profiles.js?v=162"></script>
   <script src="js/templates.js?v=159"></script>
   <script src="js/raster-art.js?v=159"></script>
   <script src="js/styluses.js?v=159"></script>
@@ -1466,7 +1526,9 @@
   <script src="js/canvas-engine.js?v=159"></script>
   <script src="js/gallery.js?v=159"></script>
   <script src="js/backup.js?v=159"></script>
-  <script src="js/app.js?v=160"></script>
+  <script src="js/app.js?v=162"></script>
+  <script src="js/all-kids-dashboard.js?v=3"></script>
+  <script src="js/music.js?v=1"></script>
   <script src="js/math-content.js?v=159"></script>
   <script src="js/learning.js?v=159"></script>
   <script src="js/custom-reading-pics.js?v=159"></script>
@@ -1476,7 +1538,7 @@
   <script src="js/memory-match-game.js?v=160"></script>
   <script src="js/spot-the-difference-levels.js?v=1"></script>
   <script src="js/spot-the-difference.js?v=1"></script>
-  <script src="js/setup.js?v=161"></script>
+  <script src="js/setup.js?v=162"></script>
   <script src="js/reward-pill.js?v=3"></script>
   <script src="js/kid-rewards.js?v=181"></script>
   <script src="js/reward-shop.js?v=1"></script>
@@ -1487,7 +1549,7 @@
   <script src="js/connect4.js?v=159"></script>
   <script src="games-carousel.js?v=2"></script>
   <script src="reading-carousel.js?v=2"></script>
-  <script src="js/games.js?v=160"></script>
-  <script src="js/home-overlay.js?v=25"></script>
+  <script src="js/games.js?v=161"></script>
+  <script src="js/home-overlay.js?v=26"></script>
 </body>
 </html>

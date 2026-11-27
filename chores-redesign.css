@@ -153,19 +153,28 @@ html.is-ipad #chores-screen.kz-chores-redesign > .screen-inner {
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, .42); transition: width .55s ease;
 }
 
-/* Chore grid: fills the space below the banner, 3 columns x 2 rows on a landscape iPad, with
-   vertical scroll for families with more chores than that in one day. */
+/* Chore grid: 3 columns, as many rows as there are chores (6 or 600), scrolling vertically once
+   they pass 2 rows. No grid-template-rows -- every row, including the first 2, is sized by
+   grid-auto-rows below, so a 7th+ chore gets a row the SAME height as the first 6 instead of
+   collapsing to its content size (plain CSS grid's default for implicit rows, which would make
+   row 3+ squashed/unreadable). The 50% - half-gap math reproduces exactly what the old
+   repeat(2, minmax(0,1fr)) used to compute for 2 rows, just generalized to any row count. */
 #chores-screen.kz-chores-redesign .chore-list {
   position: absolute; inset: 0; max-width: none; margin: 0; padding: 0 1.6% 1.4%;
   /* --kzc-pills-extend-up/-down independently move the top edge up or the bottom edge down,
      so the row of pills can grow taller from either side without touching the other. */
   top: calc(35% - var(--kzc-pills-extend-up, 0%));
   height: calc(65% + var(--kzc-pills-extend-up, 0%) + var(--kzc-pills-extend-down, 0%));
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: clamp(6px, 1vh, 14px); overflow-y: auto; overscroll-behavior: contain; align-content: start;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  --kzc-row-gap: clamp(6px, 1vh, 14px);
+  grid-auto-rows: calc(50% - (var(--kzc-row-gap) / 2));
+  gap: var(--kzc-row-gap); overflow-y: auto; overscroll-behavior: contain; align-content: start;
+  /* Scrolls by touch/trackpad/wheel same as always -- just no visible track or thumb drawn. */
+  scrollbar-width: none; -ms-overflow-style: none;
   /* --kzc-pills-x/-y move every pill together (one shared value, not per-pill). */
   transform: translate(var(--kzc-pills-x, 0%), var(--kzc-pills-y, 0%));
 }
+#chores-screen.kz-chores-redesign .chore-list::-webkit-scrollbar { display: none; }
 #chores-screen.kz-chores-redesign .chore-card {
   position: relative; display: block; min-height: 0; height: 100%; padding: 0; margin: 0; border: 0; border-radius: 0;
   overflow: visible; background: url('assets/chores/chore-pill.png') center / 100% 100% no-repeat; box-shadow: none;

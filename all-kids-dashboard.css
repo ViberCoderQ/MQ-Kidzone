@@ -1,0 +1,262 @@
+/* All Kids Chores dashboard -- Cursor handoff, "Kid Zone Dashboard V3", originally read-only
+   except audio + Home nav; deliberately made interactive after that handoff (see the lock/
+   admin-mode rules at the very end of this file, added later, not part of the original supply).
+   Reformatted from the supplied minified CSS into this codebase's usual style (every rule on its
+   own lines, grouped/commented) -- same selectors/values/declaration order as supplied, no
+   behavior change. One real edit on top of that: #all-kids-open's position was moved off the
+   supplied dead-center-top spot, which overlapped the existing coin/profile chip header -- see
+   its own rule near the bottom for the new, nudge-tool-adjustable placement.
+
+   Layered like three passes that were appended rather than merged back into each other (V1 base,
+   then a V2 refinement pass, then a V3 polish pass) -- several custom properties and rules are
+   intentionally redeclared later with different values, and the LATER declaration is the one
+   that actually applies (plain CSS cascade: same specificity, later wins). Preserved exactly as
+   supplied rather than deduplicated, since collapsing these by hand risks silently picking the
+   wrong winning value for something not caught by eye -- worth a real cleanup pass later with the
+   dashboard open side by side, not a blind mechanical merge during a reformat-only pass. */
+
+/* ---- pass 1: base layout ---- */
+#all-kids-screen .stage {
+  --gap: 0.7cqw; --row: 7.9cqh; --photo: 10cqw; --audio: 3.2cqw; --coin: 5.5cqw; --status: 2.6cqw;
+  --font: 1.45cqw; --panel-radius: 3.4cqw; --header-y: 0px; --panel-height: 74cqh;
+  container-type: size; position: relative; width: 100%; height: 100dvh;
+  background: url(assets/dashboard/background.png) center / 100% 100%;
+  overflow: auto; padding: 1cqw;
+}
+#all-kids-screen header {
+  height: 19cqh; position: relative; text-align: center;
+  display: flex; justify-content: center; align-items: center;
+  transform: translateY(var(--header-y));
+}
+#all-kids-screen .title { width: 34cqw; height: 18cqh; object-fit: contain; }
+#all-kids-screen .titletext {
+  position: absolute; top: 6cqh; font-size: 3cqw; font-weight: 900; color: #fff;
+  text-shadow: 2px 2px #10265d, -2px -2px #10265d;
+}
+#all-kids-screen .brand {
+  position: absolute; top: 0; font-size: 3cqw; font-weight: 900; color: #ffce35;
+  text-shadow: 2px 2px #1355b2;
+}
+#all-kids-screen .all {
+  position: absolute; bottom: 0; background: #fff8dd; border: 3px solid #e4aa28;
+  border-radius: 30px; padding: .3cqw 2cqw; font-weight: 900; font-size: 1.6cqw;
+}
+#all-kids-screen .home, #all-kids-screen .family {
+  position: absolute; top: 1cqh; border-radius: 30px; padding: .7cqw 1.5cqw;
+  font-weight: bold; font-size: 1.6cqw;
+}
+#all-kids-screen .home { left: 0; background: linear-gradient(#1688ee, #062b85); color: white; border: 3px solid white; }
+#all-kids-screen .family { right: 0; background: #fff9dc; border: 4px solid #e9ad20; }
+#all-kids-screen .panels {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); padding: 1cqw 1.3cqw;
+}
+#all-kids-screen .panel {
+  height: var(--panel-height); min-height: 0; border: 5px solid var(--edge); border-radius: var(--panel-radius);
+  background: linear-gradient(#92d8f5, #edfaff 35%, #e8f7ff);
+  box-shadow: inset 0 0 0 3px white, inset 0 0 0 6px var(--edge), 0 3px 0 #15436d;
+  padding: .8cqw; display: flex; flex-direction: column;
+}
+#all-kids-screen .profile {
+  display: grid; grid-template-columns: var(--photo) 1fr; gap: .5cqw; align-items: center; min-height: 16cqh;
+}
+#all-kids-screen .avatar {
+  width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 50%; border: 3px solid var(--edge); background: white;
+}
+#all-kids-screen .name {
+  background: linear-gradient(#fffbe0, #ffdb4b); border: 3px solid #e5a419; border-radius: 30px;
+  text-align: center; font-weight: 900; font-size: 2cqw; padding: .25cqw;
+}
+#all-kids-screen .count { font-weight: bold; text-align: center; font-size: 1.25cqw; margin: .5cqw 0; }
+#all-kids-screen .meter {
+  height: 2.9cqh; border-radius: 30px; background: linear-gradient(#777f86, #b7c1c6);
+  border: 1px solid #68727b; overflow: hidden;
+}
+#all-kids-screen .fill { height: 100%; background: #4dc83d; border-radius: inherit; }
+#all-kids-screen .rows { display: flex; flex-direction: column; gap: .35cqh; overflow: auto; min-height: 0; flex: 1; }
+#all-kids-screen .chore {
+  flex: 0 0 var(--row); display: grid;
+  grid-template-columns: 5.2cqw minmax(0, 1fr) var(--audio) var(--coin) var(--status);
+  align-items: center; gap: .35cqw; border: 2px solid #a7d9ed; border-radius: 1.3cqw;
+  background: linear-gradient(#f8fdff, #dceff9); padding: .25cqw; font-size: var(--font); font-weight: bold;
+}
+#all-kids-screen .chore.waiting { background: #fff2b7; }
+#all-kids-screen .chore.approved { background: #d5f6c8; }
+#all-kids-screen .pic {
+  width: 100%; height: 100%; max-height: calc(var(--row) - 8px); object-fit: contain;
+  border-radius: .6cqw; background: white;
+}
+#all-kids-screen .audio { border: 0; background: none; padding: 0; width: 100%; aspect-ratio: 1; }
+#all-kids-screen .audio img { width: 100%; height: 100%; object-fit: contain; }
+#all-kids-screen .coin {
+  display: flex; align-items: center; justify-content: center; background: #fff0a2;
+  border: 2px solid #efb82a; border-radius: 20px; white-space: nowrap; font-size: 1.3cqw;
+}
+#all-kids-screen .status {
+  width: 100%; aspect-ratio: 1; border: 2px solid #183e85; border-radius: 25%;
+  background: white; display: grid; place-items: center;
+}
+#all-kids-screen .waiting .status { background: #ffe18a; }
+#all-kids-screen .approved .status { background: #8de17a; }
+#all-kids-screen .previewnote {
+  position: absolute; bottom: .1cqh; left: 0; right: 0; text-align: center; font-size: 10px; color: #173c15;
+}
+#all-kids-screen .tools { padding: 10px; background: #fff; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+#all-kids-screen .stage.ipad {
+  width: min(100%, 133.333dvh); margin: auto; background-image: url(assets/dashboard/background-ipad.png);
+  --font: 1.65cqw; --photo: 10cqw; --row: 8.1cqh; --audio: 3.4cqw; --coin: 5.4cqw; --status: 2.8cqw;
+}
+#all-kids-screen .stage.desktop { width: min(100%, 177.778dvh); margin: auto; }
+#all-kids-screen .stage.ipad .chore {
+  grid-template-columns: 4.8cqw minmax(0, 1fr) var(--audio) var(--coin) var(--status);
+}
+@media (max-aspect-ratio: 3/2) {
+  #all-kids-screen .stage:not(.desktop) { background-image: url(assets/dashboard/background-ipad.png); }
+}
+
+/* ---- pass 2: refinement (redeclares several pass-1 tokens/rules -- see file header) ---- */
+#all-kids-screen .stage {
+  --row: 8.1cqh; --panel-height: 74cqh; --photo: 9.5cqw; --font: 1.48cqw; --gap: .65cqw;
+  --panel-width: 1fr; --header-y: 0px; --audio: 3.15cqw; --coin: 5.5cqw; --status: 2.45cqw;
+  background-size: cover; overflow: hidden;
+}
+#all-kids-screen .panels { grid-template-columns: repeat(3, minmax(0, var(--panel-width))); padding: .5cqw 1.3cqw; }
+#all-kids-screen .panel {
+  position: relative; border: 0; border-radius: 3.3cqw; box-shadow: 0 3px 3px #123b5677;
+  background: linear-gradient(#8bd7f7, #e7f7ff 29%, #edfaff); padding: 1.05cqw; isolation: isolate;
+}
+#all-kids-screen .panel:before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  border: 1.15cqw solid transparent; border-image: var(--frame) 48 stretch; z-index: -1;
+}
+#all-kids-screen .profile { min-height: 17cqh; grid-template-columns: var(--photo) minmax(0, 1fr); gap: .5cqw; }
+#all-kids-screen .avatar { border: 4px solid var(--edge); box-shadow: 0 0 0 2px white, 0 0 0 4px var(--edge); }
+#all-kids-screen .name {
+  background: linear-gradient(#fffef0 5%, #fff3a3 45%, #ffcf35 85%, #e5a00a);
+  box-shadow: inset 0 0 0 2px #fff5bd, 0 2px 0 #ae781b; border: 2px solid #d99b15; line-height: 1.05;
+}
+#all-kids-screen .balance { text-align: center; font-size: 1.15cqw; font-weight: 800; margin: .3cqh 0; color: #24365a; }
+#all-kids-screen .count { margin: .3cqh 0; font-size: 1.25cqw; }
+#all-kids-screen .meter { height: 2.5cqh; box-shadow: inset 0 2px 4px #46515b88; }
+#all-kids-screen .fill { background: linear-gradient(#8af66a, #28aa32); }
+#all-kids-screen .rows { gap: .45cqh; }
+#all-kids-screen .chore {
+  border: 1.5px solid #9bd4ec; background: linear-gradient(#f6fcff, #dceff9);
+  box-shadow: inset 0 1px 2px white; border-radius: 1.25cqw; line-height: 1.04;
+}
+#all-kids-screen .chore.waiting { background: linear-gradient(#fff9dc, #ffe8a1); border-color: #e5bf53; }
+#all-kids-screen .chore.approved { background: linear-gradient(#efffe8, #c9f0b9); border-color: #83c985; }
+#all-kids-screen .coin {
+  border: 0; background: url(assets/dashboard/coins-pill.png) center / 100% 100% no-repeat;
+  aspect-ratio: 2.2; padding-left: 35%; font-size: 1.45cqw;
+}
+#all-kids-screen .status { font-size: 1.6cqw; }
+#all-kids-screen .title { width: 34cqw; height: 19cqh; object-fit: contain; }
+#all-kids-screen .titletext { top: 8.4cqh; font-size: 2.8cqw; line-height: 1; }
+#all-kids-screen .all { bottom: 0; font-size: 1.4cqw; }
+#all-kids-screen .home {
+  width: 12.5cqw; height: 8cqh; border: 0; background: url(assets/dashboard/home.png) center / contain no-repeat;
+  color: transparent; padding: 0;
+}
+#all-kids-screen .stage.ipad {
+  --row: 8.1cqh; --font: 1.65cqw; --photo: 9.5cqw; --coin: 5.5cqw; --audio: 3.3cqw; --status: 2.6cqw;
+}
+#all-kids-screen .stage.ipad .title { width: 42cqw; }
+#all-kids-screen .stage.ipad .titletext { font-size: 3.5cqw; top: 8.6cqh; }
+#all-kids-screen .stage.ipad .count { font-size: 1.45cqw; }
+#all-kids-screen .stage.ipad .balance { font-size: 1.4cqw; }
+#all-kids-screen .stage.ipad .name { font-size: 2.4cqw; }
+#all-kids-screen .stage.ipad .profile { min-height: 17cqh; }
+#all-kids-screen .tools { font-size: 14px; }
+#all-kids-screen .tools label { display: inline-flex; gap: 5px; align-items: center; }
+#all-kids-screen .previewnote { font-size: 10px; }
+#all-kids-screen .stage.desktop, #all-kids-screen .stage.ipad { height: min(100dvh, 56.25vw); }
+#all-kids-screen .stage.ipad { height: min(100dvh, 75vw); }
+#all-kids-screen .panel:before {
+  border: 0; border-radius: inherit;
+  box-shadow: inset 0 0 0 2px #155079, inset 0 0 0 5px var(--edge), inset 0 0 0 7px #a9f8ff,
+    inset 0 0 0 9px white, inset 0 0 0 11px var(--edge), inset 0 0 14px 9px var(--edge);
+}
+#all-kids-screen .panel { border-radius: 3.2cqw; }
+#all-kids-screen .titletext {
+  color: #10234e; text-shadow: 2px 2px white, -2px -2px white, 2px -2px white, -2px 2px white; font-weight: 900;
+}
+
+/* ---- pass 3: base utility rules + the Home-screen entry button ---- */
+#all-kids-screen { background: #182e36; overflow: hidden; }
+#all-kids-screen .stage { margin: auto; box-sizing: border-box; }
+#all-kids-screen * { box-sizing: border-box; }
+#all-kids-screen .panels {
+  grid-template-columns: repeat(var(--columns, 3), minmax(0, var(--panel-width, 1fr)));
+  overflow: auto; max-height: 80cqh;
+}
+#all-kids-screen .panels.many { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#all-kids-screen .pic-emoji { display: grid; place-items: center; font-size: 3cqw; }
+#all-kids-screen .avatar.initial {
+  display: grid; place-items: center; aspect-ratio: 1; font-size: 4cqw; font-weight: bold; color: #10234e;
+}
+#all-kids-screen .audio { cursor: pointer; }
+#all-kids-screen .dashboard-message {
+  position: absolute; bottom: 0; left: 0; right: 0; text-align: center; background: #fff9dc; font-size: 12px;
+}
+#all-kids-screen .chore > span:not(.coin):not(.status):not(.pic) { overflow-wrap: anywhere; }
+#all-kids-screen .home:focus-visible { outline: 3px solid white; }
+/* Entry button, a sibling of .home-header on the real Home screen (not part of the dashboard
+   itself) -- glued to the true screen like every other Home element, same "glue" technique used
+   everywhere else in this app. Position/size are nudge-tool-adjustable (Grown-ups > Home Layout),
+   split per device like everything else there -- see home-overlay.css/js/home-overlay.js.
+
+   Was a text-label pill dead-center-top (overlapped the coin/profile chip header); replaced with
+   a standalone icon sprite (icons/home-buttons/dashboard.png, same 1402x1122 canvas as the
+   settings gear) sitting just to the left of it in the top-right corner instead -- same
+   background-image/aspect-ratio pattern as #home-parent-settings in home-overlay.css, x is this
+   button's LEFT edge (not center, unlike the old pill). */
+#home-screen #all-kids-open {
+  position: absolute; z-index: 6; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background-image: url('icons/home-buttons/dashboard.png'); background-size: 100% 100%;
+  background-repeat: no-repeat; background-position: center;
+  aspect-ratio: 1402 / 1122;
+  left: var(--kzb-all-kids-x, 84%); top: var(--kzb-all-kids-y, 2%); width: var(--kzb-all-kids-w, 6.8%);
+}
+#home-screen #all-kids-open:hover,
+#home-screen #all-kids-open:focus-visible {
+  outline: none; background-color: transparent;
+}
+html.is-ipad #home-screen #all-kids-open {
+  left: var(--kzb-all-kids-x-ipad, 84%); top: var(--kzb-all-kids-y-ipad, 2%); width: var(--kzb-all-kids-w-ipad, 6.8%);
+}
+#all-kids-screen .empty-dashboard { padding: 1em; text-align: center; background: white; border-radius: 12px; }
+#all-kids-screen .stage { font-family: Arial, sans-serif; color: #101c51; }
+#all-kids-screen .panel { min-width: 0; }
+#all-kids-screen .rows { overflow-y: auto; }
+#all-kids-screen .home { cursor: pointer; }
+#all-kids-screen .stage.desktop { height: min(100dvh, 56.25vw); }
+#all-kids-screen .stage.ipad { height: min(100dvh, 75vw); }
+
+/* ---- admin mode: lock button + tappable chores (added after the original V3 handoff, which
+   was read-only) ---- */
+/* Every chore row is tappable now in both modes (locked: marks waiting, same as the kid's own
+   Chores screen; unlocked: marks/unmarks completed directly) -- see js/all-kids-dashboard.js. */
+#all-kids-screen .chore { cursor: pointer; }
+/* .family's own slot (right:0, same row as .home) was never actually used by any element the
+   supplied markup creates -- free real estate, not a fight over space with anything real. */
+#all-kids-screen .lock {
+  position: absolute; top: 1cqh; right: 0; z-index: 2;
+  border: 3px solid white; border-radius: 30px; padding: .7cqw 1.5cqw;
+  font-weight: bold; font-size: 1.6cqw; cursor: pointer;
+  background: linear-gradient(#4a5568, #1a202c); color: white;
+}
+/* Unlocked: visually loud on purpose -- this is a shared/TV display, so whoever's standing in
+   front of it needs to immediately tell "tapping a chore here completes it for real" apart from
+   the normal, harmless locked state. Swapping the emoji itself (🔒/🔓) is done in JS, not CSS. */
+#all-kids-screen .lock.unlocked {
+  background: linear-gradient(#ffd54a, #e8a60a); color: #3a2400; border-color: #fff3c4;
+  animation: all-kids-unlocked-glow 1.6s ease-in-out infinite;
+}
+@keyframes all-kids-unlocked-glow {
+  0%, 100% { box-shadow: 0 0 0 0 #ffd54a88; }
+  50% { box-shadow: 0 0 14px 4px #ffd54a88; }
+}
+#all-kids-screen .admin-banner {
+  text-align: center; font-weight: 900; font-size: 1.3cqw; padding: .3cqh 0;
+  background: linear-gradient(#ffe9a0, #ffd54a); color: #3a2400;
+}

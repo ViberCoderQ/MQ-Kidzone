@@ -85,6 +85,44 @@ const Setup = (() => {
     renderStore();
     renderCategories();
     renderCoins();
+    renderDashboardVisibility();
+  }
+
+  // ---------- All Kids Chores dashboard: who shows up ----------
+  // Same immediate-save-on-change, no separate Done button, pattern as renderCategories() below --
+  // one control per row, nothing to batch into a single submit. dashboardVisible defaults to true
+  // (Supabase column default), so a kid with it unset still shows as checked here.
+  function renderDashboardVisibility() {
+    const box = $('setup-dashboard-list');
+    box.innerHTML = '';
+    const kids = loadProfiles();
+    if (!kids.length) {
+      box.innerHTML = '<p class="parent-card-note">No kids yet -- add one from the Grown-ups screen first.</p>';
+      return;
+    }
+    kids.forEach((p) => {
+      const row = document.createElement('div');
+      row.className = 'setup-row';
+      row.innerHTML = `<span class="setup-row-text"><span class="setup-row-name">${esc(p.name)}</span></span>
+        <input type="checkbox" class="switch" ${p.dashboardVisible !== false ? 'checked' : ''} aria-label="Show ${esc(p.name)} on the dashboard" />`;
+      row.querySelector('input').addEventListener('change', async (e) => {
+        const checked = e.target.checked;
+        setStatus('Saving...');
+        try {
+          const familyId = ParentAuth.getFamilyId();
+          const { error } = await supabaseClient.from('kids')
+            .update({ dashboard_visible: checked }).eq('id', p.id).eq('family_id', familyId);
+          if (error) throw error;
+          p.dashboardVisible = checked;
+          setStatus('✅ Saved', 'ok');
+        } catch (err) {
+          console.error('[Setup] could not save dashboard visibility:', err);
+          e.target.checked = !checked; // roll back the toggle to match what's actually saved
+          setStatus('Could not save -- check your connection', 'error');
+        }
+      });
+      box.appendChild(row);
+    });
   }
 
   // ---------- reward shop categories ----------

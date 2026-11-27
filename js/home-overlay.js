@@ -28,6 +28,9 @@
     { id: 'chores', label: 'My Chores', computer: { x: 14.6, y: 71.8, w: 34.7 }, ipad: { x: 12.1, y: 72.8, w: 38 } },
     { id: 'store', label: 'Rewards Store', computer: { x: 50.2, y: 72.1, w: 35.4 }, ipad: { x: 49.7, y: 73, w: 38.2 } },
     { id: 'settings', label: 'Grown-ups gear', computer: { x: 92, y: 2, w: 6.8 }, ipad: { x: 92, y: 2, w: 6.8 } },
+    // Icon sprite sitting just left of the settings gear, same left-edge convention as every
+    // other button here (no longer the old center-anchored text pill).
+    { id: 'all-kids', label: 'All Kids Chores', computer: { x: 84, y: 2, w: 6.8 }, ipad: { x: 84, y: 2, w: 6.8 } },
   ];
   const ICON_IDS = ['games', 'coloring', 'reading', 'math', 'puzzles', 'music'];
 

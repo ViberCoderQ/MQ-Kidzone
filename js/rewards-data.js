@@ -139,6 +139,36 @@ function notYetChore(profileId, entryId) {
   });
 }
 
+// ---------- All Kids Chores dashboard: admin quick-complete ----------
+// A parent standing right there watching a kid finish a chore can mark it straight to approved
+// from the dashboard, instead of the normal two-step "kid taps Done, parent approves later" --
+// this just runs both existing steps back to back. Always earn-capped (payFull=false), same as
+// the approval queue's own default -- deliberately never shows the "pay full anyway?" popup that
+// flow uses for the daily-limit edge case, since that'd interrupt a fast morning routine on a
+// shared/TV display; a parent who wants to override the limit can still do that from the normal
+// approval queue. Returns the coins actually paid (0 if none, e.g. already logged by the kid and
+// approved, or the daily limit was already hit).
+function instantCompleteChore(profileId, chore) {
+  let entry = choreEntryToday(profileId, chore.id);
+  if (!entry) entry = markChoreDone(profileId, chore);
+  if (!entry || entry.status !== 'waiting') return 0;
+  return approveChore(profileId, entry.id, false);
+}
+
+// Reverses an instantCompleteChore tap (admin mode toggles a completed chore back to not-done,
+// e.g. a mis-tap during the morning routine). Un-pays whatever was paid with a new negative
+// ledger entry -- same append-only convention every other coin adjustment in this app already
+// uses, not editing/removing the original payment -- then removes the chore_log entry via the
+// existing notYetChore() so the chore shows up as not-done again, same end state a parent's
+// "Not yet" on a waiting (not yet approved) entry already leaves.
+function unapproveChore(profileId, entryId) {
+  const list = choreLogCache.get(profileId) || [];
+  const e = list.find((x) => x.id === entryId);
+  if (!e || e.status !== 'approved') return;
+  if (e.paid) addCoinEntry(profileId, { amount: -e.paid, source: 'chores', label: `Undo: ${e.name}`, emoji: choreEmoji(e) });
+  notYetChore(profileId, entryId);
+}
+
 function choreEmoji(e) {
   return e.picture && e.picture.type === 'emoji' ? e.picture.value : '🧹';
 }

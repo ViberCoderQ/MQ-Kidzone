@@ -321,6 +321,7 @@
     if (sec.id === 'math' || sec.id === 'reading') { Learning.openSubject(sec.id); return; }
     if (sec.id === 'games') { Games.openGamesScreen(); return; }
     if (sec.id === 'store') { KidRewards.openStore(); return; }
+    if (sec.id === 'music') { Music.open(); return; }
     Voice.speak(`${sec.label}. Coming soon!`);
     showToast(`${sec.emoji} Coming soon!`, 1800);
   }
@@ -3572,6 +3573,8 @@
     document.getElementById('kid-balance').textContent = `🪙 ${getCoinBalance(p.id)} coins`;
     kidHelperToggle.checked = spellingHelperOn(p);
     document.getElementById('kid-autoread-toggle').checked = p.autoRead !== false;
+    document.getElementById('kid-dashboard-color').value = p.dashboardColor || '';
+    document.getElementById('kid-dashboard-color-message').textContent = '';
     renderKidLearning(p);
     const history = loadCoinHistory(p.id).slice(0, 50);
     const historyEl = document.getElementById('kid-history');
@@ -3581,6 +3584,34 @@
 
   document.getElementById('kid-autoread-toggle').addEventListener('change', (e) => {
     if (kidPanelId) updateProfile(kidPanelId, { autoRead: e.target.checked });
+  });
+
+  // Dashboard panel color (All Kids Chores screen, js/all-kids-dashboard.js) -- writes straight
+  // to Supabase itself (not through updateProfile()) so it can show a real Saved/failed state and
+  // roll the <select> back on error, instead of updateProfile()'s silent fire-and-forget.
+  document.getElementById('kid-dashboard-color').addEventListener('change', async (e) => {
+    const id = kidPanelId;
+    const select = e.target;
+    const value = select.value;
+    const message = document.getElementById('kid-dashboard-color-message');
+    if (!id || !ParentAuth.getFamilyId()) return;
+    const p = loadProfiles().find((x) => x.id === id);
+    if (!p) return;
+    select.disabled = true;
+    try {
+      const { error } = await supabaseClient.from('kids')
+        .update({ dashboard_color: value || null }).eq('id', id).eq('family_id', ParentAuth.getFamilyId());
+      if (error) throw error;
+      p.dashboardColor = value;
+      if (kidPanelId === id) message.textContent = 'Saved';
+    } catch (err) {
+      if (kidPanelId === id) {
+        select.value = p.dashboardColor || '';
+        message.textContent = 'Could not save. Check connection and dashboard SQL migration.';
+      }
+    } finally {
+      select.disabled = false;
+    }
   });
 
   // Level picker + recent scores for each subject (Math, Reading), so parents can tell when
@@ -4222,11 +4253,17 @@
     pinForgotBtn.classList.toggle('hidden', step !== 'check');
   }
 
-  function openPinPad(mode, onSuccess) {
+  // message: optional override for the line under the title (e.g. the All Kids Chores
+  // dashboard's lock explaining what unlocking it does) -- applied after setPinStep's own default
+  // so it doesn't fight that, and only meant for single-step flows like 'check' (a 'create'/
+  // 'change' pin-setup flow's message already changes per step, which this would otherwise
+  // clobber on only the first of several steps).
+  function openPinPad(mode, onSuccess, message) {
     pinOnSuccess = onSuccess;
     pinTitle.textContent = mode === 'create' ? 'Create a parent PIN' : mode === 'change' ? 'Change PIN' : 'Grown-ups only';
     pinOverlay.dataset.mode = mode;
     setPinStep(mode === 'create' ? 'new' : 'check');
+    if (message) pinMessage.textContent = message;
     pinOverlay.classList.remove('hidden');
   }
 
@@ -4329,7 +4366,7 @@
   }
   window.AppBridge = {
     showScreen, enterParentArea, enterHome, escapeHtml, showToast, coinWords, celebrateCoins, renderParentKidList,
-    getConnectedProjectRoot, connectProjectFolder, getStoredProjectFolder, renderSectionGrid,
+    getConnectedProjectRoot, connectProjectFolder, getStoredProjectFolder, renderSectionGrid, openPinPad,
   };
 
   renderPalette();

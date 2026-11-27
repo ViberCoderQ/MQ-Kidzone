@@ -1,7 +1,7 @@
 ﻿// Offline support. "Network first": when the iPad is online it always gets the newest files
 // from Netlify (so a new deploy shows up right away), and a copy of each file is kept. When it's
 // offline, the kept copy is used instead, so the app still opens and works.
-const CACHE = 'family-app-v125';
+const CACHE = 'family-app-v133-music-fullscreen';
 const CORE = [
   './',
   'index.html',
@@ -35,6 +35,8 @@ const CORE = [
   'js/gallery.js',
   'js/backup.js',
   'js/app.js',
+  'js/all-kids-dashboard.js',
+  'all-kids-dashboard.css',
   'js/setup.js',
   'js/kid-rewards.js',
   'js/reward-pill.js',
@@ -91,6 +93,32 @@ self.addEventListener('fetch', (event) => {
   // path meant for index.html/JS/CSS (where "always get the newest" matters and files are small
   // enough that re-checking costs nothing), including images that never change and can be large.
   if ((req.destination === 'image') && (url.pathname.includes('/assets/') || url.pathname.includes('/icons/'))) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE);
+      const hit = await cache.match(req);
+      if (hit) return hit;
+      try {
+        const fresh = await fetch(req);
+        if (fresh && fresh.ok) cache.put(req, fresh.clone());
+        return fresh;
+      } catch (err) {
+        const anyVersion = await cache.match(req, { ignoreSearch: true });
+        if (anyVersion) return anyVersion;
+        throw err;
+      }
+    })());
+    return;
+  }
+
+  // Music (Beta 1): each of these files is tens of MB (embedded artwork/audio baked in as base64
+  // by the supplied package, not yet split into separately-cacheable assets -- see music/*.html's
+  // own comments). They have no "?v=NN" of their own (plain relative src, not a versioned script
+  // tag), so same as icons/assets below, a CACHE bump is what invalidates them when they change.
+  // Without this rule they'd fall through to the network-first path meant for small app code,
+  // meaning every single time a kid opened the Music section, the browser would re-download the
+  // full file (up to ~57MB for the Recording Studio) over the network -- the same "every screen
+  // slow to render" bug class already fixed for images below, just much more expensive here.
+  if (url.pathname.includes('/music/') && url.pathname.endsWith('.html')) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE);
       const hit = await cache.match(req);
